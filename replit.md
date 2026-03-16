@@ -69,6 +69,11 @@ All v1 routes require `API-KEY` header (brand_key from brands table).
 - `payments` - System payment gateway configs
 - `users` / `staffs` - User and admin accounts
 
+## Login Routes
+- User login: `/sign-in` (not `/login`)
+- Admin login: `/admin/sign-in`
+- Both use AJAX POST with CSRF `token` field via `actionForm` class
+
 ## Admin Credentials
 - Email: `admin@cloudman.one`
 - Password: stored in environment / secrets

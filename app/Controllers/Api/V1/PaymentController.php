@@ -117,7 +117,7 @@ class PaymentController extends ResourceController
             'cancel_url' => $cancelUrl,
             'customer_email' => $customerEmail,
             'customer_name' => $customerName,
-            'metadata' => is_array($metadata) ? json_encode($metadata) : $metadata,
+            'metadata' => (is_array($metadata) || is_object($metadata)) ? json_encode($metadata) : $metadata,
             'ip_address' => $request->getIPAddress(),
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
