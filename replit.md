@@ -75,6 +75,10 @@ All v1 routes require `API-KEY` header (brand_key from brands table).
 - CSRF is cookie-based with `regenerate = false` (prevents token mismatch on sequential AJAX calls)
 - API routes (`api/*`) are CSRF-exempt via `app/Config/Filters.php`
 
+## Cookie Configuration
+- `SameSite=Lax`, `secure=false`, `httponly=true` in `app/Config/Cookie.php`
+- For production/iframe deployment: change to `SameSite=None` and `secure=true`
+
 ## JS Stability
 - All `JSON.parse` calls in `blithe.js`, `process.js`, `process2.js` are wrapped in try/catch
 - `general.js` notification polling handles HTML responses gracefully (server returns HTML not JSON)
