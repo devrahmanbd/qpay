@@ -72,8 +72,14 @@ All v1 routes require `API-KEY` header (brand_key from brands table).
 ## CSRF Configuration
 - `tokenName = 'token'` and `cookieName = 'token'` in `app/Config/Security.php`
 - All forms use `form_open()` / `form_close()` which auto-insert CSRF hidden field
-- CSRF is cookie-based with regeneration enabled
+- CSRF is cookie-based with `regenerate = false` (prevents token mismatch on sequential AJAX calls)
 - API routes (`api/*`) are CSRF-exempt via `app/Config/Filters.php`
+
+## JS Stability
+- All `JSON.parse` calls in `blithe.js`, `process.js`, `process2.js` are wrapped in try/catch
+- `general.js` notification polling handles HTML responses gracefully (server returns HTML not JSON)
+- Auth layout (`app/Views/layouts/auth.php`) defines `var token`, `PATH`, `user=''` globals for JS
+- Known harmless warnings: Swiper loop warning (cosmetic), DOM autocomplete suggestion
 
 ## Login Routes
 - User login: `/sign-in` (not `/login`)

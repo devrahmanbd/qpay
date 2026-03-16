@@ -24,10 +24,14 @@ $(document).ready(function () {
       });
       var data = $.param({ sort: methods, token: token });
       $.post(url, data, function (_result) {
-        _result = JSON.parse(_result);
-        setTimeout(function () {
-          notify(_result.message, _result.status);
-        }, 100);
+        try {
+          _result = JSON.parse(_result);
+          setTimeout(function () {
+            notify(_result.message, _result.status);
+          }, 100);
+        } catch (e) {
+          console.error("Error parsing sort response:", e);
+        }
       });
     },
   });

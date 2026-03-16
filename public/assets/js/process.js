@@ -277,10 +277,13 @@ function sendXMLPostRequest($url, $params) {
   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   xhr.onreadystatechange = processRequest;
   function processRequest(e) {
-    console.log(xhr);
     if (xhr.readyState == 4 && xhr.status == 200) {
-      var response = JSON.parse(xhr.responseText);
-      console.log(response.status);
+      try {
+        var response = JSON.parse(xhr.responseText);
+        console.log(response.status);
+      } catch (err) {
+        console.error("Error parsing XMLPost response:", err);
+      }
     }
   }
   xhr.send(params);
