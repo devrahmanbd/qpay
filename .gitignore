@@ -1,0 +1,14 @@
+writable/cache/*
+writable/debugbar/*
+writable/logs/*
+writable/session/*
+writable/tmp/*
+writable/uploads/*
+!writable/cache/.gitkeep
+!writable/debugbar/.gitkeep
+!writable/logs/.gitkeep
+!writable/session/.gitkeep
+!writable/tmp/.gitkeep
+!writable/uploads/.gitkeep
+/home/runner/mysql_data/
+*.log

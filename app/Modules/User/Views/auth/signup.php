@@ -58,7 +58,7 @@
                   Register
                 </button>
               </div>
-              <?= form_open(); ?>
+              <?= form_close(); ?>
             </div>
             <div class="mb-4 text-muted text-center">
               Already Registered? <a href="<?= base_url('sign-in') ?>">Login</a>

@@ -48,7 +48,7 @@ $redirect = session('ref_url') ?? admin_url();
                   Login
                 </button>
               </div>
-              <?= form_open(); ?>
+              <?= form_close(); ?>
             </div>
            
           </div>

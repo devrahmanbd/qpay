@@ -29,7 +29,7 @@
                   Change Password
                 </button>
               </div>
-              <?= form_open(); ?>
+              <?= form_close(); ?>
             </div>
 
           </div>

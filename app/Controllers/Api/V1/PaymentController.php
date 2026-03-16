@@ -285,7 +285,7 @@ class PaymentController extends ResourceController
                 'transaction_id' => $payment->transaction_id,
                 'customer_email' => $payment->customer_email,
                 'fees' => null,
-                'metadata' => json_decode($payment->metadata, true),
+                'metadata' => ($payment->metadata !== null ? (json_decode($payment->metadata, true) ?? $payment->metadata) : null),
                 'created_at' => $payment->created_at,
                 'updated_at' => $payment->updated_at,
             ],

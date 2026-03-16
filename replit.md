@@ -69,10 +69,17 @@ All v1 routes require `API-KEY` header (brand_key from brands table).
 - `payments` - System payment gateway configs
 - `users` / `staffs` - User and admin accounts
 
+## CSRF Configuration
+- `tokenName = 'token'` and `cookieName = 'token'` in `app/Config/Security.php`
+- All forms use `form_open()` / `form_close()` which auto-insert CSRF hidden field
+- CSRF is cookie-based with regeneration enabled
+- API routes (`api/*`) are CSRF-exempt via `app/Config/Filters.php`
+
 ## Login Routes
 - User login: `/sign-in` (not `/login`)
 - Admin login: `/admin/sign-in`
 - Both use AJAX POST with CSRF `token` field via `actionForm` class
+- User accounts stored in `users` table, admin accounts in `staffs` table
 
 ## Admin Credentials
 - Email: `admin@cloudman.one`

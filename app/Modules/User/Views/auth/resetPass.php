@@ -22,7 +22,7 @@
                   Send Mail
                 </button>
               </div>
-              <?= form_open(); ?>
+              <?= form_close(); ?>
             </div>
             <div class="mb-4 text-muted text-center">
               Don't have an account? <a href="<?= base_url('sign-up') ?>">Register</a>
