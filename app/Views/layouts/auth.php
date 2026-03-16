@@ -34,8 +34,12 @@
 
 <body>
    <div id="loader"></div>
+   <div id="page-overlay"><div class="page-loading-image d-none"></div></div>
 
    <?= view($view); ?>
+   <script>
+      var token = '<?= csrf_hash() ?>', PATH = '<?= base_url() ?>', user = '';
+   </script>
    <?= script_asset("blithe/js/app.min.js"); ?>
    <?= script_asset("blithe/js/scripts.js"); ?>
 
