@@ -1,0 +1,27 @@
+🌟 The Core Vision (Context for the AI Agent)
+The Mission: QPay is bridging the gap for merchants in South Asia (e.g., Bangladesh) by providing a unified checkout experience for MFS (bKash, Nagad) and Banks.
+
+The Architecture Goal: We are decoupling the monolithic structure. Eventually, api.qpay.qubickle.com (headless, ultra-fast transaction processing) will be completely separate from dashboard.qpay.qubickle.com (heavy analytics and UI).
+
+🛡️ The "Budget-Safe, Zero-Downtime" Rules of Engagement
+Dear AI Agent, you must strictly follow these rules:
+
+Atomic Micro-Tasks: You will only perform one complete, testable task at a time. Never start a massive refactor that requires 50 back-and-forth prompts. If the daily token budget runs out, the current deployed code must compile and run flawlessly.
+
+Append, Don't Replace: When adding new architecture (like the new API routes), do not delete the old legacy routes yet. Create api/v1/ routes alongside the legacy system.
+
+Shadow Deployment: When building the new "Double-Entry Ledger," build it to run alongside the old balance update system. We will write to both databases simultaneously until the new ledger is proven stable.
+
+No "Null" States: Never output placeholders like // Add logic here later. Write complete, working functions for the specific micro-task requested.
+
+🗺️ The Micro-Task Execution Plan
+Each checkbox represents a distinct session with your AI agent. Complete one, test, commit to Git, deploy, and move to the next.
+
+Sprint 1: API Resuscitation (Fixing the Basics)
+Goal: Fix the immediate 404s and establish a working connection with WooCommerce.
+
+[ ] Micro-Task 1.1: Add createPayment logic to ApiController.php and register the POST api/payment/create route in app/Config/Routes.php. (Status: Fixes the 404 error)
+
+[ ] Micro-Task 1.2: Create a getMethods endpoint that queries the database for active gateways and returns a valid JSON array to WooCommerce.
+
+[ ] Micro-Task 1.3: Create a database migration script to generate a payments table with columns for id, merchant_id, amount, currency, status, transaction_id, and timestamps.
