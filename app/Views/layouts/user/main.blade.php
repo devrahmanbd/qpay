@@ -47,22 +47,17 @@
   </script>
 </head>
 
-<body>
-  <div id="loader" class="show"></div>
-  <div id="page-overlay" class="visible incoming"><div class="loader-wrapper-outer"><div class="loader-wrapper-inner"><div class="lds-double-ring"><div></div><div></div><div><div></div></div><div><div></div></div></div></div></div></div>
-  <div id="app">
-    <div class="main-wrapper main-wrapper-1">
-      <div class="navbar-bg"></div>
-      <?php include 'elements/navbar.php'; ?>
-      <?php include 'elements/sidebar.php'; ?>
+<body class="bg-gray-100">
+  <div id="page-overlay"><div class="q-spinner"></div></div>
 
-      <div class="main-content">
-        <section class="section">
-          <?=view($view);?>
-        </section>
-      </div>
+  <?php include 'elements/sidebar.php'; ?>
+  <?php include 'elements/navbar.php'; ?>
+
+  <main class="lg:ml-64 pt-16 min-h-screen">
+    <div class="p-4 lg:p-6">
+      <?=view($view);?>
     </div>
-  </div>
+  </main>
 
   <?=script_asset("blithe/js/scripts.js");?>
   <?=script_asset('js/app.js')?>
