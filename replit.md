@@ -5,7 +5,7 @@ QPay is a payment gateway/orchestrator for South Asian markets (Bangladesh). It 
 
 ## Architecture
 - **Framework**: CodeIgniter 4 (PHP 8.2)
-- **Database**: MariaDB 10.11 (socket: `/tmp/mysql.sock`, db: `main`, user: `root`, pass: `harry71Nahid920*`)
+- **Database**: MariaDB 10.11 (socket: `/tmp/mysql.sock`, db: `main`, user: `root`, pass: see start.sh)
 - **Server**: PHP built-in server on port 5000 with `router.php` for static file serving
 - **Startup**: `start.sh` handles MariaDB init, table creation, migrations, and PHP server launch
 
@@ -71,7 +71,13 @@ All v1 routes require `API-KEY` header (brand_key from brands table).
 
 ## Admin Credentials
 - Email: `admin@cloudman.one`
-- Password: `harry71Nahid`
+- Password: stored in environment / secrets
+
+## Developer Docs
+- `/developers` - Overview landing page (developers/index.php via DocController)
+- `/developers/docs` - Full API documentation (developers/docs.php) with code samples in PHP, Node.js, Python, Go
+- Docs use `base_url()` for PAYMENT_URL (not env var)
+- All code samples reference v1 API endpoints with single API-KEY header
 
 ## Environment Notes
 - `APP_STATUS=installed` and `CI_ENVIRONMENT=development` set via putenv() in index.php

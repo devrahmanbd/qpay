@@ -1,5 +1,5 @@
 <?php
-define("PAYMENT_URL", getenv('PAYMENT_URL'));
+define("PAYMENT_URL", rtrim(base_url(), '/') . '/');
 ?>
 <style>
    .table thead th {
@@ -101,10 +101,16 @@ define("PAYMENT_URL", getenv('PAYMENT_URL'));
                <p> REST APIs are supported in two environments. Use the Sandbox environment for testing purposes, then move to the live environment for production processing. When testing, generate an order url with your test credentials to make calls to the Sandbox URIs. When you’re set to go live, use the live credentials assigned to your new signature key to generate a live order url to be used with the live URIs. Your server has to support cURL system. For HTML Form submit please review after cURL part we provide HTML Post method URL also </p>
 
                <h2 xss=removed>Live API End Point (For Create Payment URL):</h2>
-               <p xss=removed><?= PAYMENT_URL ?>api/payment/create</p>
+               <p xss=removed><?= PAYMENT_URL ?>api/v1/payment/create</p>
 
                <h2 xss=removed>Payment Verify API:</h2>
-               <p xss=removed><?= PAYMENT_URL ?>api/payment/verify</p>
+               <p xss=removed><?= PAYMENT_URL ?>api/v1/payment/verify/{payment_id}</p>
+
+               <h2 xss=removed>Payment Status API:</h2>
+               <p xss=removed><?= PAYMENT_URL ?>api/v1/payment/status/{payment_id}</p>
+
+               <h2 xss=removed>Payment Methods API:</h2>
+               <p xss=removed><?= PAYMENT_URL ?>api/v1/payment/methods</p>
             </section><!--//section-->
 
             <section class="docs-section" id="item-2-2">
@@ -125,72 +131,71 @@ define("PAYMENT_URL", getenv('PAYMENT_URL'));
 
 
                         <tr>
-                           <th scope="row">cus_name</th>
-                           <td>Customer Full Name</td>
+                           <th scope="row">amount</th>
+                           <td>The total amount payable (must be greater than zero).</td>
                            <td>Yes</td>
+                           <td>500 or 10.50</td>
+                        </tr>
+                        <tr>
+                           <th scope="row">currency</th>
+                           <td>ISO currency code. Defaults to BDT if not provided.</td>
+                           <td>No</td>
+                           <td>BDT</td>
+                        </tr>
+                        <tr>
+                           <th scope="row">payment_method</th>
+                           <td>Preferred payment method (e.g., bkash, nagad, rocket). If omitted, all available methods are shown at checkout.</td>
+                           <td>No</td>
+                           <td>bkash</td>
+                        </tr>
+                        <tr>
+                           <th scope="row">customer_name</th>
+                           <td>Full name of the customer.</td>
+                           <td>No</td>
                            <td>John Doe</td>
                         </tr>
                         <tr>
-                           <th scope="row">cus_email</th>
-                           <td>Email address of the customer</td>
-                           <td>Yes</td>
+                           <th scope="row">customer_email</th>
+                           <td>Email address of the customer.</td>
+                           <td>No</td>
                            <td>john@gmail.com</td>
                         </tr>
                         <tr>
-                           <th scope="row">amount</th>
-                           <td>The total amount payable. Please note that you should skip the the trailing zeros in case the amount is a natural number.</td>
-                           <td>Yes </td>
-                           <td>10 or 10.50 or 10.6</td>
+                           <th scope="row">callback_url</th>
+                           <td>Server-to-server webhook URL for payment status notifications.</td>
+                           <td>No</td>
+                           <td>https://yourdomain.com/webhook</td>
                         </tr>
                         <tr>
                            <th scope="row">success_url</th>
-                           <td>URL to which the customer will be returned when the payment is made successfully. The customer will be returned to the last page on the Merchant's website where he should be notify the payment successful.</td>
-                           <td>Yes</td>
-                           <td>https://yourdomain.com/sucess.php</td>
+                           <td>URL to redirect customer after successful payment.</td>
+                           <td>No</td>
+                           <td>https://yourdomain.com/success</td>
                         </tr>
                         <tr>
                            <th scope="row">cancel_url</th>
-                           <td>URL to return customer to your product page or home page.</td>
-                           <td>Yes</td>
-                           <td>https://yourdomain.com/cancel.php </td>
-                        </tr>
-
-                        <tr>
-                           <th scope="row">meta_data</th>
-                           <td>Pass any json formatted data </td>
+                           <td>URL to redirect customer if they cancel the payment.</td>
                            <td>No</td>
-                           <td>Json Formated </td>
+                           <td>https://yourdomain.com/cancel</td>
+                        </tr>
+                        <tr>
+                           <th scope="row">metadata</th>
+                           <td>Any JSON-formatted data to attach to the payment (e.g., order IDs, notes).</td>
+                           <td>No</td>
+                           <td>{"order_id": "12345"}</td>
                         </tr>
 
                      </tbody>
                   </table>
                </div><!--//table-responsive-->
-               <p class="text-warning"> Variables Needs For Payment Verify </p>
+               <p class="text-warning"> Payment Verify Endpoint </p>
+               <p>To verify a payment, send a POST or GET request to <code>api/v1/payment/verify/{payment_id}</code> with your API-KEY header. The payment_id is the identifier returned when you created the payment.</p>
 
-               <div class="table-responsive my-4">
-                  <table class="table table-striped">
-                     <thead>
-                        <tr>
-                           <th scope="col">Field Name</th>
-                           <th scope="col">Description</th>
-                           <th scope="col">Required</th>
-                           <th scope="col">Example Values</th>
-                        </tr>
-                     </thead>
-                     <tbody>
+               <p class="text-warning mt-4"> Payment Status Endpoint </p>
+               <p>To check payment status without triggering verification, send a GET request to <code>api/v1/payment/status/{payment_id}</code> with your API-KEY header.</p>
 
-
-                        <tr>
-                           <th scope="row">transaction_id</th>
-                           <td>Transaction id received as a query parameter from the success URL provided during payment creation.</td>
-                           <td>Yes</td>
-                           <td>OVKPXW165414</td>
-                        </tr>
-
-
-                     </tbody>
-                  </table>
-               </div><!--//table-responsive-->
+               <p class="text-warning mt-4"> Available Payment Methods </p>
+               <p>To list available payment methods for your brand, send a GET request to <code>api/v1/payment/methods</code> with your API-KEY header.</p>
 
                <h2 class="section-heading">Headers Details</h2>
                <div class="table-responsive my-4">
@@ -208,15 +213,11 @@ define("PAYMENT_URL", getenv('PAYMENT_URL'));
                         </tr>
                         <tr>
                            <th scope="row">API-KEY</th>
-                           <td>App key From API credentials</td>
+                           <td>Your unified API key (from Brand settings). This single key authenticates all requests.</td>
                         </tr>
                         <tr>
-                           <th scope="row">SECRET-KEY</th>
-                           <td>Secret key From API credentials</td>
-                        </tr>
-                        <tr>
-                           <th scope="row">BRAND-KEY</th>
-                           <td>Brand key From Brands</td>
+                           <th scope="row">Idempotency-Key</th>
+                           <td>(Optional) A unique key to prevent duplicate payment creation. Recommended for production use.</td>
                         </tr>
 
                      </tbody>

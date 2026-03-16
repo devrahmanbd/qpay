@@ -27,7 +27,7 @@
       <button class="nav-link" id="mexample4-tab" data-bs-toggle="tab" data-bs-target="#mexample4" type="button" role="tab" aria-controls="example4" aria-selected="false">Python</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="mexample5-tab" data-bs-toggle="tab" data-bs-target="#mexample5" type="button" role="tab" aria-controls="example5" aria-selected="false">Native</button>
+      <button class="nav-link" id="mexample5-tab" data-bs-toggle="tab" data-bs-target="#mexample5" type="button" role="tab" aria-controls="example5" aria-selected="false">Go</button>
     </li>
   </ul>
   <div class="tab-content" id="myTabContent">
@@ -38,7 +38,7 @@
 $curl = curl_init();
 
 curl_setopt_array($curl, array(
-  CURLOPT_URL => '<?= PAYMENT_URL ?>api/payment/verify',
+  CURLOPT_URL => '<?= PAYMENT_URL ?>api/v1/payment/verify/PAYMENT_ID_HERE',
   CURLOPT_RETURNTRANSFER => true,
   CURLOPT_ENCODING => '',
   CURLOPT_MAXREDIRS => 10,
@@ -46,12 +46,9 @@ curl_setopt_array($curl, array(
   CURLOPT_FOLLOWLOCATION => true,
   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
   CURLOPT_CUSTOMREQUEST => 'POST',
-  CURLOPT_POSTFIELDS =>'{"transaction_id":"ABCDEFH"}',
   CURLOPT_HTTPHEADER => array(
-    'API-KEY: gnXi7etgWNhFyFGZFrOMYyrmnF4A1eGU5SC2QRmUvILOlNc2Ef',
-    'Content-Type: application/json',
-    'SECRET-KEY: Secret key From API credentials',
-    'BRAND-KEY: Brand key From Brands'
+    'API-KEY: YOUR_API_KEY_HERE',
+    'Content-Type: application/json'
   ),
 ));
 
@@ -62,130 +59,86 @@ echo $response;
 
 ?&gt;
       </code></pre>
-      <button class="btn btn-sm btn-secondary copy-button" onclick="copyCode(this)">Copy Active Tab Content <span id="copy-icon">&#128203;</span></button>
+      <button class="btn btn-sm btn-secondary copy-button" onclick="copyCode(this)">Copy <span>&#128203;</span></button>
     </div>
     <div class="tab-pane fade position-relative code-container" id="mexample2" role="tabpanel" aria-labelledby="example2-tab">
       <pre><code class="language-php">
 &lt;?php
 $client = new Client();
 $headers = [
-  'API-KEY' => 'gnXi7etgWNhFyFGZFrOMYyrmnF4A1eGU5SC2QRmUvILOlNc2Ef',
-  'Content-Type' => 'application/json',
-  'SECRET-KEY' => 'Secret key From API credentials',
-  'BRAND-KEY' => 'Brand key From Brands'
+  'API-KEY' => 'YOUR_API_KEY_HERE',
+  'Content-Type' => 'application/json'
 ];
-$body = '{
-  "transaction_id": "ABCDEFH"
-}';
-$request = new Request('POST', '<?= PAYMENT_URL ?>api/payment/verify', $headers, $body);
+$request = new Request('POST', '<?= PAYMENT_URL ?>api/v1/payment/verify/PAYMENT_ID_HERE', $headers);
 $res = $client->sendAsync($request)->wait();
 echo $res->getBody();
 
 ?&gt;
       </code></pre>
-      <button class="btn btn-sm btn-primary copy-button" onclick="copyCode(this)">Copy Active Tab Content <span id="copy-icon">&#128203;</span></button>
+      <button class="btn btn-sm btn-primary copy-button" onclick="copyCode(this)">Copy <span>&#128203;</span></button>
     </div>
     <div class="tab-pane fade position-relative code-container" id="mexample3" role="tabpanel" aria-labelledby="example3-tab">
-      <pre><code class="language-php">
+      <pre><code class="language-javascript">
 const axios = require('axios');
-let data = JSON.stringify({
-  "transaction_id": "ABCDEFH"
-});
 
-let config = {
+const config = {
   method: 'post',
-  maxBodyLength: Infinity,
-  url: '<?= PAYMENT_URL ?>api/payment/verify',
-  headers: { 
-    'API-KEY': 'gnXi7etgWNhFyFGZFrOMYyrmnF4A1eGU5SC2QRmUvILOlNc2Ef', 
-    'Content-Type': 'application/json',
-    'SECRET-KEY': 'Secret key From API credentials',
-    'BRAND-KEY': 'Brand key From Brands'
-  },
-  data : data
+  url: '<?= PAYMENT_URL ?>api/v1/payment/verify/PAYMENT_ID_HERE',
+  headers: {
+    'API-KEY': 'YOUR_API_KEY_HERE',
+    'Content-Type': 'application/json'
+  }
 };
 
 axios.request(config)
-.then((response) => {
-  console.log(JSON.stringify(response.data));
-})
-.catch((error) => {
-  console.log(error);
-});
+  .then((response) => console.log(response.data))
+  .catch((error) => console.error(error));
       </code></pre>
-      <button class="btn btn-sm btn-primary copy-button" onclick="copyCode(this)">Copy Active Tab Content <span id="copy-icon">&#128203;</span></button>
+      <button class="btn btn-sm btn-primary copy-button" onclick="copyCode(this)">Copy <span>&#128203;</span></button>
     </div>
 
     <div class="tab-pane fade position-relative code-container" id="mexample4" role="tabpanel" aria-labelledby="example4-tab">
-      <pre><code class="language-php">
-import http.client
-import json
+      <pre><code class="language-python">
+import requests
 
-conn = http.client.HTTPSConnection("local.pay.expensivepay.com")
-payload = json.dumps({
-  "transaction_id": "ABCDEFH"
-})
+url = "<?= PAYMENT_URL ?>api/v1/payment/verify/PAYMENT_ID_HERE"
+
 headers = {
-  'API-KEY': 'gnXi7etgWNhFyFGZFrOMYyrmnF4A1eGU5SC2QRmUvILOlNc2Ef',
-  'Content-Type': 'application/json',
-  'SECRET-KEY': 'Secret key From API credentials',
-  'BRAND-KEY': 'Brand key From Brands'
+  'API-KEY': 'YOUR_API_KEY_HERE',
+  'Content-Type': 'application/json'
 }
-conn.request("POST", "/api/payment/verify", payload, headers)
-res = conn.getresponse()
-data = res.read()
-print(data.decode("utf-8"))
+
+response = requests.post(url, headers=headers)
+print(response.json())
       </code></pre>
-      <button class="btn btn-sm btn-primary copy-button" onclick="copyCode(this)">Copy Active Tab Content <span id="copy-icon">&#128203;</span></button>
+      <button class="btn btn-sm btn-primary copy-button" onclick="copyCode(this)">Copy <span>&#128203;</span></button>
     </div>
 
     <div class="tab-pane fade position-relative code-container" id="mexample5" role="tabpanel" aria-labelledby="example5-tab">
-      <pre><code class="language-php">
+      <pre><code class="language-go">
 package main
 
 import (
   "fmt"
-  "strings"
   "net/http"
   "io/ioutil"
 )
 
 func main() {
+  url := "<?= PAYMENT_URL ?>api/v1/payment/verify/PAYMENT_ID_HERE"
 
-  url := "<?= PAYMENT_URL ?>api/payment/verify"
-  method := "POST"
-
-  payload := strings.NewReader(`{"transaction_id":"ABCDEFH"}`)
-
-  client := &http.Client {
-  }
-  req, err := http.NewRequest(method, url, payload)
-
-  if err != nil {
-    fmt.Println(err)
-    return
-  }
-  req.Header.Add("API-KEY", "gnXi7etgWNhFyFGZFrOMYyrmnF4A1eGU5SC2QRmUvILOlNc2Ef")
+  req, _ := http.NewRequest("POST", url, nil)
+  req.Header.Add("API-KEY", "YOUR_API_KEY_HERE")
   req.Header.Add("Content-Type", "application/json")
-  req.Header.Add("SECRET-KEY", "Secret key From API credentials")
-  req.Header.Add("BRAND-KEY", "Brand key From Brands")
 
-  res, err := client.Do(req)
-  if err != nil {
-    fmt.Println(err)
-    return
-  }
+  res, _ := http.DefaultClient.Do(req)
   defer res.Body.Close()
 
-  body, err := ioutil.ReadAll(res.Body)
-  if err != nil {
-    fmt.Println(err)
-    return
-  }
+  body, _ := ioutil.ReadAll(res.Body)
   fmt.Println(string(body))
 }
       </code></pre>
-      <button class="btn btn-sm btn-primary copy-button" onclick="copyCode(this)">Copy Active Tab Content <span id="copy-icon">&#128203;</span></button>
+      <button class="btn btn-sm btn-primary copy-button" onclick="copyCode(this)">Copy <span>&#128203;</span></button>
     </div>
 
   </div>
@@ -195,25 +148,29 @@ func main() {
 <div class="container">
   <ul class="nav nav-tabs" id="myTab" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="m1example1-tab" data-bs-toggle="tab" data-bs-target="#m1example1" type="button" role="tab" aria-controls="example1" aria-selected="true">Json</button>
+      <button class="nav-link active" id="m1example1-tab" data-bs-toggle="tab" data-bs-target="#m1example1" type="button" role="tab" aria-controls="example1" aria-selected="true">JSON</button>
     </li>
   </ul>
   <div class="tab-content" id="myTabContent">
     <div class="tab-pane fade show active position-relative code-container" id="m1example1" role="tabpanel" aria-labelledby="example1-tab">
-      <pre><code class="language-php">
+      <pre><code class="language-json">
 {
-    "cus_name": "John Doe",
-    "cus_email": "john@gmail.com",
-    "amount": "900.000",
-    "transaction_id": "OVKPXW165414",
-    "metadata": {
-      "phone": "015****",
-    },
-    "payment_method": "bkash",
-    "status": "COMPLETED"
+    "status": "success",
+    "data": {
+        "payment_id": "pay_a1b2c3d4e5f6",
+        "amount": 500,
+        "currency": "BDT",
+        "status": "completed",
+        "payment_method": "bkash",
+        "transaction_id": "pay_a1b2c3d4e5f6",
+        "verified": true,
+        "provider": "sms_verification",
+        "created_at": "2024-06-06 12:00:00",
+        "updated_at": "2024-06-06 12:05:00"
+    }
 }
       </code></pre>
-      <button class="btn btn-sm btn-primary copy-button" onclick="copyCode(this)">Copy Active Tab Content <span id="copy-icon">&#128203;</span></button>
+      <button class="btn btn-sm btn-primary copy-button" onclick="copyCode(this)">Copy <span>&#128203;</span></button>
     </div>
 
   </div>
@@ -232,54 +189,59 @@ func main() {
     </thead>
     <tbody>
       <tr>
-        <th colspan="3" class="text-info">Success Response</th>
+        <th colspan="3" class="text-info">Success Response (HTTP 200)</th>
+      </tr>
+      <tr>
+        <th scope="row">data.payment_id</th>
+        <td>string</td>
+        <td>Unique payment identifier</td>
+      </tr>
+      <tr>
+        <th scope="row">data.amount</th>
+        <td>number</td>
+        <td>Payment amount</td>
+      </tr>
+      <tr>
+        <th scope="row">data.currency</th>
+        <td>string</td>
+        <td>Currency code</td>
+      </tr>
+      <tr>
+        <th scope="row">data.status</th>
+        <td>string</td>
+        <td>pending | processing | completed | failed | refunded</td>
+      </tr>
+      <tr>
+        <th scope="row">data.verified</th>
+        <td>boolean</td>
+        <td>Whether payment verification succeeded</td>
+      </tr>
+      <tr>
+        <th scope="row">data.transaction_id</th>
+        <td>string</td>
+        <td>Provider transaction reference</td>
+      </tr>
+      <tr>
+        <th colspan="3" class="text-danger">Error Response (HTTP 400 / 404)</th>
       </tr>
       <tr>
         <th scope="row">status</th>
         <td>string</td>
-        <td>COMPLETED or PENDING or ERROR</td>
+        <td>"error"</td>
       </tr>
       <tr>
-        <th scope="row">cus_name</th>
-        <td>String</td>
-        <td>Customer Name</td>
-      </tr>
-      <tr>
-        <th scope="row">cus_email</th>
-        <td>String</td>
-        <td>Customer Email</td>
-      </tr>
-      <tr>
-        <th scope="row">amount</th>
-        <td>String</td>
-        <td>Amount</td>
-      </tr>
-      <tr>
-        <th scope="row">transaction_id</th>
-        <td>String</td>
-        <td>Transaction id Generated by System</td>
-      </tr>
-      <tr>
-        <th scope="row">metadata</th>
-        <td>json</td>
-        <td>Metadata used for Payment creation</td>
-      </tr>
-      <tr>
-        <th colspan="3" class="text-danger">Error Response</th>
-      </tr>
-      <tr>
-        <th scope="row">status</th>
-        <td>bool</td>
-        <td>FALSE</td>
+        <th scope="row">code</th>
+        <td>string</td>
+        <td>MISSING_PAYMENT_ID | PAYMENT_NOT_FOUND</td>
       </tr>
       <tr>
         <th scope="row">message</th>
-        <td>String</td>
-        <td>Message associated with the error response</td>
+        <td>string</td>
+        <td>Human-readable error description</td>
       </tr>
     </tbody>
   </table>
-</div><!--//table-responsive-->
+</div>
 
 <script>
   function copyCode(button) {
@@ -296,7 +258,7 @@ func main() {
 
     button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16"><path d="M12.644 3.612a.5.5 0 0 1 .702.702l-6.25 6.25a.5.5 0 0 1-.702 0l-3.5-3.5a.5.5 0 0 1 .704-.708l2.794 2.793 5.546-5.546a.5.5 0 0 1 .612-.076z"/></svg>';
     setTimeout(() => {
-      button.innerHTML = 'Copy Active Tab Content <span id="copy-icon">&#128203;</span>';
+      button.innerHTML = 'Copy <span>&#128203;</span>';
     }, 1500);
   }
 </script>

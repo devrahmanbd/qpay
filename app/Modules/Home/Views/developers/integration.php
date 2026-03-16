@@ -27,7 +27,7 @@
       <button class="nav-link" id="example4-tab" data-bs-toggle="tab" data-bs-target="#example4" type="button" role="tab" aria-controls="example4" aria-selected="false">Python</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="example5-tab" data-bs-toggle="tab" data-bs-target="#example5" type="button" role="tab" aria-controls="example5" aria-selected="false">Native</button>
+      <button class="nav-link" id="example5-tab" data-bs-toggle="tab" data-bs-target="#example5" type="button" role="tab" aria-controls="example5" aria-selected="false">Go</button>
     </li>
   </ul>
   <div class="tab-content" id="myTabContent">
@@ -38,7 +38,7 @@
       $curl = curl_init();
 
       curl_setopt_array($curl, array(
-        CURLOPT_URL => '<?= PAYMENT_URL ?>api/payment/create',
+        CURLOPT_URL => '<?= PAYMENT_URL ?>api/v1/payment/create',
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
@@ -46,12 +46,18 @@
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS =>'{"success_url":"yourdomain.com/success","cancel_url":"yourdomain.com/cancel","metadata":{"phone":"016****"},"amount":"10"}',
+        CURLOPT_POSTFIELDS => json_encode([
+          'amount' => 500,
+          'currency' => 'BDT',
+          'customer_name' => 'John Doe',
+          'customer_email' => 'john@gmail.com',
+          'success_url' => 'https://yourdomain.com/success',
+          'cancel_url' => 'https://yourdomain.com/cancel',
+          'metadata' => ['order_id' => '12345']
+        ]),
         CURLOPT_HTTPHEADER => array(
-          'API-KEY: gnXi7etgWNhFyFGZFrOMYyrmnF4A1eGU5SC2QRmUvILOlNc2Ef',
-          'Content-Type: application/json',
-          'SECRET-KEY: YourSecretKeyHere',
-          'BRAND-KEY: YourBrandKeyHere'
+          'API-KEY: YOUR_API_KEY_HERE',
+          'Content-Type: application/json'
         ),
       ));
 
@@ -69,20 +75,19 @@
       &lt;?php
       $client = new Client();
       $headers = [
-        'API-KEY' => 'gnXi7etgWNhFyFGZFrOMYyrmnF4A1eGU5SC2QRmUvILOlNc2Ef',
-        'Content-Type' => 'application/json',
-        'SECRET-KEY' => 'YourSecretKeyHere',
-        'BRAND-KEY' => 'YourBrandKeyHere'
+        'API-KEY' => 'YOUR_API_KEY_HERE',
+        'Content-Type' => 'application/json'
       ];
-      $body = '{
-        "success_url": "yourdomain.com/success",
-        "cancel_url": "yourdomain.com/cancel",
-        "metadata": {
-          "phone": "016****"
-        },
-        "amount": "10"
-      }';
-      $request = new Request('POST', '<?= PAYMENT_URL ?>api/payment/create', $headers, $body);
+      $body = json_encode([
+        'amount' => 500,
+        'currency' => 'BDT',
+        'customer_name' => 'John Doe',
+        'customer_email' => 'john@gmail.com',
+        'success_url' => 'https://yourdomain.com/success',
+        'cancel_url' => 'https://yourdomain.com/cancel',
+        'metadata' => ['order_id' => '12345']
+      ]);
+      $request = new Request('POST', '<?= PAYMENT_URL ?>api/v1/payment/create', $headers, $body);
       $res = $client->sendAsync($request)->wait();
       echo $res->getBody();
       ?&gt;
@@ -90,74 +95,65 @@
       <button class="btn btn-sm btn-primary copy-button" onclick="copyCode(this)">&#x2398;</button>
     </div>
     <div class="tab-pane fade position-relative code-container" id="example3" role="tabpanel" aria-labelledby="example3-tab">
-      <pre><code class="language-php">
+      <pre><code class="language-javascript">
       const axios = require('axios');
-      let data = JSON.stringify({
-        "success_url": "yourdomain.com/success",
-        "cancel_url": "yourdomain.com/cancel",
-        "metadata": {
-          "phone": "016****"
-        },
-        "amount": "10"
-      });
 
-      let config = {
+      const data = {
+        amount: 500,
+        currency: 'BDT',
+        customer_name: 'John Doe',
+        customer_email: 'john@gmail.com',
+        success_url: 'https://yourdomain.com/success',
+        cancel_url: 'https://yourdomain.com/cancel',
+        metadata: { order_id: '12345' }
+      };
+
+      const config = {
         method: 'post',
-        maxBodyLength: Infinity,
-        url: '<?= PAYMENT_URL ?>api/payment/create',
-        headers: { 
-          'API-KEY': 'gnXi7etgWNhFyFGZFrOMYyrmnF4A1eGU5SC2QRmUvILOlNc2Ef', 
-          'Content-Type': 'application/json',
-          'SECRET-KEY': 'YourSecretKeyHere',
-          'BRAND-KEY': 'YourBrandKeyHere'
+        url: '<?= PAYMENT_URL ?>api/v1/payment/create',
+        headers: {
+          'API-KEY': 'YOUR_API_KEY_HERE',
+          'Content-Type': 'application/json'
         },
-        data : data
+        data: data
       };
 
       axios.request(config)
-      .then((response) => {
-        console.log(JSON.stringify(response.data));
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-
-
+        .then((response) => console.log(response.data))
+        .catch((error) => console.error(error));
       </code></pre>
       <button class="btn btn-sm btn-primary copy-button" onclick="copyCode(this)">&#x2398;</button>
     </div>
 
     <div class="tab-pane fade position-relative code-container" id="example4" role="tabpanel" aria-labelledby="example4-tab">
-      <pre><code class="language-php">
+      <pre><code class="language-python">
       import requests
       import json
 
-      url = "<?= PAYMENT_URL ?>api/payment/create"
+      url = "<?= PAYMENT_URL ?>api/v1/payment/create"
 
       payload = json.dumps({
-        "success_url": "yourdomain.com/success",
-        "cancel_url": "yourdomain.com/cancel",
-        "metadata": {
-          "phone": "016****"
-        },
-        "amount": "10"
+        "amount": 500,
+        "currency": "BDT",
+        "customer_name": "John Doe",
+        "customer_email": "john@gmail.com",
+        "success_url": "https://yourdomain.com/success",
+        "cancel_url": "https://yourdomain.com/cancel",
+        "metadata": {"order_id": "12345"}
       })
       headers = {
-        'API-KEY': 'gnXi7etgWNhFyFGZFrOMYyrmnF4A1eGU5SC2QRmUvILOlNc2Ef',
-        'Content-Type': 'application/json',
-        'SECRET-KEY': 'YourSecretKeyHere',
-        'BRAND-KEY': 'YourBrandKeyHere'
+        'API-KEY': 'YOUR_API_KEY_HERE',
+        'Content-Type': 'application/json'
       }
 
-      response = requests.request("POST", url, headers=headers, data=payload)
-
-      print(response.text)
+      response = requests.post(url, headers=headers, data=payload)
+      print(response.json())
       </code></pre>
       <button class="btn btn-sm btn-primary copy-button" onclick="copyCode(this)">&#x2398;</button>
     </div>
 
     <div class="tab-pane fade position-relative code-container" id="example5" role="tabpanel" aria-labelledby="example5-tab">
-      <pre><code class="language-php">
+      <pre><code class="language-go">
       package main
 
       import (
@@ -168,37 +164,26 @@
       )
 
       func main() {
+        url := "<?= PAYMENT_URL ?>api/v1/payment/create"
 
-        url := "<?= PAYMENT_URL ?>api/payment/create"
-        method := "POST"
+        payload := strings.NewReader(`{
+          "amount": 500,
+          "currency": "BDT",
+          "customer_name": "John Doe",
+          "customer_email": "john@gmail.com",
+          "success_url": "https://yourdomain.com/success",
+          "cancel_url": "https://yourdomain.com/cancel",
+          "metadata": {"order_id": "12345"}
+        }`)
 
-        payload := strings.NewReader(`{"success_url":"yourdomain.com/success","cancel_url":"yourdomain.com/cancel","metadata":{"phone":"01521412457"},"amount":"10"}`)
-
-        client := &http.Client {
-        }
-        req, err := http.NewRequest(method, url, payload)
-
-        if err != nil {
-          fmt.Println(err)
-          return
-        }
-        req.Header.Add("API-KEY", "gnXi7etgWNhFyFGZFrOMYyrmnF4A1eGU5SC2QRmUvILOlNc2Ef")
+        req, _ := http.NewRequest("POST", url, payload)
+        req.Header.Add("API-KEY", "YOUR_API_KEY_HERE")
         req.Header.Add("Content-Type", "application/json")
-        req.Header.Add("SECRET-KEY", "YourSecretKeyHere")
-        req.Header.Add("BRAND-KEY", "YourBrandKeyHere")
 
-        res, err := client.Do(req)
-        if err != nil {
-          fmt.Println(err)
-          return
-        }
+        res, _ := http.DefaultClient.Do(req)
         defer res.Body.Close()
 
-        body, err := ioutil.ReadAll(res.Body)
-        if err != nil {
-          fmt.Println(err)
-          return
-        }
+        body, _ := ioutil.ReadAll(res.Body)
         fmt.Println(string(body))
       }
       </code></pre>
@@ -220,42 +205,71 @@
     </thead>
     <tbody>
       <tr>
-        <th colspan="3" class="text-info">Success Response</th>
+        <th colspan="3" class="text-info">Success Response (HTTP 201)</th>
       </tr>
       <tr>
         <th scope="row">status</th>
-        <td>bool</td>
-        <td>TRUE</td>
+        <td>string</td>
+        <td>"success"</td>
       </tr>
       <tr>
-        <th scope="row">message</th>
-        <td>String</td>
-        <td>Message for Status</td>
+        <th scope="row">code</th>
+        <td>string</td>
+        <td>PAYMENT_CREATED</td>
       </tr>
       <tr>
-        <th scope="row">payment_url</th>
-        <td>String</td>
-        <td>Payment Link (where customers will complete their payment)</td>
+        <th scope="row">data.payment_id</th>
+        <td>string</td>
+        <td>Unique payment identifier (e.g., pay_a1b2c3d4e5f6)</td>
       </tr>
       <tr>
-        <th colspan="3" class="text-danger">Error Response</th>
+        <th scope="row">data.amount</th>
+        <td>number</td>
+        <td>Payment amount</td>
+      </tr>
+      <tr>
+        <th scope="row">data.fees</th>
+        <td>number</td>
+        <td>Calculated fees</td>
+      </tr>
+      <tr>
+        <th scope="row">data.net_amount</th>
+        <td>number</td>
+        <td>Amount after fees deduction</td>
+      </tr>
+      <tr>
+        <th scope="row">data.currency</th>
+        <td>string</td>
+        <td>Currency code (e.g., BDT)</td>
+      </tr>
+      <tr>
+        <th scope="row">data.status</th>
+        <td>string</td>
+        <td>pending | processing</td>
+      </tr>
+      <tr>
+        <th scope="row">data.checkout_url</th>
+        <td>string</td>
+        <td>URL to redirect customer for payment completion</td>
+      </tr>
+      <tr>
+        <th colspan="3" class="text-danger">Error Response (HTTP 422 / 500)</th>
       </tr>
       <tr>
         <th scope="row">status</th>
-        <td>bool</td>
-        <td>FALSE</td>
+        <td>string</td>
+        <td>"error"</td>
       </tr>
       <tr>
-        <th scope="row">message</th>
-        <td>String</td>
-        <td>Message associated with the error response</td>
+        <th scope="row">code</th>
+        <td>string</td>
+        <td>Error code (e.g., VALIDATION_ERROR)</td>
       </tr>
       <tr>
-        <td colspan="3" style="max-width: 80%; word-wrap: break-word; overflow-wrap: break-word; word-break: break-all;color:green;font-weight:800">
-          Completing Payment Page task you will be redirected to success or cancel page based on transaction status with the following Query Parameters:
-          yourdomain.com/(success/cancel)?transactionId=******&paymentMethod=***&paymentAmount=**.**&paymentFee=**.**&status=pending or success or failed
-        </td>
+        <th scope="row">errors / message</th>
+        <td>object / string</td>
+        <td>Validation errors or error message</td>
       </tr>
     </tbody>
   </table>
-</div><!--//table-responsive-->
+</div>
