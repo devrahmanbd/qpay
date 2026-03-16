@@ -24,28 +24,37 @@
    <link rel="apple-touch-icon" type="image/png" sizes="76x76" href="<?= get_logo() ?>" />
    <link rel="mask-icon" href="<?= get_logo() ?>" color="#5bbad5" />
    <link rel="canonical" href="<?= base_url() ?>">
-
-   <?= link_asset('blithe/css/app.min.css'); ?>
-   <?= link_asset('blithe/css/style.css'); ?>
-   <?= link_asset('blithe/css/components.css'); ?>
-   <?= link_asset('js/jquery-toast/css/jquery.toast.css') ?>
-
+   <script src="https://cdn.tailwindcss.com"></script>
+   <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: { 50:'#eef2ff', 100:'#e0e7ff', 200:'#c7d2fe', 300:'#a5b4fc', 400:'#818cf8', 500:'#6366f1', 600:'#4f46e5', 700:'#4338ca', 800:'#3730a3', 900:'#312e81' }
+            }
+          }
+        }
+      }
+   </script>
+   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+   <style>
+      [x-cloak] { display: none !important; }
+      #page-overlay { display:none; position:fixed; inset:0; background:rgba(255,255,255,.7); z-index:9998; align-items:center; justify-content:center; }
+      #page-overlay.active { display:flex; }
+      #page-overlay .spinner { width:40px; height:40px; border:4px solid #e5e7eb; border-top-color:#6366f1; border-radius:50%; animation:spin .8s linear infinite; }
+      @keyframes spin { to { transform:rotate(360deg); } }
+   </style>
 </head>
 
-<body>
-   <div id="loader"></div>
-   <div id="page-overlay"><div class="page-loading-image d-none"></div></div>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+   <div id="page-overlay"><div class="spinner"></div></div>
 
    <?= view($view); ?>
+
    <script>
       var token = '<?= csrf_hash() ?>', PATH = '<?= base_url() ?>', user = '';
    </script>
-   <?= script_asset("blithe/js/app.min.js"); ?>
-   <?= script_asset("blithe/js/scripts.js"); ?>
-
-   <?= script_asset('js/jquery-toast/js/jquery.toast.js') ?>
-   <?= script_asset('js/process.js') ?>
-   <?= script_asset('js/general.js') ?>
+   <?= script_asset('js/app.js') ?>
    <?php if ($msg = session()->getFlashdata('message')) : ?>
       <script type="text/javascript">
          notify('<?= esc($msg['message']) ?>', '<?= esc($msg['status']) ?>');

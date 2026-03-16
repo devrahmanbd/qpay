@@ -1,71 +1,56 @@
-<div id="app">
-  <section class="section">
-    <div class="container mt-5">
-      <div class="row">
-        <div class="col-12 col-sm-10 offset-sm-1 col-md-8 offset-md-2 col-lg-8 offset-lg-2 col-xl-8 offset-xl-2">
-          <div class="card card-primary">
-            <div class="card-header">
-              <h4>Register</h4>
-            </div>
-            <div class="card-body">
-              <?= form_open(base_url('sign-up'), 'class="actionForm needs-validation" novalidate=""  data-redirect= "user" ') ?>
+<div class="w-full max-w-lg mx-auto px-4">
+  <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="px-6 py-5 border-b border-gray-100">
+      <h4 class="text-xl font-semibold text-gray-900">Register</h4>
+    </div>
+    <div class="px-6 py-6">
+      <?= form_open(base_url('sign-up'), 'class="actionForm space-y-5" novalidate="" data-redirect="user"') ?>
 
-              <div class="row">
-                <div class="form-group col-6">
-                  <label for="frist_name">First Name</label>
-                  <input id="frist_name" type="text" class="form-control" name="first_name" autofocus required>
-                </div>
-                <div class="form-group col-6">
-                  <label for="last_name">Last Name</label>
-                  <input id="last_name" type="text" class="form-control" name="last_name" required>
-                </div>
-              </div>
-              <div class="row">
-                <div class="form-group col-6">
-                  <label for="email">Email</label>
-                  <input id="email" type="text" class="form-control" name="email" required>
-                </div>
-                <div class="form-group col-6">
-                  <label for="phone">Mobile Number</label>
-                  <input id="phone" type="text" class="form-control" name="phone" required>
-                </div>
-              </div>
-
-
-
-              <div class="row">
-                <div class="form-group col-6">
-                  <label for="password" class="d-block">Password</label>
-                  <input id="password" type="password" class="form-control pwstrength" data-indicator="pwindicator" name="password" required>
-                  <div id="pwindicator" class="pwindicator">
-                    <div class="bar"></div>
-                    <div class="label"></div>
-                  </div>
-                </div>
-                <div class="form-group col-6">
-                  <label for="password2" class="d-block">Password Confirmation</label>
-                  <input id="password2" type="password" class="form-control" name="c_password" required>
-                </div>
-              </div>
-              <div class="form-group">
-                <div class="custom-control custom-checkbox">
-                  <input type="checkbox" name="agree" class="custom-control-input" id="agree">
-                  <label class="custom-control-label" for="agree">I agree with the terms and conditions</label>
-                </div>
-              </div>
-              <div class="form-group">
-                <button type="submit" class="btn btn-primary btn-lg btn-block">
-                  Register
-                </button>
-              </div>
-              <?= form_close(); ?>
-            </div>
-            <div class="mb-4 text-muted text-center">
-              Already Registered? <a href="<?= base_url('sign-in') ?>">Login</a>
-            </div>
-          </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="frist_name" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+          <input id="frist_name" type="text" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors" name="first_name" autofocus required>
+        </div>
+        <div>
+          <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+          <input id="last_name" type="text" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors" name="last_name" required>
         </div>
       </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input id="email" type="email" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors" name="email" required autocomplete="email">
+        </div>
+        <div>
+          <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+          <input id="phone" type="text" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors" name="phone" required>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <input id="password" type="password" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors" name="password" required autocomplete="new-password">
+        </div>
+        <div>
+          <label for="password2" class="block text-sm font-medium text-gray-700 mb-1">Password Confirmation</label>
+          <input id="password2" type="password" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-colors" name="c_password" required autocomplete="new-password">
+        </div>
+      </div>
+
+      <div class="flex items-center">
+        <input type="checkbox" name="agree" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" id="agree">
+        <label class="ml-2 text-sm text-gray-600" for="agree">I agree with the terms and conditions</label>
+      </div>
+
+      <button type="submit" class="w-full py-2.5 px-4 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
+        Register
+      </button>
+      <?= form_close(); ?>
     </div>
-  </section>
+    <div class="px-6 pb-5 text-center text-sm text-gray-500">
+      Already Registered? <a href="<?= base_url('sign-in') ?>" class="text-indigo-600 hover:text-indigo-700 font-medium">Login</a>
+    </div>
+  </div>
 </div>

@@ -4,65 +4,46 @@ $cookie_pass = !empty(get_cookie("c_cookie_pass")) ? encrypt_decode(get_cookie("
 $redirect = session('ref_url') ?? user_url();
 ?>
 
-
-<div id="app">
-  <section class="section">
-    <div class="container mt-5">
-      <div class="row">
-        <div class="col-12 col-sm-10 offset-sm-1 col-md-8 offset-md-2 col-lg-8 offset-lg-2 col-xl-8 offset-xl-2">
-          <div class="card card-primary">
-            <div class="card-header">
-              <h4>Sign In</h4>
-            </div>
-            <div class="card-body">
-              <?= form_open(base_url('sign-in'), 'class="actionForm needs-validation" novalidate=""  data-redirect= "' . $redirect . '" ') ?>
-
-              <div class="form-group">
-                <label for="email">Email</label>
-                <input id="email" type="email" class="form-control" name="email" tabindex="1" required autofocus value="<?= !empty($cookie_email) ? $cookie_email : set_value('email') ?>">
-                <div class="invalid-feedback">
-                  Please fill in your email
-                </div>
-              </div>
-              <div class="form-group">
-                <div class="d-block">
-                  <label for="password" class="control-label">Password</label>
-                  <div class="float-right">
-                    <a href="<?= base_url('password-reset') ?>" class="text-small">
-                      Forgot Password?
-                    </a>
-                  </div>
-                </div>
-                <input id="password" type="password" class="form-control" name="password" tabindex="2" required value="<?= !empty($cookie_pass) ? $cookie_pass : set_value('password') ?>">
-                <div class="invalid-feedback">
-                  Please fill in your password
-                </div>
-              </div>
-              <div class="form-group">
-                <div class="custom-control custom-checkbox">
-                  <input type="checkbox" name="remember" class="custom-control-input" tabindex="3" id="remember-me" <?= !empty($cookie_email) ? 'checked' : '' ?>>
-                  <label class="custom-control-label" for="remember-me">Remember Me</label>
-                </div>
-              </div>
-              <div class="form-group mb-2">
-                <button type="submit" class="btn btn-primary btn-lg btn-block" tabindex="4">
-                  Login
-                </button>
-              </div>
-              <?php if (get_option('google_login')) : ?>
-                <a href="<?= base_url('auth/google_process') ?>" class="btn btn-outline-primary">
-                  <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 50 50">
-                    <path d="M 26 2 C 13.308594 2 3 12.308594 3 25 C 3 37.691406 13.308594 48 26 48 C 35.917969 48 41.972656 43.4375 45.125 37.78125 C 48.277344 32.125 48.675781 25.480469 47.71875 20.9375 L 47.53125 20.15625 L 46.75 20.15625 L 26 20.125 L 25 20.125 L 25 30.53125 L 36.4375 30.53125 C 34.710938 34.53125 31.195313 37.28125 26 37.28125 C 19.210938 37.28125 13.71875 31.789063 13.71875 25 C 13.71875 18.210938 19.210938 12.71875 26 12.71875 C 29.050781 12.71875 31.820313 13.847656 33.96875 15.6875 L 34.6875 16.28125 L 41.53125 9.4375 L 42.25 8.6875 L 41.5 8 C 37.414063 4.277344 31.960938 2 26 2 Z M 26 4 C 31.074219 4 35.652344 5.855469 39.28125 8.84375 L 34.46875 13.65625 C 32.089844 11.878906 29.199219 10.71875 26 10.71875 C 18.128906 10.71875 11.71875 17.128906 11.71875 25 C 11.71875 32.871094 18.128906 39.28125 26 39.28125 C 32.550781 39.28125 37.261719 35.265625 38.9375 29.8125 L 39.34375 28.53125 L 27 28.53125 L 27 22.125 L 45.84375 22.15625 C 46.507813 26.191406 46.066406 31.984375 43.375 36.8125 C 40.515625 41.9375 35.320313 46 26 46 C 14.386719 46 5 36.609375 5 25 C 5 13.390625 14.386719 4 26 4 Z"></path>
-                  </svg>Google Login</a>
-              <?php endif; ?>
-              <?= form_close(); ?>
-            </div>
-            <div class="mb-4 text-muted text-center">
-              Don't have an account? <a href="<?= base_url('sign-up') ?>">Register</a>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="w-full max-w-md mx-auto px-4">
+  <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="px-6 py-5 border-b border-gray-100">
+      <h4 class="text-xl font-semibold text-gray-900">Sign In</h4>
     </div>
-  </section>
+    <div class="px-6 py-6">
+      <?= form_open(base_url('sign-in'), 'class="actionForm space-y-5" novalidate="" data-redirect="' . $redirect . '"') ?>
+
+      <div>
+        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input id="email" type="email" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors" name="email" tabindex="1" required autofocus autocomplete="email" value="<?= !empty($cookie_email) ? $cookie_email : set_value('email') ?>">
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <label for="password" class="text-sm font-medium text-gray-700">Password</label>
+          <a href="<?= base_url('password-reset') ?>" class="text-xs text-primary-600 hover:text-primary-700">Forgot Password?</a>
+        </div>
+        <input id="password" type="password" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors" name="password" tabindex="2" required autocomplete="current-password" value="<?= !empty($cookie_pass) ? $cookie_pass : set_value('password') ?>">
+      </div>
+
+      <div class="flex items-center">
+        <input type="checkbox" name="remember" class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500" tabindex="3" id="remember-me" <?= !empty($cookie_email) ? 'checked' : '' ?>>
+        <label class="ml-2 text-sm text-gray-600" for="remember-me">Remember Me</label>
+      </div>
+
+      <button type="submit" class="w-full py-2.5 px-4 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors" tabindex="4">
+        Login
+      </button>
+
+      <?php if (get_option('google_login')) : ?>
+        <a href="<?= base_url('auth/google_process') ?>" class="flex items-center justify-center gap-2 w-full py-2.5 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Google Login
+        </a>
+      <?php endif; ?>
+      <?= form_close(); ?>
+    </div>
+    <div class="px-6 pb-5 text-center text-sm text-gray-500">
+      Don't have an account? <a href="<?= base_url('sign-up') ?>" class="text-primary-600 hover:text-primary-700 font-medium">Register</a>
+    </div>
+  </div>
 </div>
