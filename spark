@@ -17,17 +17,6 @@ $_SERVER['database.default.port'] = '3306';
 $_SERVER['app.baseURL'] = 'http://localhost:5000/';
 $_SERVER['CI_ENVIRONMENT'] = 'development';
 
-$minPhpVersion = '7.4';
-if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
-    $message = sprintf(
-        'Your PHP version must be %s or higher to run CodeIgniter. Current version: %s',
-        $minPhpVersion,
-        PHP_VERSION
-    );
-
-    exit($message);
-}
-
 define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR);
 
 if (getcwd() . DIRECTORY_SEPARATOR !== FCPATH) {
@@ -61,20 +50,12 @@ putenv('app.baseURL=http://localhost:5000/');
 putenv('CI_ENVIRONMENT=development');
 putenv('APP_STATUS=installed');
 
-// Define ENVIRONMENT
 if (!defined('ENVIRONMENT')) {
     define('ENVIRONMENT', 'development');
 }
 
-
-
 $app = Config\Services::codeigniter();
 $app->initialize();
-$context = is_cli() ? 'php-cli' : 'web';
-$app->setContext($context);
 
-
-
-$app->run();
-
-exit(EXIT_SUCCESS);
+$console = new CodeIgniter\CLI\Console();
+$console->run();

@@ -16,7 +16,7 @@ class App extends BaseConfig
      *
      *    http://example.com/
      */
-    public string $baseURL = 'https://localhost:8443';
+    public string $baseURL = 'http://localhost:5000';
 
     /**
      * Allowed Hostnames in the Site URL other than the hostname in the baseURL.
@@ -30,7 +30,7 @@ class App extends BaseConfig
      * @var string[]
      * @phpstan-var list<string>
      */
-    public array $allowedHostnames = [];
+    public array $allowedHostnames = ['*'];
 
     /**
      * --------------------------------------------------------------------------
@@ -176,4 +176,20 @@ class App extends BaseConfig
      * @see http://www.w3.org/TR/CSP/
      */
     public bool $CSPEnabled = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+        // Auto-detect base URL from HTTP_HOST for proxy environments (Replit, ngrok, etc.)
+        if (!empty($_SERVER['HTTP_HOST'])) {
+            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+            // Check for X-Forwarded-Proto header (Replit proxy sets this)
+            if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+                $scheme = $_SERVER['HTTP_X_FORWARDED_PROTO'];
+            }
+            $this->baseURL = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/';
+        } else {
+            $this->baseURL = 'http://localhost:5000/';
+        }
+    }
 }

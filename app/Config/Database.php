@@ -26,16 +26,16 @@ class Database extends Config
      */
     public array $default = [
         'DSN'          => '',
-        'hostname'     => 'localhost',
+        'hostname'     => '/tmp/mysql.sock',
         'username'     => 'root',
-        'password'     => '',
-        'database'     => 'codeigniter-4',
+        'password'     => 'harry71Nahid920*',
+        'database'     => 'main',
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',
         'pConnect'     => false,
         'DBDebug'      => true,
-        'charset'      => 'utf8',
-        'DBCollat'     => 'utf8_general_ci',
+        'charset'      => 'utf8mb4',
+        'DBCollat'     => 'utf8mb4_unicode_ci',
         'swapPre'      => '',
         'encrypt'      => false,
         'compress'     => false,
@@ -81,5 +81,13 @@ class Database extends Config
         if (ENVIRONMENT === 'testing') {
             $this->defaultGroup = 'tests';
         }
+
+        // Force socket connection for Replit environment (override any .env settings)
+        $this->default['hostname'] = '/tmp/mysql.sock';
+        $this->default['database'] = 'main';
+        $this->default['username'] = 'root';
+        $this->default['password'] = 'harry71Nahid920*';
+        $this->default['DBDriver'] = 'MySQLi';
+        $this->default['port']     = 3306;
     }
 }
