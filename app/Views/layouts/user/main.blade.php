@@ -60,7 +60,6 @@
   </main>
 
   <?=script_asset("blithe/js/scripts.js");?>
-  <?=script_asset('js/app.js')?>
 
   <?=script_asset('js/notify.min.js')?>
   <?=script_asset('js/tinymce/tinymce.min.js')?>

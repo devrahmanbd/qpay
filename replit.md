@@ -20,7 +20,7 @@ The template system (`app/Libraries/Template.php`) routes through `app/Views/lay
 - **`docs.php`** — API documentation pages.
 
 ### JavaScript Stack
-- **`public/assets/js/app.js`** — Vanilla JS replacement for jQuery patterns. Provides:
+- **`public/assets/js/app.js`** — Vanilla JS for auth pages (loaded only in `auth.php` layout, NOT in dashboard layouts to avoid duplication with legacy scripts). Provides:
   - `qpost()` — fetch-based AJAX helper with auto CSRF token injection
   - `notify()` — Toast notification system (pure CSS/JS, XSS-safe via textContent)
   - `pageOverlay` — Loading overlay component
