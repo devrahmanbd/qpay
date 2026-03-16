@@ -265,7 +265,6 @@ CREATE TABLE IF NOT EXISTS `user_roles` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL,
   `permissions` text DEFAULT NULL,
-  `status` tinyint(1) DEFAULT 1,
   `created_at` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -332,8 +331,8 @@ CREATE TABLE IF NOT EXISTS `user_transactions` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT IGNORE INTO `user_roles` (`id`, `name`, `permissions`, `status`)
-VALUES (1, 'Super Admin', '*', 1);
+INSERT IGNORE INTO `user_roles` (`id`, `name`, `permissions`)
+VALUES (1, 'Super Admin', '*');
 
 INSERT IGNORE INTO `staffs` (`id`, `ids`, `email`, `first_name`, `last_name`, `role_id`, `password`, `status`)
 VALUES (1, '1', 'admin@qpay.com', 'Admin', 'User', 1, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1);
