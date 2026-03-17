@@ -28,10 +28,7 @@ class QPay
 
     protected function detectBaseUrl(): string
     {
-        if (strpos($this->apiKey, '_test_') !== false) {
-            return 'https://your-qpay-domain.com';
-        }
-        return 'https://your-qpay-domain.com';
+        throw new QPayException("'baseUrl' is required. Pass it as the second constructor argument (e.g. 'https://pay.yourdomain.com').");
     }
 
     public function setTimeout(int $seconds): self

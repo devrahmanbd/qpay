@@ -68,7 +68,7 @@ function qpay_wc_handle_webhook(WP_REST_Request $request)
 
     $paymentId = $paymentData['id'] ?? '';
     if ($event === 'refund.created') {
-        $paymentId = $paymentData['payment_id'] ?? $paymentId;
+        $paymentId = $paymentData['payment_id'] ?? $paymentData['payment'] ?? $paymentId;
     }
 
     if (empty($paymentId)) {

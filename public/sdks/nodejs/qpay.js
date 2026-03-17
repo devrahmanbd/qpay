@@ -9,7 +9,8 @@ class QPay {
   constructor(apiKey, options = {}) {
     if (!apiKey) throw new Error('API key is required.');
     this.apiKey = apiKey;
-    this.baseUrl = (options.baseUrl || 'https://your-qpay-domain.com').replace(/\/+$/, '');
+    if (!options.baseUrl) throw new Error("'baseUrl' option is required (e.g. 'https://pay.yourdomain.com').");
+    this.baseUrl = options.baseUrl.replace(/\/+$/, '');
     this.timeout = options.timeout || 30000;
   }
 
@@ -71,7 +72,14 @@ class QPay {
       .update(`${timestamp}.${payload}`)
       .digest('hex');
 
-    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(parts.v1));
+    try {
+      const expectedBuf = Buffer.from(expected, 'utf8');
+      const receivedBuf = Buffer.from(parts.v1, 'utf8');
+      if (expectedBuf.length !== receivedBuf.length) return false;
+      return crypto.timingSafeEqual(expectedBuf, receivedBuf);
+    } catch {
+      return false;
+    }
   }
 
   _request(method, endpoint, data = {}) {
