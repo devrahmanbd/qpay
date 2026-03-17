@@ -6,6 +6,7 @@ class WebhookService
 {
     protected $db;
     const MAX_ATTEMPTS = 3;
+    const BACKOFF_DELAYS = [60, 300, 1800];
 
     public function __construct()
     {
@@ -126,16 +127,28 @@ class WebhookService
         curl_close($ch);
 
         $delivered = $httpCode >= 200 && $httpCode < 300;
+        $newAttempts = $event->attempts + 1;
+
+        $updateData = [
+            'attempts' => $newAttempts,
+            'last_attempt_at' => date('Y-m-d H:i:s'),
+            'response_code' => $httpCode,
+            'response_body' => substr($response ?: '', 0, 1000),
+        ];
+
+        if ($delivered) {
+            $updateData['status'] = 'delivered';
+        } elseif ($newAttempts >= self::MAX_ATTEMPTS) {
+            $updateData['status'] = 'failed';
+        } else {
+            $updateData['status'] = 'pending';
+            $backoffSeconds = self::BACKOFF_DELAYS[$newAttempts - 1] ?? 1800;
+            $updateData['next_retry_at'] = date('Y-m-d H:i:s', time() + $backoffSeconds);
+        }
 
         $this->db->table('webhook_events')
             ->where('id', $eventId)
-            ->update([
-                'attempts' => $event->attempts + 1,
-                'last_attempt_at' => date('Y-m-d H:i:s'),
-                'response_code' => $httpCode,
-                'response_body' => substr($response ?: '', 0, 1000),
-                'status' => $delivered ? 'delivered' : ($event->attempts + 1 >= self::MAX_ATTEMPTS ? 'failed' : 'pending'),
-            ]);
+            ->update($updateData);
 
         return $delivered;
     }
@@ -150,8 +163,11 @@ class WebhookService
     {
         $parts = [];
         foreach (explode(',', $signatureHeader) as $item) {
-            [$key, $value] = explode('=', $item, 2);
-            $parts[$key] = $value;
+            $pair = explode('=', $item, 2);
+            if (count($pair) !== 2) {
+                continue;
+            }
+            $parts[$pair[0]] = $pair[1];
         }
 
         if (!isset($parts['t'], $parts['v1'])) {
@@ -169,9 +185,16 @@ class WebhookService
 
     public function retryFailed(): int
     {
+        $now = date('Y-m-d H:i:s');
+
         $pending = $this->db->table('webhook_events')
             ->where('status', 'pending')
             ->where('attempts <', self::MAX_ATTEMPTS)
+            ->where('attempts >', 0)
+            ->groupStart()
+                ->where('next_retry_at IS NULL')
+                ->orWhere('next_retry_at <=', $now)
+            ->groupEnd()
             ->get()
             ->getResult();
 

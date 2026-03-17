@@ -31,6 +31,7 @@ class CreateWebhooksTables extends Migration
             'status' => ['type' => 'ENUM', 'constraint' => ['pending', 'delivered', 'failed'], 'default' => 'pending'],
             'attempts' => ['type' => 'TINYINT', 'constraint' => 3, 'default' => 0],
             'last_attempt_at' => ['type' => 'DATETIME', 'null' => true],
+            'next_retry_at' => ['type' => 'DATETIME', 'null' => true],
             'response_code' => ['type' => 'SMALLINT', 'null' => true],
             'response_body' => ['type' => 'TEXT', 'null' => true],
             'created_at' => ['type' => 'DATETIME', 'null' => true],

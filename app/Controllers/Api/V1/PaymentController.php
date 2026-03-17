@@ -116,16 +116,28 @@ class PaymentController extends ResourceController
                 ]);
             $paymentData['status'] = 1;
             $paymentData['transaction_id'] = $providerResult['transaction_id'] ?? null;
+        } else {
+            $this->db->table('api_payments')
+                ->where('ids', $paymentIds)
+                ->update([
+                    'status' => 3,
+                    'provider_response' => json_encode($providerResult),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+            $paymentData['status'] = 3;
         }
 
         $webhookService = new WebhookService();
-        $webhookService->dispatch($brand->id, $merchant->id, 'payment.created', [
+        $eventType = $providerResult['success'] ? 'payment.created' : 'payment.failed';
+        $webhookService->dispatch($brand->id, $merchant->id, $eventType, [
             'id' => $paymentIds,
             'object' => 'payment',
             'amount' => $amount,
             'currency' => $currency,
-            'status' => $providerResult['success'] ? 'processing' : 'pending',
+            'status' => $providerResult['success'] ? 'processing' : 'failed',
             'test_mode' => $isTest,
+            'error' => $providerResult['error'] ?? null,
+            'error_code' => $providerResult['error_code'] ?? null,
         ]);
 
         $payment = $this->db->table('api_payments')->where('ids', $paymentIds)->get()->getRow();
@@ -159,6 +171,13 @@ class PaymentController extends ResourceController
             return $this->respondError('PAYMENT_NOT_FOUND', 'No payment found with the provided ID.', 404);
         }
 
+        if ((int) $payment->status === 3) {
+            $formatted = $this->formatPayment($payment);
+            $formatted['verified'] = false;
+            $formatted['failure_reason'] = 'Payment has already failed and cannot be verified.';
+            return $this->respond($formatted);
+        }
+
         if ($isTest) {
             $provider = new \App\Adapters\TestPaymentAdapter($merchant->id, $brand->id);
         } else {
@@ -190,7 +209,7 @@ class PaymentController extends ResourceController
         }
 
         $formatted = $this->formatPayment($payment);
-        $formatted['data']['verified'] = $verifyResult['verified'] ?? false;
+        $formatted['verified'] = $verifyResult['verified'] ?? false;
 
         return $this->respond($formatted);
     }
@@ -248,8 +267,7 @@ class PaymentController extends ResourceController
 
         $data = [];
         foreach ($payments as $payment) {
-            $formatted = $this->formatPayment($payment);
-            $data[] = $formatted['data'];
+            $data[] = $this->formatPayment($payment);
         }
 
         return $this->respond([
@@ -429,9 +447,7 @@ class PaymentController extends ResourceController
             'updated_at' => $payment->updated_at ?? null,
         ];
 
-        return [
-            'data' => array_merge($data, $extra),
-        ];
+        return array_merge($data, $extra);
     }
 
     protected function respondError(string $code, string $message, int $httpCode, $errors = null): \CodeIgniter\HTTP\ResponseInterface

@@ -1684,6 +1684,28 @@ COMMIT;
 -- Table structure for table `api_keys`
 --
 
+/*M!999999\- enable the sandbox mode */ 
+-- MariaDB dump 10.19  Distrib 10.11.13-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: main
+-- ------------------------------------------------------
+-- Server version	10.11.13-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `api_keys`
+--
+
 DROP TABLE IF EXISTS `api_keys`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -1705,7 +1727,7 @@ CREATE TABLE `api_keys` (
   KEY `key_prefix` (`key_prefix`),
   KEY `key_hash` (`key_hash`),
   KEY `brand_id_merchant_id` (`brand_id`,`merchant_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1730,7 +1752,7 @@ CREATE TABLE `api_logs` (
   PRIMARY KEY (`id`),
   KEY `brand_id_created_at` (`brand_id`,`created_at`),
   KEY `api_key_id` (`api_key_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1770,6 +1792,7 @@ CREATE TABLE `webhook_events` (
   `status` enum('pending','delivered','failed') NOT NULL DEFAULT 'pending',
   `attempts` tinyint(3) NOT NULL DEFAULT 0,
   `last_attempt_at` datetime DEFAULT NULL,
+  `next_retry_at` datetime DEFAULT NULL,
   `response_code` smallint(6) DEFAULT NULL,
   `response_body` text DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
@@ -1788,4 +1811,4 @@ CREATE TABLE `webhook_events` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-17 10:47:13
+-- Dump completed on 2026-03-17 10:55:56
