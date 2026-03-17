@@ -154,14 +154,3 @@ func main() {
   </table>
 </div>
 
-<script>
-  function copyCode(button) {
-    const codeContainer = button.parentElement;
-    const codeElement = codeContainer.querySelector("code");
-    const codeText = codeElement.innerText;
-    navigator.clipboard.writeText(codeText).then(() => {
-      button.textContent = 'Copied!';
-      setTimeout(() => { button.textContent = 'Copy'; }, 1500);
-    });
-  }
-</script>

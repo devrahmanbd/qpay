@@ -129,6 +129,18 @@
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script>
+    function copyCode(button) {
+      var container = button.parentElement;
+      var code = container.querySelector('code');
+      if (code) {
+        navigator.clipboard.writeText(code.innerText).then(function() {
+          button.textContent = 'Copied!';
+          setTimeout(function() { button.textContent = 'Copy'; }, 1500);
+        });
+      }
+    }
+  </script>
 </body>
 
 </html>
