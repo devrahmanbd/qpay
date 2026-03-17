@@ -1,5 +1,9 @@
 "use strict";
 
+function toRelativeUrl(url) {
+  try { return new URL(url).pathname + new URL(url).search; } catch(e) { return url; }
+}
+
 var pageOverlay = {
   show: function() {
     var el = document.getElementById('page-overlay');
@@ -178,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form.classList.contains('actionForm')) {
       e.preventDefault();
       pageOverlay.show();
-      var action = form.getAttribute('action');
+      var action = toRelativeUrl(form.getAttribute('action'));
       var redirect = form.dataset.redirect;
       var data = serializeForm(form);
       if (!form.querySelector('input[name=token]')) {
@@ -200,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (form.classList.contains('actionFormWithoutToast')) {
       e.preventDefault();
-      var action2 = form.getAttribute('action');
+      var action2 = toRelativeUrl(form.getAttribute('action'));
       var redirect2 = form.dataset.redirect;
       var data2 = serializeForm(form);
       data2 += '&token=' + encodeURIComponent(token);
@@ -247,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (form.classList.contains('ajaxSearchItem')) {
       e.preventDefault();
       pageOverlay.show();
-      var action4 = form.getAttribute('action');
+      var action4 = toRelativeUrl(form.getAttribute('action'));
       var data4 = serializeForm(form) + '&token=' + encodeURIComponent(token);
       qPost(action4, data4).then(function(result) {
         pageOverlay.hide();
@@ -263,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
       e.preventDefault();
       var msg = target.dataset.confirm_ms;
       if (!confirm_notice(msg)) return;
-      var url = target.getAttribute('href');
+      var url = toRelativeUrl(target.getAttribute('href'));
       var data = 'token=' + encodeURIComponent(token);
       callPostAjax(url, data, 'delete-item');
     }
@@ -281,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (viewUser) {
       e.preventDefault();
       pageOverlay.show();
-      var url3 = viewUser.getAttribute('href');
+      var url3 = toRelativeUrl(viewUser.getAttribute('href'));
       var data6 = 'token=' + encodeURIComponent(token);
       callPostAjax(url3, data6, '');
     }
@@ -293,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (['delete','deactive','delete-all','restore'].indexOf(type) !== -1) {
         if (!confirm_notice(type)) return;
       }
-      var url4 = bulkAction.getAttribute('href');
+      var url4 = toRelativeUrl(bulkAction.getAttribute('href'));
       var selectedIds = [];
       document.querySelectorAll('.check-item:checked').forEach(function(cb) {
         selectedIds.push(cb.value);
@@ -329,7 +333,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var modalLink = e.target.closest('.ajaxModal');
     if (modalLink) {
       e.preventDefault();
-      var url5 = modalLink.getAttribute('href');
+      var url5 = toRelativeUrl(modalLink.getAttribute('href'));
       if (!url5 || url5 === '#') return;
       openModal(url5);
     }

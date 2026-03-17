@@ -82,6 +82,7 @@
             if (overlay) overlay.classList.add('active');
             var form = e.target;
             var action = form.getAttribute('action');
+            try { action = new URL(action).pathname; } catch(ex) {}
             var redirectUrl = form.dataset.redirect || '';
             var formData = new FormData(form);
             if (!formData.has('token')) formData.append('token', _csrfToken);
