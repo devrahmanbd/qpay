@@ -179,15 +179,21 @@ All v1 routes require `API-KEY` header (new pk/sk key or legacy brand_key).
 - `/user/api/keys` — Manage API keys (generate, rotate, revoke)
 - `/user/api/webhooks` — Configure webhook endpoints
 - `/user/api/logs` — View API request logs with filtering
+- `/user/api/sdks` — SDK downloads, plugin ZIP, code snippets, integration instructions
 
 ## Admin API Analytics
 - `/admin/api-analytics` — Platform-wide API usage stats, top merchants, error rates
 
 ## Developer Docs
 - `/developers` - Overview landing page
-- `/developers/docs` - Full API documentation with code samples
+- `/developers/docs` - Full API documentation with code samples (authentication, all endpoints, webhooks, SDKs, error codes, rate limits)
 - Docs use `base_url()` for PAYMENT_URL
-- Docs layout (`docs.php`) retains its own separate CSS/JS (not part of dashboard migration)
+- Docs layout uses `general.php` layout (Tailwind CSS + Alpine.js)
+
+## Integration SDKs & Plugins
+- **PHP SDK** (`public/sdks/php/QPay.php`) — Single-file SDK with all API methods + webhook signature verification
+- **Node.js SDK** (`public/sdks/nodejs/qpay.js`) — CommonJS module with async/await, error class, webhook verification
+- **WooCommerce Plugin** (`public/sdks/woocommerce/qpay-payment-gateway/`) — Full WooCommerce payment gateway with settings page, checkout flow, webhook handling, refund support. ZIP available at `/sdks/woocommerce/qpay-woocommerce.zip`
 
 ## Environment Notes
 - `APP_STATUS=installed` and `CI_ENVIRONMENT=development` set via putenv() in index.php

@@ -248,4 +248,13 @@ class ApiDashboardController extends UserController
 
         $this->template->view('merchant/api/logs', $data)->render();
     }
+
+    public function sdks()
+    {
+        $data = [
+            'api_base_url' => rtrim(base_url(), '/'),
+        ];
+
+        $this->template->view('merchant/api/sdks', $data)->render();
+    }
 }

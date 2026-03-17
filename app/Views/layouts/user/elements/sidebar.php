@@ -99,6 +99,7 @@
                <a href="<?= user_url('api/keys') ?>" class="block px-3 py-1.5 text-sm rounded hover:bg-sidebar-hover hover:text-white <?= segment(3) == 'keys' ? 'text-white' : '' ?>">API Keys</a>
                <a href="<?= user_url('api/webhooks') ?>" class="block px-3 py-1.5 text-sm rounded hover:bg-sidebar-hover hover:text-white <?= segment(3) == 'webhooks' ? 'text-white' : '' ?>">Webhooks</a>
                <a href="<?= user_url('api/logs') ?>" class="block px-3 py-1.5 text-sm rounded hover:bg-sidebar-hover hover:text-white <?= segment(3) == 'logs' ? 'text-white' : '' ?>">API Logs</a>
+               <a href="<?= user_url('api/sdks') ?>" class="block px-3 py-1.5 text-sm rounded hover:bg-sidebar-hover hover:text-white <?= segment(3) == 'sdks' ? 'text-white' : '' ?>">SDKs & Plugins</a>
             </div>
          </div>
 
