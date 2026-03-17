@@ -42,53 +42,26 @@
 
 ## Pending Tasks
 
-### Task #3: Unified WordPress Plugin (Payment Buttons & Forms + Optional WooCommerce)
-**Status**: NOT STARTED
-**Priority**: HIGH
-**Description**: Create a single "QPay for WordPress" plugin that works on any WordPress site with optional WooCommerce integration
-
-#### 3.1: Core Plugin Setup
-- [ ] Create `public/sdks/wordpress/qpay-payment/` directory structure
-- [ ] Main plugin file with unified setup detection (WooCommerce optional)
-- [ ] Settings page for API keys, webhook secret, test/live mode
-- [ ] Feature toggle UI: enable/disable WooCommerce integration, payment forms, buttons
-
-#### 3.2: Payment Buttons & Shortcodes
-- [ ] `[qpay_button]` shortcode for quick payment buttons
-- [ ] Shortcode attributes: amount, description, payment_method, success_url, cancel_url
-- [ ] Button styling with inline CSS (Tailwind-compatible)
-- [ ] AJAX payment creation via jQuery/Alpine.js
-
-#### 3.3: Payment Forms
-- [ ] `[qpay_form]` shortcode for full checkout forms
-- [ ] Form fields: amount, customer name, email, phone, custom fields
-- [ ] Form validation (client + server-side)
-- [ ] Order storage in WordPress posts/custom tables
-
-#### 3.4: Webhook Handling
-- [ ] Unified webhook endpoint at `/wp-json/qpay/v1/webhook`
-- [ ] Payment status update logic (pending, completed, failed)
-- [ ] Email notifications on payment completion
-- [ ] Webhook signature verification
-
-#### 3.5: WooCommerce Integration (Conditional)
-- [ ] Detect if WooCommerce is active
-- [ ] Register WC_Payment_Gateway only if WooCommerce exists
-- [ ] Reuse existing WooCommerce gateway code from Task #2
-- [ ] Settings: merge WooCommerce options into unified settings page
-- [ ] Order status mapping: payment.created → on-hold, completed → completed, failed → failed
-
-#### 3.6: Admin Dashboard
-- [ ] Transactions list (all payments from buttons, forms, WooCommerce)
-- [ ] Transaction detail view (amount, status, customer, timestamp)
-- [ ] Manual refund interface
-- [ ] Test mode indicator on all pages
-
-#### 3.7: Documentation & Downloads
-- [ ] Plugin ZIP file for distribution
-- [ ] Installation guide (manual upload + WordPress.org steps)
-- [ ] Shortcode documentation on SDK dashboard
-- [ ] Code examples for payment buttons and forms
+### Task #3: Unified WordPress Plugin ✅ COMPLETED
+- [x] Core plugin setup (`public/sdks/wordpress/qpay-wordpress/`)
+- [x] QPay SDK class for API communication
+- [x] Custom DB tables (qpay_transactions, qpay_forms)
+- [x] Admin settings page with API keys, test mode, feature toggles
+- [x] `[qpay_button]` shortcode (amount, currency, label, description, method, success/cancel URLs)
+- [x] `[qpay_form]` shortcode (name, email, phone, amount, description fields + saved forms by ID)
+- [x] `[qpay_donate]` shortcode (preset amounts, custom amount, donor info)
+- [x] Form builder admin page (create/edit/delete reusable forms)
+- [x] AJAX payment creation with checkout redirect
+- [x] Unified webhook handler (signature verification, transaction + WooCommerce support)
+- [x] Email notifications (admin + customer on payment completion/failure/refund)
+- [x] Transaction management admin page (list, filter, search, detail view, refund)
+- [x] WooCommerce gateway (optional, auto-detected, shared API keys from QPay settings)
+- [x] QPay Merchant role with custom capabilities
+- [x] Frontend CSS (buttons, forms, donation presets, test badges)
+- [x] Frontend JS (AJAX handlers, form validation, preset amount selection)
+- [x] Admin CSS (settings cards, stats row, transaction badges, detail grid)
+- [x] Plugin ZIP package for distribution
+- [x] Merchant dashboard SDK page updated (WordPress plugin featured as recommended)
 
 ---
 
@@ -135,8 +108,7 @@
 
 ## Summary
 
-**Completed**: 6/12 major components (50%)
-**In Progress**: Task #3 (WordPress unified plugin)
+**Completed**: 7/9 major components (78%)
 **Pending**: Sprint 5 (ledger), Sprint 6 (infrastructure)
 
-**Next Step**: Build Task #3 (unified WordPress plugin with optional WooCommerce)
+**Next Step**: Sprint 5 (double-entry ledger for merchant balances)

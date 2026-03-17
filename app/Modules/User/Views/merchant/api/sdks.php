@@ -6,19 +6,28 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="bg-white rounded-xl shadow-sm border-2 border-primary-200 p-6 relative">
+            <span class="absolute -top-2.5 left-4 px-2 py-0.5 bg-primary-600 text-white text-xs font-bold rounded-full uppercase tracking-wide">Recommended</span>
             <div class="flex items-start gap-4 mb-4">
                 <div class="w-12 h-12 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h18v18H3V3z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v18"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-lg font-semibold text-gray-900">WooCommerce Plugin</h3>
-                    <p class="text-sm text-gray-500">WordPress / WooCommerce</p>
+                    <h3 class="text-lg font-semibold text-gray-900">QPay for WordPress</h3>
+                    <p class="text-sm text-gray-500">Any WordPress Site + Optional WooCommerce</p>
                 </div>
             </div>
-            <p class="text-sm text-gray-600 mb-4">Accept payments on your WooCommerce store. Supports all payment methods, automatic order status updates via webhooks, and refunds from the WooCommerce admin.</p>
+            <p class="text-sm text-gray-600 mb-3">Accept payments on any WordPress site. Payment buttons, custom forms, donation forms with preset amounts, and optional WooCommerce checkout integration.</p>
+            <div class="flex flex-wrap gap-1.5 mb-4">
+                <span class="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded">[qpay_button]</span>
+                <span class="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded">[qpay_form]</span>
+                <span class="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded">[qpay_donate]</span>
+                <span class="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded">WooCommerce</span>
+                <span class="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded">Webhooks</span>
+                <span class="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded">Refunds</span>
+            </div>
             <div class="space-y-3">
-                <a href="<?= base_url('sdks/woocommerce/qpay-woocommerce.zip') ?>" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
+                <a href="<?= base_url('sdks/wordpress/qpay-wordpress.zip') ?>" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     Download Plugin (ZIP)
                 </a>
@@ -28,12 +37,34 @@
                         <li>Download the ZIP file above</li>
                         <li>Go to <strong>WordPress Admin &rarr; Plugins &rarr; Add New &rarr; Upload Plugin</strong></li>
                         <li>Upload the ZIP and click <strong>Install Now</strong>, then <strong>Activate</strong></li>
-                        <li>Go to <strong>WooCommerce &rarr; Settings &rarr; Payments &rarr; QPay</strong></li>
+                        <li>Go to <strong>QPay &rarr; Settings</strong> in WordPress admin sidebar</li>
                         <li>Enter your API URL: <code class="bg-gray-100 px-1 rounded"><?= $api_base_url ?></code></li>
                         <li>Enter your API keys from the <a href="<?= user_url('api/keys') ?>" class="text-primary-600 hover:underline">API Keys</a> page</li>
                         <li>Set webhook URL in <?= site_config('site_name', 'QPay') ?> dashboard: <code class="bg-gray-100 px-1 rounded">https://yoursite.com/wp-json/qpay/v1/webhook</code></li>
                         <li>Enter webhook signing secret and save</li>
                     </ol>
+                </details>
+                <details class="mt-2">
+                    <summary class="text-sm font-medium text-primary-600 cursor-pointer hover:text-primary-700">Shortcode Examples</summary>
+                    <div class="mt-2 bg-gray-900 rounded-lg p-4 overflow-x-auto">
+<pre class="text-sm leading-relaxed text-gray-100"><code>&lt;!-- Payment button with fixed amount --&gt;
+[qpay_button amount="500" label="Pay Now"]
+
+&lt;!-- Payment button with description --&gt;
+[qpay_button amount="1500" description="Course Fee" currency="BDT"]
+
+&lt;!-- Payment form with customer fields --&gt;
+[qpay_form fields="name,email,phone,amount"]
+
+&lt;!-- Saved form by ID --&gt;
+[qpay_form id="1"]
+
+&lt;!-- Donation form with presets --&gt;
+[qpay_donate preset="100,500,1000,5000" custom="yes"]
+
+&lt;!-- Donation form without custom amount --&gt;
+[qpay_donate preset="500,1000" custom="no" label="Support Us"]</code></pre>
+                    </div>
                 </details>
             </div>
         </div>

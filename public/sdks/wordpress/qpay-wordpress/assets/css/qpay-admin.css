@@ -1,0 +1,26 @@
+.qpay-admin .qpay-settings-grid{display:grid;gap:20px;max-width:900px}
+.qpay-admin .qpay-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.qpay-admin .qpay-card h2,.qpay-admin .qpay-card h3{margin:0 0 12px;padding:0 0 8px;border-bottom:1px solid #f3f4f6;font-size:16px;color:#111827}
+
+.qpay-stats-row{display:flex;gap:16px;margin:16px 0}
+.qpay-stat{flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px;text-align:center}
+.qpay-stat-num{display:block;font-size:28px;font-weight:700;color:#111827}
+.qpay-stat-label{font-size:13px;color:#6b7280}
+.qpay-stat-success .qpay-stat-num{color:#059669}
+.qpay-stat-warning .qpay-stat-num{color:#d97706}
+.qpay-stat-danger .qpay-stat-num{color:#dc2626}
+
+.qpay-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;text-transform:capitalize}
+.qpay-badge-pending{background:#fef3c7;color:#92400e}
+.qpay-badge-processing{background:#dbeafe;color:#1e40af}
+.qpay-badge-completed{background:#d1fae5;color:#065f46}
+.qpay-badge-failed{background:#fee2e2;color:#991b1b}
+.qpay-badge-refunded{background:#e0e7ff;color:#3730a3}
+.qpay-badge-test{background:#fef3c7;color:#92400e;font-size:10px;margin-left:4px}
+.qpay-badge-active{background:#d1fae5;color:#065f46}
+
+.qpay-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px}
+.qpay-detail-grid .qpay-card:last-child{grid-column:1/-1}
+
+.qpay-filters{display:flex;gap:8px;align-items:center}
+.qpay-text-danger{color:#dc2626}

@@ -1,0 +1,37 @@
+.qpay-button-wrap{display:inline-block;position:relative}
+.qpay-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s ease;font-family:inherit;line-height:1.4}
+.qpay-btn:disabled{opacity:.6;cursor:not-allowed}
+.qpay-btn-pay,.qpay-btn-submit,.qpay-btn-donate{background:#4f46e5;color:#fff}
+.qpay-btn-pay:hover,.qpay-btn-submit:hover,.qpay-btn-donate:hover{background:#4338ca;transform:translateY(-1px);box-shadow:0 4px 12px rgba(79,70,229,.3)}
+.qpay-btn-pay:active,.qpay-btn-submit:active,.qpay-btn-donate:active{transform:translateY(0)}
+.qpay-amount{opacity:.9;font-weight:400}
+.qpay-test-badge{display:inline-block;padding:2px 8px;background:#f59e0b;color:#fff;font-size:11px;font-weight:700;border-radius:4px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+
+.qpay-form-wrap,.qpay-donate-wrap{max-width:480px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.qpay-form-title{margin:0 0 4px;font-size:20px;font-weight:700;color:#111827}
+.qpay-form-desc{margin:0 0 16px;color:#6b7280;font-size:14px}
+
+.qpay-field{margin-bottom:16px}
+.qpay-label{display:block;margin-bottom:4px;font-size:14px;font-weight:500;color:#374151}
+.qpay-label .required{color:#ef4444}
+.qpay-input{width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:15px;color:#111827;background:#fff;transition:border-color .15s;box-sizing:border-box;font-family:inherit}
+.qpay-input:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+.qpay-textarea{resize:vertical;min-height:80px}
+.qpay-input-group{display:flex;align-items:stretch}
+.qpay-currency-prefix{display:flex;align-items:center;padding:0 12px;background:#f3f4f6;border:1px solid #d1d5db;border-right:0;border-radius:6px 0 0 6px;font-size:14px;font-weight:600;color:#6b7280}
+.qpay-input-group .qpay-input{border-radius:0 6px 6px 0}
+.qpay-fixed-amount{margin:0;font-size:20px;font-weight:700;color:#111827}
+
+.qpay-preset-amounts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.qpay-preset-btn{padding:10px 20px;border:2px solid #e5e7eb;border-radius:8px;background:#fff;font-size:15px;font-weight:600;color:#374151;cursor:pointer;transition:all .15s}
+.qpay-preset-btn:hover{border-color:#4f46e5;color:#4f46e5}
+.qpay-preset-btn.active{background:#4f46e5;color:#fff;border-color:#4f46e5}
+
+.qpay-form-message{margin-top:12px;padding:10px 14px;border-radius:6px;font-size:14px}
+.qpay-form-message.qpay-msg-error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+.qpay-form-message.qpay-msg-success{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+.qpay-form-message.qpay-msg-loading{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af}
+.qpay-error{color:#991b1b;font-size:14px}
+
+.qpay-spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:qpay-spin .6s linear infinite;margin-right:6px;vertical-align:middle}
+@keyframes qpay-spin{to{transform:rotate(360deg)}}

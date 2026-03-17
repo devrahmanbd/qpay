@@ -193,7 +193,13 @@ All v1 routes require `API-KEY` header (new pk/sk key or legacy brand_key).
 ## Integration SDKs & Plugins
 - **PHP SDK** (`public/sdks/php/QPay.php`) — Single-file SDK with all API methods + webhook signature verification
 - **Node.js SDK** (`public/sdks/nodejs/qpay.js`) — CommonJS module with async/await, error class, webhook verification
-- **WooCommerce Plugin** (`public/sdks/woocommerce/qpay-payment-gateway/`) — Full WooCommerce payment gateway with settings page, checkout flow, webhook handling, refund support. ZIP available at `/sdks/woocommerce/qpay-woocommerce.zip`
+- **QPay for WordPress** (`public/sdks/wordpress/qpay-wordpress/`) — Unified WordPress plugin with payment buttons, forms, donations, webhooks, transaction management, refunds, roles, and optional WooCommerce checkout integration. ZIP at `/sdks/wordpress/qpay-wordpress.zip`
+  - Shortcodes: `[qpay_button]`, `[qpay_form]`, `[qpay_donate]`
+  - Admin pages: QPay > Transactions, QPay > Forms, QPay > Settings
+  - WooCommerce: auto-detected, loads gateway only if WC active + enabled in settings
+  - Webhook: `/wp-json/qpay/v1/webhook` (handles both standalone + WooCommerce orders)
+  - Custom role: `qpay_merchant` with `manage_qpay`, `qpay_view_transactions`, `qpay_refund` capabilities
+- **WooCommerce Plugin (Legacy)** (`public/sdks/woocommerce/qpay-payment-gateway/`) — Standalone WooCommerce-only gateway. Replaced by unified QPay for WordPress plugin above.
 
 ## Environment Notes
 - `APP_STATUS=installed` and `CI_ENVIRONMENT=development` set via putenv() in index.php
