@@ -12,21 +12,23 @@ use CodeIgniter\Filters\DebugToolbar;
 use CodeIgniter\Filters\Honeypot;
 use CodeIgniter\Filters\InvalidChars;
 use CodeIgniter\Filters\SecureHeaders;
+use App\Filters\SecurityHeaders;
 use User\Filters\User_auth;
 
 class Filters extends BaseConfig
 {
     public array $aliases = [
-        'csrf'          => CSRF::class,
-        'toolbar'       => DebugToolbar::class,
-        'honeypot'      => Honeypot::class,
-        'invalidchars'  => InvalidChars::class,
-        'secureheaders' => SecureHeaders::class,
-        'auth'          => Auth::class,
-        'ipblocker'     => IPBlocker::class,
-        'user_auth'     => User_auth::class,
-        'admin_auth'    => Admin_auth::class,
-        'api_auth'      => ApiAuth::class,
+        'csrf'            => CSRF::class,
+        'toolbar'         => DebugToolbar::class,
+        'honeypot'        => Honeypot::class,
+        'invalidchars'    => InvalidChars::class,
+        'secureheaders'   => SecureHeaders::class,
+        'security_headers' => SecurityHeaders::class,
+        'auth'            => Auth::class,
+        'ipblocker'       => IPBlocker::class,
+        'user_auth'       => User_auth::class,
+        'admin_auth'      => Admin_auth::class,
+        'api_auth'        => ApiAuth::class,
     ];
 
     public array $globals = [
@@ -45,6 +47,7 @@ class Filters extends BaseConfig
         'after' => [
             'toolbar',
             'honeypot',
+            'security_headers',
         ],
     ];
 

@@ -15,4 +15,5 @@ $routes->group('/', static function ($routes) {
     $routes->get('privacy-policy', [HomeController::class, 'privacy']);
     $routes->get('blogs', [HomeController::class, 'blogs']);
     $routes->get('blog/(:any)', [HomeController::class, 'blogSingle']);
+    $routes->post('contact-sales', [HomeController::class, 'contactSales']);
 });

@@ -65,6 +65,51 @@ class HomeController extends BaseController
         load_404();
     }
 
+    public function contactSales()
+    {
+        $validation = \Config\Services::validation();
+        $validation->setRules([
+            'name'    => 'required|min_length[2]|max_length[100]',
+            'email'   => 'required|valid_email|max_length[200]',
+            'phone'   => 'permit_empty|max_length[20]',
+            'company' => 'permit_empty|max_length[200]',
+            'volume'  => 'permit_empty|max_length[50]',
+            'message' => 'permit_empty|max_length[2000]',
+        ]);
+
+        if (!$validation->withRequest($this->request)->run()) {
+            return redirect()->back()->with('errors', $validation->getErrors());
+        }
+
+        try {
+            $db = db_connect();
+            $inserted = $db->table('sales_leads')->insert([
+                'name'       => $this->request->getPost('name'),
+                'email'      => $this->request->getPost('email'),
+                'phone'      => $this->request->getPost('phone') ?? '',
+                'company'    => $this->request->getPost('company') ?? '',
+                'volume'     => $this->request->getPost('volume') ?? '',
+                'message'    => $this->request->getPost('message') ?? '',
+                'ip_address' => $this->request->getIPAddress(),
+                'created_at' => date('Y-m-d H:i:s'),
+            ]);
+            $db->close();
+
+            if ($inserted) {
+                return redirect()->to(base_url('/#contact-sales'))->with('sales_success', true);
+            }
+
+            return redirect()->back()
+                ->with('sales_error', 'Something went wrong. Please try again.')
+                ->withInput();
+        } catch (\Exception $e) {
+            log_message('error', 'Contact sales form error: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('sales_error', 'Something went wrong. Please try again.')
+                ->withInput();
+        }
+    }
+
     public function invoice($ids = '')
     {
 

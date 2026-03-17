@@ -203,6 +203,15 @@ All v1 routes require `API-KEY` header (new pk/sk key or legacy brand_key).
   - Custom role: `qpay_merchant` with `manage_qpay`, `qpay_view_transactions`, `qpay_refund` capabilities
 - **WooCommerce Plugin (Legacy)** (`public/sdks/woocommerce/qpay-payment-gateway/`) — Standalone WooCommerce-only gateway. Replaced by unified QPay for WordPress plugin above.
 
+## Landing Page & SEO
+- **Landing page**: Mercury/Airwallex-style dark hero at `app/Modules/Home/Views/index.php` with gradient mesh backgrounds, animated stats (Alpine.js x-intersect), feature cards, how-it-works steps, testimonials, and sales contact form
+- **Contact form**: POSTs to `/contact-sales` → `HomeController::contactSales()` with validation, DB insert to `sales_leads` table, error handling with try/catch
+- **SEO**: Open Graph meta, Twitter cards, JSON-LD Organization schema, canonical URLs in `general.php` layout
+- **Security headers**: `app/Filters/SecurityHeaders.php` — X-Content-Type-Options, X-Frame-Options, XSS-Protection, HSTS, Referrer-Policy, Permissions-Policy (registered as global after-filter)
+- **robots.txt**: At workspace root (served by `router.php`), allows crawling of public pages, disallows admin/user/api paths
+- **Scroll animations**: `.scroll-reveal` class triggered by IntersectionObserver in layout JS
+- **Speed**: preconnect hints for CDN, lazy loading on images
+
 ## Environment Notes
 - `APP_STATUS=installed` and `CI_ENVIRONMENT=development` set via putenv() in index.php
 - CSRF is disabled for `api/*` routes
