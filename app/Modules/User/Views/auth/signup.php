@@ -4,7 +4,8 @@
       <h4 class="text-xl font-semibold text-gray-900">Register</h4>
     </div>
     <div class="px-6 py-6">
-      <?= form_open(base_url('sign-up'), 'class="actionForm space-y-5" novalidate="" data-redirect="user"') ?>
+      <form action="<?= base_url('sign-up') ?>" method="post" class="space-y-5" x-data="authForm()" @submit.prevent="submitForm($event)" data-redirect="user">
+        <input type="hidden" name="token" value="<?= csrf_hash() ?>">
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
@@ -44,10 +45,11 @@
         <label class="ml-2 text-sm text-gray-600" for="agree">I agree with the terms and conditions</label>
       </div>
 
-      <button type="submit" class="w-full py-2.5 px-4 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors">
-        Register
+      <button type="submit" class="w-full py-2.5 px-4 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:opacity-50" :disabled="loading">
+        <span x-show="!loading">Register</span>
+        <span x-show="loading" x-cloak>Creating account...</span>
       </button>
-      <?= form_close(); ?>
+      </form>
     </div>
     <div class="px-6 pb-5 text-center text-sm text-gray-500">
       Already Registered? <a href="<?= base_url('sign-in') ?>" class="text-indigo-600 hover:text-indigo-700 font-medium">Login</a>

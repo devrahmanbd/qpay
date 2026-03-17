@@ -10,7 +10,8 @@ $redirect = session('ref_url') ?? user_url();
       <h4 class="text-xl font-semibold text-gray-900">Sign In</h4>
     </div>
     <div class="px-6 py-6">
-      <?= form_open(base_url('sign-in'), 'class="actionForm space-y-5" novalidate="" data-redirect="' . $redirect . '"') ?>
+      <form action="<?= base_url('sign-in') ?>" method="post" class="space-y-5" x-data="authForm()" @submit.prevent="submitForm($event)" data-redirect="<?= $redirect ?>">
+        <input type="hidden" name="token" value="<?= csrf_hash() ?>">
 
       <div>
         <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -30,8 +31,9 @@ $redirect = session('ref_url') ?? user_url();
         <label class="ml-2 text-sm text-gray-600" for="remember-me">Remember Me</label>
       </div>
 
-      <button type="submit" class="w-full py-2.5 px-4 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors" tabindex="4">
-        Login
+      <button type="submit" class="w-full py-2.5 px-4 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors disabled:opacity-50" tabindex="4" :disabled="loading">
+        <span x-show="!loading">Login</span>
+        <span x-show="loading" x-cloak>Signing in...</span>
       </button>
 
       <?php if (get_option('google_login')) : ?>
@@ -40,7 +42,7 @@ $redirect = session('ref_url') ?? user_url();
           Google Login
         </a>
       <?php endif; ?>
-      <?= form_close(); ?>
+      </form>
     </div>
     <div class="px-6 pb-5 text-center text-sm text-gray-500">
       Don't have an account? <a href="<?= base_url('sign-up') ?>" class="text-primary-600 hover:text-primary-700 font-medium">Register</a>

@@ -215,6 +215,33 @@
   </div>
 </section>
 
+<section class="py-16 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold text-gray-900 fade-in">What Our Merchants Say</h2>
+      <p class="mt-3 text-gray-500 fade-in" style="animation-delay:.1s">Trusted by businesses across South Asia</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8" x-data="{ testimonials: [
+      { name: 'Rakib Hasan', role: 'E-commerce Owner', text: 'QPay simplified our payment integration. We went live with bKash and Nagad in under a day. The API documentation is excellent.' },
+      { name: 'Priya Sharma', role: 'SaaS Founder', text: 'The unified API is a game-changer. One integration handles all local payment methods. Our checkout conversion improved significantly.' },
+      { name: 'Arif Rahman', role: 'SMM Panel Operator', text: 'Reliable, fast settlements and great support. QPay handles thousands of our daily transactions without any issues.' }
+    ] }">
+      <template x-for="(t, i) in testimonials" :key="i">
+        <div class="bg-gray-50 rounded-xl p-6 border border-gray-100 fade-in" :style="'animation-delay:' + (i * 0.1 + 0.2) + 's'">
+          <div class="flex items-center gap-1 mb-4">
+            <template x-for="s in 5"><svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg></template>
+          </div>
+          <p class="text-gray-600 text-sm mb-4" x-text="t.text"></p>
+          <div>
+            <p class="font-semibold text-gray-900 text-sm" x-text="t.name"></p>
+            <p class="text-xs text-gray-500" x-text="t.role"></p>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+</section>
+
 <?php if (!empty($items)) : ?>
 <section class="py-16 lg:py-24 bg-gray-50" x-data>
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">

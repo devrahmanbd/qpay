@@ -5,11 +5,13 @@
     </div>
     <div class="px-6 py-6">
       <p class="text-sm text-gray-600 mb-5">Please click the button below to continue with your account.</p>
-      <?= form_open('', 'class="actionForm" data-redirect="admin"') ?>
-      <button type="submit" class="w-full py-2.5 px-4 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
-        Activate your Account
-      </button>
-      <?= form_close(); ?>
+      <form action="" method="post" x-data="authForm()" @submit.prevent="submitForm($event)" data-redirect="admin">
+        <input type="hidden" name="token" value="<?= csrf_hash() ?>">
+        <button type="submit" class="w-full py-2.5 px-4 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors disabled:opacity-50" :disabled="loading">
+          <span x-show="!loading">Activate your Account</span>
+          <span x-show="loading" x-cloak>Activating...</span>
+        </button>
+      </form>
     </div>
   </div>
 </div>

@@ -10,7 +10,8 @@ $redirect = session('ref_url') ?? admin_url();
       <h4 class="text-xl font-semibold text-gray-900">Admin Sign In</h4>
     </div>
     <div class="px-6 py-6">
-      <?= form_open(url_to('admin.attempt_signin'), 'class="actionForm space-y-5" data-redirect="' . $redirect . '"') ?>
+      <form action="<?= url_to('admin.attempt_signin') ?>" method="post" class="space-y-5" x-data="authForm()" @submit.prevent="submitForm($event)" data-redirect="<?= $redirect ?>">
+        <input type="hidden" name="token" value="<?= csrf_hash() ?>">
 
       <div>
         <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -30,10 +31,11 @@ $redirect = session('ref_url') ?? admin_url();
         <label class="ml-2 text-sm text-gray-600" for="remember-me">Remember Me</label>
       </div>
 
-      <button type="submit" class="w-full py-2.5 px-4 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors" tabindex="4">
-        Login
+      <button type="submit" class="w-full py-2.5 px-4 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:opacity-50" tabindex="4" :disabled="loading">
+        <span x-show="!loading">Login</span>
+        <span x-show="loading" x-cloak>Signing in...</span>
       </button>
-      <?= form_close(); ?>
+      </form>
     </div>
   </div>
 </div>
