@@ -538,6 +538,22 @@ if (!function_exists('get_addon_details')) {
     }
 }
 
+if (!function_exists('plan_message')) {
+    function plan_message($type, $count)
+    {
+        $labels = [
+            'brand' => 'Brand',
+            'device' => 'Device',
+            'transaction' => 'Transaction',
+        ];
+        $label = $labels[$type] ?? ucfirst($type);
+        if ($count == -1 || $count === 'unlimited') {
+            return 'Unlimited ' . $label . 's';
+        }
+        return $count . ' ' . $label . ($count != 1 ? 's' : '');
+    }
+}
+
 if (!function_exists('duration_type')) {
     function duration_type($name, $type, $duration, $badge = true, $show_name = false)
     {
