@@ -180,26 +180,36 @@
       <h2 class="text-3xl font-bold text-gray-900">Supported Platforms & Gateways</h2>
       <p class="mt-3 text-gray-500">Integrate with the tools you already use</p>
     </div>
-    <div class="flex flex-wrap items-center justify-center gap-8 lg:gap-12" x-data="{ logos: [
-      { src: 'public/assets/plat/smm.png', alt: 'SMM' },
-      { src: 'public/assets/plat/php.png', alt: 'PHP' },
-      { src: 'public/assets/plat/javascript.png', alt: 'JavaScript' },
-      { src: 'public/assets/plat/jquery.png', alt: 'jQuery' },
-      { src: 'public/assets/plat/nodejs.png', alt: 'Node.js' },
-      { src: 'public/assets/plat/whmcs-logo.png', alt: 'WHMCS' },
-      { src: 'public/assets/plat/woocommerce-logo-transparent.png', alt: 'WooCommerce' },
-      { src: 'public/assets/plat/wordpress-logo-stacked-rgb.png', alt: 'WordPress' }
-    ] }">
-      <template x-for="logo in logos" :key="logo.alt">
-        <img :src="logo.src" :alt="logo.alt" class="h-10 lg:h-12 object-contain grayscale hover:grayscale-0 transition-all opacity-60 hover:opacity-100">
-      </template>
+    <div class="overflow-hidden">
+      <div class="logo-marquee">
+        <?php
+        $platLogos = [
+          ['src' => 'public/assets/plat/smm.png', 'alt' => 'SMM'],
+          ['src' => 'public/assets/plat/php.png', 'alt' => 'PHP'],
+          ['src' => 'public/assets/plat/javascript.png', 'alt' => 'JavaScript'],
+          ['src' => 'public/assets/plat/jquery.png', 'alt' => 'jQuery'],
+          ['src' => 'public/assets/plat/nodejs.png', 'alt' => 'Node.js'],
+          ['src' => 'public/assets/plat/whmcs-logo.png', 'alt' => 'WHMCS'],
+          ['src' => 'public/assets/plat/woocommerce-logo-transparent.png', 'alt' => 'WooCommerce'],
+          ['src' => 'public/assets/plat/wordpress-logo-stacked-rgb.png', 'alt' => 'WordPress'],
+        ];
+        for ($i = 0; $i < 2; $i++) :
+          foreach ($platLogos as $logo) : ?>
+            <img src="<?= $logo['src'] ?>" alt="<?= $logo['alt'] ?>" class="h-10 lg:h-12 object-contain grayscale hover:grayscale-0 transition-all opacity-60 hover:opacity-100 flex-shrink-0">
+          <?php endforeach;
+        endfor; ?>
+      </div>
     </div>
 
     <?php if (!empty($payments)) : ?>
-    <div class="flex flex-wrap items-center justify-center gap-8 lg:gap-12 mt-8">
-      <?php foreach ($payments as $payment) : ?>
-        <img src="<?= base_url() . @get_value(get_value($payment['params'], 'option'), 'logo'); ?>" class="h-10 lg:h-12 object-contain grayscale hover:grayscale-0 transition-all opacity-60 hover:opacity-100" alt="">
-      <?php endforeach; ?>
+    <div class="overflow-hidden mt-6">
+      <div class="logo-marquee" style="animation-direction:reverse;">
+        <?php for ($i = 0; $i < 2; $i++) :
+          foreach ($payments as $payment) : ?>
+            <img src="<?= base_url() . @get_value(get_value($payment['params'], 'option'), 'logo'); ?>" class="h-10 lg:h-12 object-contain grayscale hover:grayscale-0 transition-all opacity-60 hover:opacity-100 flex-shrink-0" alt="">
+          <?php endforeach;
+        endfor; ?>
+      </div>
     </div>
     <?php endif; ?>
   </div>

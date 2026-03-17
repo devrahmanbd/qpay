@@ -9,7 +9,7 @@
 
   <div x-show="tab==='php'" class="code-container bg-gray-900 rounded-b-lg p-4 overflow-x-auto">
     <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
-<pre class="text-green-300 text-sm leading-relaxed"><code>&lt;?php
+<pre class="text-sm leading-relaxed"><code class="language-php">&lt;?php
 
 $curl = curl_init();
 
@@ -37,7 +37,7 @@ echo $response;
 
   <div x-show="tab==='guzzle'" x-cloak class="code-container bg-gray-900 rounded-b-lg p-4 overflow-x-auto">
     <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
-<pre class="text-green-300 text-sm leading-relaxed"><code>&lt;?php
+<pre class="text-sm leading-relaxed"><code class="language-php">&lt;?php
 $client = new Client();
 $headers = [
   'API-KEY' => 'YOUR_API_KEY_HERE',
@@ -52,7 +52,7 @@ echo $res->getBody();
 
   <div x-show="tab==='node'" x-cloak class="code-container bg-gray-900 rounded-b-lg p-4 overflow-x-auto">
     <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
-<pre class="text-green-300 text-sm leading-relaxed"><code>const axios = require('axios');
+<pre class="text-sm leading-relaxed"><code class="language-javascript">const axios = require('axios');
 
 const config = {
   method: 'post',
@@ -70,7 +70,7 @@ axios.request(config)
 
   <div x-show="tab==='python'" x-cloak class="code-container bg-gray-900 rounded-b-lg p-4 overflow-x-auto">
     <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
-<pre class="text-green-300 text-sm leading-relaxed"><code>import requests
+<pre class="text-sm leading-relaxed"><code class="language-python">import requests
 
 url = "<?= PAYMENT_URL ?>api/v1/payment/verify/PAYMENT_ID_HERE"
 
@@ -85,7 +85,7 @@ print(response.json())</code></pre>
 
   <div x-show="tab==='go'" x-cloak class="code-container bg-gray-900 rounded-b-lg p-4 overflow-x-auto">
     <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
-<pre class="text-green-300 text-sm leading-relaxed"><code>package main
+<pre class="text-sm leading-relaxed"><code class="language-go">package main
 
 import (
   "fmt"
@@ -111,7 +111,7 @@ func main() {
 
 <h3 class="text-lg font-semibold text-gray-900 mt-8 mb-3">Sample Response</h3>
 <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto mb-6">
-<pre class="text-green-300 text-sm leading-relaxed"><code>{
+<pre class="text-sm leading-relaxed"><code class="language-json">{
     "status": "success",
     "data": {
         "payment_id": "pay_a1b2c3d4e5f6",

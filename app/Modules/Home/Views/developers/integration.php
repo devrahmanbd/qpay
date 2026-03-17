@@ -15,7 +15,7 @@
 
   <div x-show="tab==='php'" class="code-container bg-gray-900 rounded-b-lg p-4 overflow-x-auto">
     <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
-<pre class="text-green-300 text-sm leading-relaxed"><code>&lt;?php
+<pre class="text-sm leading-relaxed"><code class="language-php">&lt;?php
 
 $curl = curl_init();
 
@@ -52,7 +52,7 @@ echo $response;
 
   <div x-show="tab==='guzzle'" x-cloak class="code-container bg-gray-900 rounded-b-lg p-4 overflow-x-auto">
     <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
-<pre class="text-green-300 text-sm leading-relaxed"><code>&lt;?php
+<pre class="text-sm leading-relaxed"><code class="language-php">&lt;?php
 $client = new Client();
 $headers = [
   'API-KEY' => 'YOUR_API_KEY_HERE',
@@ -75,7 +75,7 @@ echo $res->getBody();
 
   <div x-show="tab==='node'" x-cloak class="code-container bg-gray-900 rounded-b-lg p-4 overflow-x-auto">
     <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
-<pre class="text-green-300 text-sm leading-relaxed"><code>const axios = require('axios');
+<pre class="text-sm leading-relaxed"><code class="language-javascript">const axios = require('axios');
 
 const data = {
   amount: 500,
@@ -104,7 +104,7 @@ axios.request(config)
 
   <div x-show="tab==='python'" x-cloak class="code-container bg-gray-900 rounded-b-lg p-4 overflow-x-auto">
     <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
-<pre class="text-green-300 text-sm leading-relaxed"><code>import requests
+<pre class="text-sm leading-relaxed"><code class="language-python">import requests
 import json
 
 url = "<?= PAYMENT_URL ?>api/v1/payment/create"
@@ -129,7 +129,7 @@ print(response.json())</code></pre>
 
   <div x-show="tab==='go'" x-cloak class="code-container bg-gray-900 rounded-b-lg p-4 overflow-x-auto">
     <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
-<pre class="text-green-300 text-sm leading-relaxed"><code>package main
+<pre class="text-sm leading-relaxed"><code class="language-go">package main
 
 import (
   "fmt"
