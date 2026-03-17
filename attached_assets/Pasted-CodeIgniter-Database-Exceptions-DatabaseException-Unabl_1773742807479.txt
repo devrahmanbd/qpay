@@ -1,0 +1,142 @@
+CodeIgniter\Database\Exceptions\DatabaseException
+Unable to connect to the database.
+Main connection [MySQLi]: Connection refused
+
+APPPATH/system/Database/BaseConnection.php at line 428
+
+421                         break;
+422                     }
+423                 }
+424             }
+425 
+426             // We still don't have a connection?
+427             if (! $this->connID) {
+428                 throw new DatabaseException(sprintf(
+429                     'Unable to connect to the database.%s%s',
+430                     PHP_EOL,
+431                     implode(PHP_EOL, $connectionErrors)
+432                 ));
+433             }
+434         }
+435 
+Backtrace Server Request Response Files Memory
+APPPATH/system/Database/BaseConnection.php : 575   —  CodeIgniter\Database\BaseConnection->initialize ()
+
+568      * @todo BC set $queryClass default as null in 4.1
+569      */
+570     public function query(string $sql, $binds = null, bool $setEscapeFlags = true, string $queryClass = '')
+571     {
+572         $queryClass = $queryClass ?: $this->queryClass;
+573 
+574         if (empty($this->connID)) {
+575             $this->initialize();
+576         }
+577 
+578         /**
+579          * @var Query $query
+580          */
+581         $query = new $queryClass($this);
+582 
+APPPATH/system/Database/BaseBuilder.php : 1615   —  CodeIgniter\Database\BaseConnection->query ( arguments )
+
+1608     {
+1609         if ($limit !== null) {
+1610             $this->limit($limit, $offset);
+1611         }
+1612 
+1613         $result = $this->testMode
+1614             ? $this->getCompiledSelect($reset)
+1615             : $this->db->query($this->compileSelect(), $this->binds, false);
+1616 
+1617         if ($reset === true) {
+1618             $this->resetSelect();
+1619 
+1620             // Clear our binds so we don't eat up memory
+1621             $this->binds = [];
+1622         }
+APPPATH/Helpers/settings_helper.php : 14   —  CodeIgniter\Database\BaseBuilder->get ()
+
+ 7     {
+ 8         // check data from $GLOBALS
+ 9         if (isset($GLOBALS['app_settings'][$key])) {
+10             return $GLOBALS['app_settings'][$key];
+11         }
+12 
+13         $db = db_connect();
+14         $result = $db->table('options')->select('value')->where('name', $key)->get()->getRow();
+15 
+16         if (empty($result)) {
+17             $db->table('options')->insert(['name' => $key, 'value' => $value]);
+18             return $value;
+19         } else {
+20             return $result->value;
+21         }
+APPPATH/Controllers/BaseController.php : 76   —   get_option()
+
+APPPATH/system/CodeIgniter.php : 915   —  App\Controllers\BaseController->initController ( arguments )
+
+908      * @return Controller
+909      */
+910     protected function createController()
+911     {
+912         assert(is_string($this->controller));
+913 
+914         $class = new $this->controller();
+915         $class->initController($this->request, $this->response, Services::logger());
+916 
+917         $this->benchmark->stop('controller_constructor');
+918 
+919         return $class;
+920     }
+921 
+922     /**
+APPPATH/system/CodeIgniter.php : 493   —  CodeIgniter\CodeIgniter->createController ()
+
+486             }
+487         }
+488 
+489         $returned = $this->startController();
+490 
+491         // Closure controller has run in startController().
+492         if (! is_callable($this->controller)) {
+493             $controller = $this->createController();
+494 
+495             if (! method_exists($controller, '_remap') && ! is_callable([$controller, $this->method], false)) {
+496                 throw PageNotFoundException::forMethodNotFound($this->method);
+497             }
+498 
+499             // Is there a "post_controller_constructor" event?
+500             Events::trigger('post_controller_constructor');
+APPPATH/system/CodeIgniter.php : 361   —  CodeIgniter\CodeIgniter->handleRequest ( arguments )
+
+354 
+355         $this->getRequestObject();
+356         $this->getResponseObject();
+357 
+358         $this->spoofRequestMethod();
+359 
+360         try {
+361             $this->response = $this->handleRequest($routes, config(Cache::class), $returnResponse);
+362         } catch (ResponsableInterface|DeprecatedRedirectException $e) {
+363             $this->outputBufferingEnd();
+364             if ($e instanceof DeprecatedRedirectException) {
+365                 $e = new RedirectException($e->getMessage(), $e->getCode(), $e);
+366             }
+367 
+368             $this->response = $e->getResponse();
+FCPATH/index.php : 78   —  CodeIgniter\CodeIgniter->run ()
+
+71 $app = Config\Services::codeigniter();
+72 $app->initialize();
+73 $context = is_cli() ? 'php-cli' : 'web';
+74 $app->setContext($context);
+75 
+76 
+77 
+78 $app->run();
+79 
+80 exit(EXIT_SUCCESS);
+81 
+require_once FCPATH/router.php   —   require_once()
+
+Displayed at 16:19:57pm — PHP: 8.2.23 — CodeIgniter: 4.4.3 -- Environment: development
