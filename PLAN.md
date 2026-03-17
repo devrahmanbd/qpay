@@ -65,6 +65,53 @@
 
 ---
 
+### Task #4: Testing & Sandboxing ✅ COMPLETED
+**Status**: COMPLETED
+**Priority**: HIGH
+**Description**: Systematic testing of all platform features, bug fixes, and sandbox validation
+
+#### 4.1: Sandbox Environment Validation ✅
+- [x] Test mode API key authentication (sk_test_*, pk_test_*)
+- [x] Test payment creation (processing, declined, insufficient funds)
+- [x] Test payment verification and status endpoints
+- [x] Test refund flow in sandbox mode
+- [x] Test balance endpoint with test transactions
+- [x] Checkout page renders proper payment UI (was returning raw JSON — fixed)
+- [x] Checkout process flow works for test mode payments
+- [x] Test mode banner displays on checkout page
+
+#### 4.2: API Endpoint Testing ✅
+- [x] POST /api/v1/payment/create — correct response format
+- [x] GET /api/v1/payment/verify/:id — returns verified status
+- [x] GET /api/v1/payment/status/:id — returns current status
+- [x] GET /api/v1/payments — lists payments with pagination
+- [x] POST /api/v1/refunds — processes refund correctly
+- [x] GET /api/v1/balance — returns available/pending/refunded
+- [x] GET /api/v1/payment/methods — lists all payment methods with brand info
+- [x] Invalid/missing API key returns proper error responses
+
+#### 4.3: Frontend & Dashboard Bug Fixes ✅
+- [x] Dashboard JSON parse error fixed (used CI4 Response object instead of echo)
+- [x] Admin dashboard same JSON fix applied
+- [x] Checkout page built with proper payment method UI, status views
+- [x] Checkout process endpoint added for test mode payments
+- [x] Webhook firing on checkout completion
+
+#### 4.4: Public Pages Validation ✅
+- [x] Homepage (/) — 200 OK
+- [x] Sign-in (/sign-in) — 200 OK, form renders correctly
+- [x] Register (/register) — 200 OK
+- [x] Blog (/blog) — 200 OK
+- [x] Developers hub (/developers) — 200 OK
+- [x] API Docs (/developers/docs) — 200 OK with full Stripe-style reference
+- [x] SDK download (WordPress ZIP) — 200 OK
+
+#### 4.5: Known Non-Issues (Cosmetic)
+- Alpine.js x-collapse plugin warning — harmless, FAQ accordion cosmetic
+- Tailwind CDN warning — expected in development, not production
+
+---
+
 ### Sprint 5: Financial Integrity (The Double-Entry Ledger)
 **Status**: NOT STARTED
 **Priority**: MEDIUM
@@ -108,7 +155,7 @@
 
 ## Summary
 
-**Completed**: 7/9 major components (78%)
+**Completed**: 8/10 major components (80%)
 **Pending**: Sprint 5 (ledger), Sprint 6 (infrastructure)
 
 **Next Step**: Sprint 5 (double-entry ledger for merchant balances)

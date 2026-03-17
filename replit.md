@@ -100,6 +100,8 @@ app/
 │       ├── Controllers/ApiDashboardController.php  # Merchant API dashboard (keys, webhooks, logs)
 │       └── Views/merchant/api/                     # Merchant API management views (keys, webhooks, logs)
 └── Views/
+    ├── api/
+    │   └── checkout.php       # Customer-facing checkout page (payment method selection, status views)
     └── layouts/
         ├── template.php   # Router
         ├── general.php    # Public layout

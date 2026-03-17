@@ -504,27 +504,107 @@ class PaymentController extends ResourceController
         $redirectUrl = $providerResponse['redirect_url'] ?? null;
         $successUrl = $payment->success_url ?? null;
 
-        if ((int) $payment->status === 2) {
-            if ($successUrl) {
-                return redirect()->to($successUrl);
-            }
-            return $this->respond(['message' => 'Payment already completed.', 'payment_id' => $paymentId]);
-        }
-
-        if ((int) $payment->status === 3) {
-            $cancelUrl = $payment->cancel_url ?? null;
-            if ($cancelUrl) {
-                return redirect()->to($cancelUrl);
-            }
-            return $this->respondError('PAYMENT_FAILED', 'This payment has failed.', 400);
-        }
-
-        if ($redirectUrl) {
+        if ($redirectUrl && (int) $payment->status === 1) {
             return redirect()->to($redirectUrl);
         }
 
-        return $this->respond($this->formatPayment($payment));
+        $statusMap = [0 => 'pending', 1 => 'processing', 2 => 'completed', 3 => 'failed', 4 => 'refunded'];
+        $status = $statusMap[(int) $payment->status] ?? 'unknown';
+
+        $brand = $this->db->table('brands')
+            ->where('id', $payment->brand_id)
+            ->get()
+            ->getRow();
+
+        $methods = $this->db->table('payments')
+            ->where('status', 1)
+            ->get()
+            ->getResult();
+
+        $methodList = [];
+        foreach ($methods as $m) {
+            $params = json_decode($m->params ?? '{}', true);
+            $methodList[] = [
+                'id' => $m->type,
+                'name' => $m->name,
+                'type' => $params['type'] ?? 'mobile',
+            ];
+        }
+
+        $isTestMode = !empty($payment->test_mode);
+
+        return view('api/checkout', [
+            'payment_id' => $paymentId,
+            'amount' => (float) $payment->amount,
+            'currency' => $payment->currency ?? 'BDT',
+            'status' => $status,
+            'customer_email' => $payment->customer_email ?? '',
+            'transaction_id' => $payment->transaction_id ?? '',
+            'brand_name' => $brand->name ?? 'QPay',
+            'cancel_url' => $payment->cancel_url ?? '',
+            'success_url' => $successUrl ?? '',
+            'methods' => $methodList,
+            'test_mode' => $isTestMode,
+        ]);
     }
+
+    public function processCheckout($paymentId = null)
+    {
+        if (empty($paymentId)) {
+            return $this->respondError('MISSING_PAYMENT_ID', 'Payment ID is required.', 400);
+        }
+
+        $payment = $this->db->table('api_payments')
+            ->where('ids', $paymentId)
+            ->get()
+            ->getRow();
+
+        if (!$payment || (int) $payment->status !== 1) {
+            return redirect()->to(base_url("api/v1/payment/checkout/{$paymentId}"));
+        }
+
+        $method = $this->request->getPost('payment_method');
+        $isTestMode = !empty($payment->test_mode);
+
+        if ($isTestMode) {
+            $txnId = 'test_txn_' . bin2hex(random_bytes(8));
+            $this->db->table('api_payments')
+                ->where('ids', $paymentId)
+                ->update([
+                    'status' => 2,
+                    'payment_method' => $method,
+                    'transaction_id' => $txnId,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+
+            $webhookService = new \App\Libraries\WebhookService();
+            $webhookService->dispatch(
+                (int) $payment->brand_id,
+                (int) $payment->merchant_id,
+                'payment.completed',
+                [
+                    'id' => $paymentId,
+                    'amount' => (float) $payment->amount,
+                    'currency' => $payment->currency ?? 'BDT',
+                    'status' => 'completed',
+                    'payment_method' => $method,
+                    'transaction_id' => $txnId,
+                    'customer_email' => $payment->customer_email ?? '',
+                    'test_mode' => !empty($payment->test_mode),
+                ]
+            );
+
+            $successUrl = $payment->success_url ?? null;
+            if ($successUrl) {
+                $separator = str_contains($successUrl, '?') ? '&' : '?';
+                return redirect()->to($successUrl . $separator . 'payment_id=' . $paymentId . '&status=completed');
+            }
+            return redirect()->to(base_url("api/v1/payment/checkout/{$paymentId}"));
+        }
+
+        return redirect()->to(base_url("api/v1/payment/checkout/{$paymentId}"));
+    }
+
 
     protected function generatePaymentId(): string
     {

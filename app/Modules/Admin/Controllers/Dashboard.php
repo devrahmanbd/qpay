@@ -31,7 +31,9 @@ class Dashboard extends AdminController
     public function dashboardData()
     {
         $data = $this->main_model->breadboard_values();
-        echo json_encode($data);
+        return $this->response
+            ->setContentType('application/json')
+            ->setBody(json_encode($data));
     }
     public function search()
     {

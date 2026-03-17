@@ -26,6 +26,8 @@ class Dashboard extends UserController
     public function dashboardData()
     {
         $data = $this->model->breadboard_values();
-        echo json_encode($data);
+        return $this->response
+            ->setContentType('application/json')
+            ->setBody(json_encode($data));
     }
 }

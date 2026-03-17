@@ -27,6 +27,7 @@ $routes->group('/', static function ($routes) {
 });
 
 $routes->get('api/v1/payment/checkout/(:any)', [PaymentController::class, 'checkout/$1']);
+$routes->post('api/v1/payment/checkout/(:any)/process', [PaymentController::class, 'processCheckout/$1']);
 
 $routes->group('api/v1', ['filter' => 'api_auth'], static function ($routes) {
         $routes->post('payment/create', [PaymentController::class, 'create']);
