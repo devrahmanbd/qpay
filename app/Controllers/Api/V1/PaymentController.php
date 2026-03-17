@@ -61,7 +61,12 @@ class PaymentController extends ResourceController
         $amount = (float) $request->getVar('amount');
         $currency = strtoupper($request->getVar('currency') ?? $brand->currency ?? 'BDT');
         $paymentMethod = $request->getVar('payment_method');
+        $allowedMethods = $request->getVar('allowed_methods');
         $metadata = $request->getVar('metadata');
+
+        if (empty($paymentMethod) && !empty($allowedMethods) && is_array($allowedMethods)) {
+            $paymentMethod = $allowedMethods[0];
+        }
 
         $fees = (float) $brand->fees;
         if ($brand->fees_type == 1) {

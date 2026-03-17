@@ -65,7 +65,11 @@ function qpay_wc_handle_webhook(WP_REST_Request $request)
     $data = json_decode($payload, true);
     $event = $data['event'] ?? '';
     $paymentData = $data['data'] ?? [];
+
     $paymentId = $paymentData['id'] ?? '';
+    if ($event === 'refund.created') {
+        $paymentId = $paymentData['payment_id'] ?? $paymentId;
+    }
 
     if (empty($paymentId)) {
         return new WP_REST_Response(['error' => 'Missing payment ID'], 400);
