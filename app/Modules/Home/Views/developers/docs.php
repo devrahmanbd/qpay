@@ -2,336 +2,174 @@
 define("PAYMENT_URL", rtrim(base_url(), '/') . '/');
 ?>
 <style>
-   .table thead th {
-      border: 1px solid #dddddd;
-      white-space: nowrap;
-   }
-
-   .table-striped>tbody>tr:nth-of-type(2n+1)>* {
-      border: 1px solid #ddd;
-      --bs-table-accent-bg: #FFF;
-      padding: 17px !important;
-      font-size: 15px;
-   }
-
-   thead,
-   tbody,
-   tfoot,
-   tr,
-   td,
-   th {
-      border: 1px solid #ddd;
-      --bs-table-accent-bg: #FFF;
-      padding: 17px !important;
-      font-size: 15px;
-   }
-
-   .table thead th {
-      border: 1px solid #dddddd;
-      white-space: nowrap;
-      padding: 17px !important;
-      font-size: 16px;
-   }
-
-   #ertyertyerty {
-      color: #FFFFFF;
-      text-decoration: none;
-   }
-
-   #ertyertyerty:hover {
-      text-decoration: underline;
-   }
-
-   .docs-wrapper {
-      overflow: hidden;
-   }
+  .docs-table { width:100%; border-collapse:collapse; }
+  .docs-table th, .docs-table td { border:1px solid #e5e7eb; padding:12px 16px; text-align:left; font-size:14px; }
+  .docs-table th { background-color:#f9fafb; font-weight:600; white-space:nowrap; }
+  .docs-table tr:nth-child(even) { background-color:#f9fafb; }
 </style>
 
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex flex-col lg:flex-row gap-8">
 
-<div class="docs-wrapper">
-   <div id="docs-sidebar" class="docs-sidebar">
-      <div class="top-search-box d-lg-none p-3">
-         <form class="search-form">
-            <input type="text" placeholder="Search the docs..." name="search" class="form-control search-input">
-            <button type="submit" class="btn search-btn" value="Search"><i class="fas fa-search"></i></button>
-         </form>
+    <nav class="lg:w-64 flex-shrink-0">
+      <div class="lg:sticky lg:top-24 bg-white rounded-xl border border-gray-200 p-4 space-y-1">
+        <a href="#section-1" class="block px-3 py-2 text-sm font-semibold text-primary-600 bg-primary-50 rounded-lg">Introduction</a>
+        <a href="#section-2" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">APIs</a>
+        <a href="#item-2-1" class="block pl-8 py-1.5 text-sm text-gray-500 hover:text-gray-700">API Operation</a>
+        <a href="#item-2-2" class="block pl-8 py-1.5 text-sm text-gray-500 hover:text-gray-700">Parameter Details</a>
+        <a href="#section-3" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Integration</a>
+        <a href="#item-3-1" class="block pl-8 py-1.5 text-sm text-gray-500 hover:text-gray-700">Sample Request</a>
+        <a href="#item-3-2" class="block pl-8 py-1.5 text-sm text-gray-500 hover:text-gray-700">Verify Request</a>
+        <a href="#item-3-4" class="block pl-8 py-1.5 text-sm text-gray-500 hover:text-gray-700">WordPress Plugin</a>
+        <a href="#item-3-5" class="block pl-8 py-1.5 text-sm text-gray-500 hover:text-gray-700">WHMCS Module</a>
+        <a href="#item-3-6" class="block pl-8 py-1.5 text-sm text-gray-500 hover:text-gray-700">SMM Panel Module</a>
+        <a href="#item-3-7" class="block pl-8 py-1.5 text-sm text-gray-500 hover:text-gray-700">Mobile App</a>
       </div>
-      <nav id="docs-nav" class="docs-nav navbar">
-         <ul class="section-items list-unstyled nav flex-column pb-3">
-            <li class="nav-item section-title"><a class="nav-link scrollto active" href="#section-1"><span class="theme-icon-holder me-2"><i class="fas fa-map-signs"></i></span>Introduction</a></li>
+    </nav>
 
-            <li class="nav-item section-title mt-3"><a class="nav-link scrollto" href="#section-2"><span class="theme-icon-holder me-2"><i class="fas fa-key"></i></span>APIs</a></li>
-            <li class="nav-item"><a class="nav-link scrollto" href="#section-2">API Introduction</a></li>
-            <li class="nav-item"><a class="nav-link scrollto" href="#item-2-1">API Operation</a></li>
-            <li class="nav-item"><a class="nav-link scrollto" href="#item-2-2">Parameter Details</a></li>
+    <div class="flex-1 min-w-0 space-y-12">
 
-            <li class="nav-item section-title mt-3"><a class="nav-link scrollto" href="#section-3"><span class="theme-icon-holder me-2"><i class="fas fa-cogs fa-fw"></i></span>Integration</a></li>
-            <li class="nav-item"><a class="nav-link scrollto" href="#item-3-1">Sample Request</a></li>
-            <li class="nav-item"><a class="nav-link scrollto" href="#item-3-2">Verify Request</a></li>
+      <article id="section-1">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Welcome To <?= site_config("site_name") ?> Docs</h1>
+        <p class="text-xs text-gray-500 mb-4">Last updated: 2024-06-06</p>
+        <p class="text-gray-600"><?= site_config("site_name") ?> is a simple and Secure payment automation tool which is designed to use personal account as a payment gateway so that you can accept payments from your customer through your website where you will find a complete overview on how <?= site_config("site_name") ?> works and how you can integrate <?= site_config("site_name") ?> API in your website</p>
+      </article>
 
-            <li class="nav-item section-title mt-3"><a class="nav-link scrollto" href="#section-3"><span class="theme-icon-holder me-2"><i class="fas fa-gift"></i></span>Modules</a></li>
-            <li class="nav-item"><a class="nav-link scrollto" href="#item-3-4">Woocomerce Plugin</a></li>
-            <li class="nav-item"><a class="nav-link scrollto" href="#item-3-5">WHMCS Module</a></li>
-            <li class="nav-item"><a class="nav-link scrollto" href="#item-3-6">SmmPanel Module</a></li>
-            <li class="nav-item"><a class="nav-link scrollto" href="#item-3-8">Sketchware SWB</a></li>
-            <li class="nav-item"><a class="nav-link scrollto" href="#item-3-7">Mobile App </a></li>
-         </ul>
+      <article id="section-2">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">API Introduction</h1>
+        <p class="text-gray-600 mb-6"><?= site_config("site_name") ?> Payment Gateway enables Merchants to receive money from their customers by temporarily redirecting them to www.<?= site_config("site_name") ?>.com. The gateway is connecting multiple payment terminal including card system, mobile financial system, local and International wallet. After the payment is complete, the customer is returned to the merchant's site and seconds later the Merchant receives notification about the payment along with the details of the transaction. This document is intended to be utilized by technical personnel supporting the online Merchant's website. Working knowledge of HTML forms or cURL is required.</p>
 
-      </nav><!--//docs-nav-->
-   </div><!--//docs-sidebar-->
-   <div class="docs-content">
-      <div class="container">
-         <article class="docs-article" id="section-1">
-            <header class="docs-header">
-               <h1 class="docs-heading">Welcome To <?= site_config("site_name") ?> Docs <span class="docs-time">Last updated: 2024-06-06</span></h1>
-               <section class="docs-intro">
-                  <p><?= site_config("site_name") ?> is a simple and Secure payment automation tool which is designed to use personal account as a payment gateway so that you can accept payments from your customer through your website where you will find a complete overview on how <?= site_config("site_name") ?> works and how you can integrate <?= site_config("site_name") ?> API in your website</p><br>
-               </section><!--//docs-intro-->
-         </article>
+        <div id="item-2-1" class="mb-8">
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">API Operation</h2>
+          <p class="text-gray-600 mb-4">REST APIs are supported in two environments. Use the Sandbox environment for testing purposes, then move to the live environment for production processing.</p>
 
-         <article class="docs-article" id="section-2">
-            <header class="docs-header">
-               <h1 class="docs-heading">API Introduction</h1>
-               <section class="docs-intro">
-                  <p><?= site_config("site_name") ?> Payment Gateway enables Merchants to receive money from their customers by temporarily redirecting them to www.<?= site_config("site_name") ?>.com. The gateway is connecting multiple payment terminal including card system, mobile financial system, local and International wallet. After the payment is complete, the customer is returned to the merchant's site and seconds later the Merchant receives notification about the payment along with the details of the transaction. This document is intended to be utilized by technical personnel supporting the online Merchant's website. Working knowledge of HTML forms or cURL is required. You will probably require test accounts for which you need to open accounts via contact with <?= site_config("site_name") ?>.com or already provided to you. </p>
-               </section><!--//docs-intro-->
-            </header>
-            <section class="docs-section" id="item-2-1">
-               <h2 class="section-heading">API Operation</h2>
-               <p> REST APIs are supported in two environments. Use the Sandbox environment for testing purposes, then move to the live environment for production processing. When testing, generate an order url with your test credentials to make calls to the Sandbox URIs. When you’re set to go live, use the live credentials assigned to your new signature key to generate a live order url to be used with the live URIs. Your server has to support cURL system. For HTML Form submit please review after cURL part we provide HTML Post method URL also </p>
+          <div class="space-y-3">
+            <div class="bg-gray-50 rounded-lg p-4">
+              <h3 class="text-sm font-semibold text-gray-900 mb-1">Live API End Point (Create Payment URL):</h3>
+              <code class="text-sm text-primary-600 break-all"><?= PAYMENT_URL ?>api/v1/payment/create</code>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <h3 class="text-sm font-semibold text-gray-900 mb-1">Payment Verify API:</h3>
+              <code class="text-sm text-primary-600 break-all"><?= PAYMENT_URL ?>api/v1/payment/verify/{payment_id}</code>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <h3 class="text-sm font-semibold text-gray-900 mb-1">Payment Status API:</h3>
+              <code class="text-sm text-primary-600 break-all"><?= PAYMENT_URL ?>api/v1/payment/status/{payment_id}</code>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <h3 class="text-sm font-semibold text-gray-900 mb-1">Payment Methods API:</h3>
+              <code class="text-sm text-primary-600 break-all"><?= PAYMENT_URL ?>api/v1/payment/methods</code>
+            </div>
+          </div>
+        </div>
 
-               <h2 xss=removed>Live API End Point (For Create Payment URL):</h2>
-               <p xss=removed><?= PAYMENT_URL ?>api/v1/payment/create</p>
+        <div id="item-2-2">
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">Parameter Details</h2>
+          <p class="text-sm text-blue-600 mb-4">Variables Need to POST to Initialize Payment Process in gateway URL</p>
 
-               <h2 xss=removed>Payment Verify API:</h2>
-               <p xss=removed><?= PAYMENT_URL ?>api/v1/payment/verify/{payment_id}</p>
+          <div class="overflow-x-auto mb-6">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>Field Name</th>
+                  <th>Description</th>
+                  <th>Required</th>
+                  <th>Example Values</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><th>amount</th><td>The total amount payable (must be greater than zero).</td><td>Yes</td><td>500 or 10.50</td></tr>
+                <tr><th>currency</th><td>ISO currency code. Defaults to BDT if not provided.</td><td>No</td><td>BDT</td></tr>
+                <tr><th>payment_method</th><td>Preferred payment method (e.g., bkash, nagad, rocket). If omitted, all available methods are shown at checkout.</td><td>No</td><td>bkash</td></tr>
+                <tr><th>customer_name</th><td>Full name of the customer.</td><td>No</td><td>John Doe</td></tr>
+                <tr><th>customer_email</th><td>Email address of the customer.</td><td>No</td><td>john@gmail.com</td></tr>
+                <tr><th>callback_url</th><td>Server-to-server webhook URL for payment status notifications.</td><td>No</td><td>https://yourdomain.com/webhook</td></tr>
+                <tr><th>success_url</th><td>URL to redirect customer after successful payment.</td><td>No</td><td>https://yourdomain.com/success</td></tr>
+                <tr><th>cancel_url</th><td>URL to redirect customer if they cancel the payment.</td><td>No</td><td>https://yourdomain.com/cancel</td></tr>
+                <tr><th>metadata</th><td>Any JSON-formatted data to attach to the payment (e.g., order IDs, notes).</td><td>No</td><td>{"order_id": "12345"}</td></tr>
+              </tbody>
+            </table>
+          </div>
 
-               <h2 xss=removed>Payment Status API:</h2>
-               <p xss=removed><?= PAYMENT_URL ?>api/v1/payment/status/{payment_id}</p>
+          <p class="text-sm text-amber-600 font-medium mb-2">Payment Verify Endpoint</p>
+          <p class="text-gray-600 mb-4">To verify a payment, send a POST or GET request to <code class="text-primary-600 bg-primary-50 px-1 rounded">api/v1/payment/verify/{payment_id}</code> with your API-KEY header.</p>
 
-               <h2 xss=removed>Payment Methods API:</h2>
-               <p xss=removed><?= PAYMENT_URL ?>api/v1/payment/methods</p>
-            </section><!--//section-->
+          <p class="text-sm text-amber-600 font-medium mb-2">Payment Status Endpoint</p>
+          <p class="text-gray-600 mb-4">To check payment status without triggering verification, send a GET request to <code class="text-primary-600 bg-primary-50 px-1 rounded">api/v1/payment/status/{payment_id}</code> with your API-KEY header.</p>
 
-            <section class="docs-section" id="item-2-2">
-               <h2 class="section-heading">Parameter Details</h2>
-               <p class="text-info"> Variables Need to POST to Initialize Payment Process in gateway URL </p>
+          <p class="text-sm text-amber-600 font-medium mb-2">Available Payment Methods</p>
+          <p class="text-gray-600 mb-6">To list available payment methods for your brand, send a GET request to <code class="text-primary-600 bg-primary-50 px-1 rounded">api/v1/payment/methods</code> with your API-KEY header.</p>
 
-               <div class="table-responsive my-4">
-                  <table class="table table-striped">
-                     <thead>
-                        <tr>
-                           <th scope="col">Field Name</th>
-                           <th scope="col">Description</th>
-                           <th scope="col">Required</th>
-                           <th scope="col">Example Values</th>
-                        </tr>
-                     </thead>
-                     <tbody>
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">Headers Details</h2>
+          <div class="overflow-x-auto">
+            <table class="docs-table">
+              <thead>
+                <tr>
+                  <th>Header Name</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><th>Content-Type</th><td>application/json</td></tr>
+                <tr><th>API-KEY</th><td>Your unified API key (from Brand settings). This single key authenticates all requests.</td></tr>
+                <tr><th>Idempotency-Key</th><td>(Optional) A unique key to prevent duplicate payment creation. Recommended for production use.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </article>
 
+      <article id="section-3">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">Integration</h1>
+        <p class="text-gray-600 mb-6">You can integrate our payment gateway into your PHP Laravel WordPress WooCommerce sites.</p>
 
-                        <tr>
-                           <th scope="row">amount</th>
-                           <td>The total amount payable (must be greater than zero).</td>
-                           <td>Yes</td>
-                           <td>500 or 10.50</td>
-                        </tr>
-                        <tr>
-                           <th scope="row">currency</th>
-                           <td>ISO currency code. Defaults to BDT if not provided.</td>
-                           <td>No</td>
-                           <td>BDT</td>
-                        </tr>
-                        <tr>
-                           <th scope="row">payment_method</th>
-                           <td>Preferred payment method (e.g., bkash, nagad, rocket). If omitted, all available methods are shown at checkout.</td>
-                           <td>No</td>
-                           <td>bkash</td>
-                        </tr>
-                        <tr>
-                           <th scope="row">customer_name</th>
-                           <td>Full name of the customer.</td>
-                           <td>No</td>
-                           <td>John Doe</td>
-                        </tr>
-                        <tr>
-                           <th scope="row">customer_email</th>
-                           <td>Email address of the customer.</td>
-                           <td>No</td>
-                           <td>john@gmail.com</td>
-                        </tr>
-                        <tr>
-                           <th scope="row">callback_url</th>
-                           <td>Server-to-server webhook URL for payment status notifications.</td>
-                           <td>No</td>
-                           <td>https://yourdomain.com/webhook</td>
-                        </tr>
-                        <tr>
-                           <th scope="row">success_url</th>
-                           <td>URL to redirect customer after successful payment.</td>
-                           <td>No</td>
-                           <td>https://yourdomain.com/success</td>
-                        </tr>
-                        <tr>
-                           <th scope="row">cancel_url</th>
-                           <td>URL to redirect customer if they cancel the payment.</td>
-                           <td>No</td>
-                           <td>https://yourdomain.com/cancel</td>
-                        </tr>
-                        <tr>
-                           <th scope="row">metadata</th>
-                           <td>Any JSON-formatted data to attach to the payment (e.g., order IDs, notes).</td>
-                           <td>No</td>
-                           <td>{"order_id": "12345"}</td>
-                        </tr>
+        <div id="item-3-1" class="mb-8">
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">Sample Request</h2>
+          <?= view('Home\Views\developers\integration'); ?>
+        </div>
 
-                     </tbody>
-                  </table>
-               </div><!--//table-responsive-->
-               <p class="text-warning"> Payment Verify Endpoint </p>
-               <p>To verify a payment, send a POST or GET request to <code>api/v1/payment/verify/{payment_id}</code> with your API-KEY header. The payment_id is the identifier returned when you created the payment.</p>
+        <div id="item-3-2" class="mb-8">
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">Verify Request</h2>
+          <?= view('Home\Views\developers\integration2'); ?>
+        </div>
 
-               <p class="text-warning mt-4"> Payment Status Endpoint </p>
-               <p>To check payment status without triggering verification, send a GET request to <code>api/v1/payment/status/{payment_id}</code> with your API-KEY header.</p>
+        <div id="item-3-4" class="mb-8">
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">WordPress Module</h2>
+          <p class="text-gray-600 mb-4">Integrate our payment gateway into your WordPress website effortlessly. Whether you run an e-commerce store, a membership site, or a donation platform, our WordPress module makes it easy to accept payments online.</p>
+          <a href="/public/assets/downloads/WP.zip" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download Now
+          </a>
+        </div>
 
-               <p class="text-warning mt-4"> Available Payment Methods </p>
-               <p>To list available payment methods for your brand, send a GET request to <code>api/v1/payment/methods</code> with your API-KEY header.</p>
+        <div id="item-3-5" class="mb-8">
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">WHMCS Module</h2>
+          <p class="text-gray-600 mb-4">Integrate our payment gateway seamlessly into your WHMCS setup. With our module, you can easily accept payments from your customers, manage invoices, and track transactions effortlessly.</p>
+          <a href="/public/assets/downloads/WHMCS.zip" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download Now
+          </a>
+        </div>
 
-               <h2 class="section-heading">Headers Details</h2>
-               <div class="table-responsive my-4">
-                  <table class="table table-striped">
-                     <thead>
-                        <tr>
-                           <th scope="col">Header Name</th>
-                           <th scope="col">Value</th>
-                        </tr>
-                     </thead>
-                     <tbody>
-                        <tr>
-                           <th scope="row">Content-Type</th>
-                           <td>application/json</td>
-                        </tr>
-                        <tr>
-                           <th scope="row">API-KEY</th>
-                           <td>Your unified API key (from Brand settings). This single key authenticates all requests.</td>
-                        </tr>
-                        <tr>
-                           <th scope="row">Idempotency-Key</th>
-                           <td>(Optional) A unique key to prevent duplicate payment creation. Recommended for production use.</td>
-                        </tr>
+        <div id="item-3-6" class="mb-8">
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">SMM Panel Module</h2>
+          <p class="text-gray-600 mb-4">Enhance your SMM panel with our payment gateway integration module. Streamline the payment process for your social media marketing services and provide a seamless experience for your clients.</p>
+          <a href="/public/assets/downloads/SMM.zip" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download Now
+          </a>
+        </div>
 
-                     </tbody>
-                  </table>
-               </div><!--//table-responsive-->
+        <div id="item-3-7" class="mb-8">
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">Mobile App</h2>
+          <p class="text-gray-600 mb-4">See Setup Video: <a href="#" class="text-primary-600 hover:text-primary-700">Video here</a></p>
+          <a href="/public/assets/downloads/jonotapay.apk" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download Mobile App Now
+          </a>
+        </div>
+      </article>
 
-            </section><!--//section-->
-         </article><!--//docs-article-->
-
-
-         <article class="docs-article" id="section-3">
-            <header class="docs-header">
-               <h1 class="docs-heading">Integration</h1>
-               <section class="docs-intro">
-                  <p>You can integrate our payment gateway into your PHP Laravel WordPress WooCommerce sites.</p>
-               </section><!--//docs-intro-->
-            </header>
-            <section class="docs-section" id="item-3-1">
-               <h2 class="section-heading">Sample Request</h2>
-               <?= view('Home\Views\developers\integration'); ?>
-
-            </section><!--//section-->
-
-            <section class="docs-section" id="item-3-2">
-               <h2 class="section-heading">Verify Request</h2>
-
-               <?= view('Home\Views\developers\integration2'); ?>
-
-            </section><!--//section-->
-
-            <section class="docs-section" id="item-3-4">
-
-
-               <h2 class="section-heading">WordPress Module</h2>
-
-               <p xss=removed>Integrate our payment gateway into your WordPress website effortlessly. Whether you run an e-commerce store, a membership site, or a donation platform, our WordPress module makes it easy to accept payments online. Download now and start accepting payments with ease!</p>
-
-               <div class="row my-3">
-                  <div class="col-md-6 col-12">
-                     <ul class="list list-unstyled pl-0" xss=removed>
-                        <li>
-                           <a href="/public/assets/downloads/WP.zip" class="btn btn-primary">
-                              <svg class="svg-inline--fa fa-download me-2" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="download" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg="">
-                                 <path fill="currentColor" d="M480 352h-133.5l-45.25 45.25C289.2 409.3 273.1 416 256 416s-33.16-6.656-45.25-18.75L165.5 352H32c-17.67 0-32 14.33-32 32v96c0 17.67 14.33 32 32 32h448c17.67 0 32-14.33 32-32v-96C512 366.3 497.7 352 480 352zM432 456c-13.2 0-24-10.8-24-24c0-13.2 10.8-24 24-24s24 10.8 24 24C456 445.2 445.2 456 432 456zM233.4 374.6C239.6 380.9 247.8 384 256 384s16.38-3.125 22.62-9.375l128-128c12.49-12.5 12.49-32.75 0-45.25c-12.5-12.5-32.76-12.5-45.25 0L288 274.8V32c0-17.67-14.33-32-32-32C238.3 0 224 14.33 224 32v242.8L150.6 201.4c-12.49-12.5-32.75-12.5-45.25 0c-12.49 12.5-12.49 32.75 0 45.25L233.4 374.6z"></path>
-                              </svg> Download Now</a>
-                        </li>
-                     </ul>
-                  </div>
-               </div>
-            </section><!--//section-->
-
-            <section class="docs-section" id="item-3-5">
-               <h2 class="section-heading">WHMCS Module</h2>
-
-               <p xss=removed>Integrate our payment gateway seamlessly into your WHMCS setup. With our module, you can easily accept payments from your customers, manage invoices, and track transactions effortlessly. Get started with just a few clicks!</p>
-
-               <div class="row my-3">
-                  <div class="col-md-6 col-12">
-                     <ul class="list list-unstyled pl-0" xss=removed>
-                        <li>
-                           <a href="/public/assets/downloads/WHMCS.zip" class="btn btn-primary">
-                              <svg class="svg-inline--fa fa-download me-2" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="download" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg="">
-                                 <path fill="currentColor" d="M480 352h-133.5l-45.25 45.25C289.2 409.3 273.1 416 256 416s-33.16-6.656-45.25-18.75L165.5 352H32c-17.67 0-32 14.33-32 32v96c0 17.67 14.33 32 32 32h448c17.67 0 32-14.33 32-32v-96C512 366.3 497.7 352 480 352zM432 456c-13.2 0-24-10.8-24-24c0-13.2 10.8-24 24-24s24 10.8 24 24C456 445.2 445.2 456 432 456zM233.4 374.6C239.6 380.9 247.8 384 256 384s16.38-3.125 22.62-9.375l128-128c12.49-12.5 12.49-32.75 0-45.25c-12.5-12.5-32.76-12.5-45.25 0L288 274.8V32c0-17.67-14.33-32-32-32C238.3 0 224 14.33 224 32v242.8L150.6 201.4c-12.49-12.5-32.75-12.5-45.25 0c-12.49 12.5-12.49 32.75 0 45.25L233.4 374.6z"></path>
-                              </svg> Download Now</a>
-                        </li>
-                     </ul>
-                  </div>
-               </div>
-            </section><!--//section-->
-
-            <section class="docs-section" id="item-3-6">
-
-
-               <h2 class="section-heading">SMM Panel Module</h2>
-
-               <p xss=removed>Enhance your SMM panel with our payment gateway integration module. Streamline the payment process for your social media marketing services and provide a seamless experience for your clients. Download the module now and take your SMM panel to the next level!</p>
-
-               <div class="row my-3">
-                  <div class="col-md-6 col-12">
-                     <ul class="list list-unstyled pl-0" xss=removed>
-                        <li>
-                           <a href="/public/assets/downloads/SMM.zip" class="btn btn-primary">
-                              <svg class="svg-inline--fa fa-download me-2" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="download" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg="">
-                                 <path fill="currentColor" d="M480 352h-133.5l-45.25 45.25C289.2 409.3 273.1 416 256 416s-33.16-6.656-45.25-18.75L165.5 352H32c-17.67 0-32 14.33-32 32v96c0 17.67 14.33 32 32 32h448c17.67 0 32-14.33 32-32v-96C512 366.3 497.7 352 480 352zM432 456c-13.2 0-24-10.8-24-24c0-13.2 10.8-24 24-24s24 10.8 24 24C456 445.2 445.2 456 432 456zM233.4 374.6C239.6 380.9 247.8 384 256 384s16.38-3.125 22.62-9.375l128-128c12.49-12.5 12.49-32.75 0-45.25c-12.5-12.5-32.76-12.5-45.25 0L288 274.8V32c0-17.67-14.33-32-32-32C238.3 0 224 14.33 224 32v242.8L150.6 201.4c-12.49-12.5-32.75-12.5-45.25 0c-12.49 12.5-12.49 32.75 0 45.25L233.4 374.6z"></path>
-                              </svg> Download Now</a>
-                        </li>
-                     </ul>
-                  </div>
-               </div>
-            </section><!--//section-->
-            
-           
-            <section class="docs-section" id="item-3-7">
-
-
-               <h1 class="section-heading">Mobile App</h1>
-               
-               <p xss=removed>See Setup Video: <a href="#">Video here/</a></p>
-
-               <div class="row my-3">
-                  <div class="col-md-6 col-12">
-                     <ul class="list list-unstyled pl-0" xss=removed>
-                        <li>
-                           <a href="/public/assets/downloads/jonotapay.apk" class="btn btn-primary">
-                              <svg class="svg-inline--fa fa-download me-2" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="download" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" data-fa-i2svg="">
-                                 <path fill="currentColor" d="M480 352h-133.5l-45.25 45.25C289.2 409.3 273.1 416 256 416s-33.16-6.656-45.25-18.75L165.5 352H32c-17.67 0-32 14.33-32 32v96c0 17.67 14.33 32 32 32h448c17.67 0 32-14.33 32-32v-96C512 366.3 497.7 352 480 352zM432 456c-13.2 0-24-10.8-24-24c0-13.2 10.8-24 24-24s24 10.8 24 24C456 445.2 445.2 456 432 456zM233.4 374.6C239.6 380.9 247.8 384 256 384s16.38-3.125 22.62-9.375l128-128c12.49-12.5 12.49-32.75 0-45.25c-12.5-12.5-32.76-12.5-45.25 0L288 274.8V32c0-17.67-14.33-32-32-32C238.3 0 224 14.33 224 32v242.8L150.6 201.4c-12.49-12.5-32.75-12.5-45.25 0c-12.49 12.5-12.49 32.75 0 45.25L233.4 374.6z"></path>
-                              </svg> Download Mobile App Now</a>
-                        </li>
-                     </ul>
-                  </div>
-               </div>
-            </section>
-
-         </article>
-      </div>
-   </div>
+    </div>
+  </div>
 </div>

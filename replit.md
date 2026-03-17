@@ -13,11 +13,11 @@ QPay is a payment gateway/orchestrator for South Asian markets (Bangladesh). It 
 
 ### Layout System
 The template system (`app/Libraries/Template.php`) routes through `app/Views/layouts/template.php`:
-- **`general.php`** — Public pages (home, blogs, terms, privacy). Uses Tailwind CDN navbar/footer + legacy Bootstrap/AOS/Swiper vendor CSS/JS for inner view compatibility.
-- **`auth.php`** — Sign-in, sign-up, password reset (user + admin). Pure Tailwind + Alpine.js, no Bootstrap/jQuery.
+- **`general.php`** — Public pages (home, blogs, terms, privacy, developers, docs). Pure Tailwind CSS + Alpine.js (including Alpine Collapse plugin for accordions). No Bootstrap/jQuery dependencies.
+- **`auth.php`** — Sign-in, sign-up, password reset, activation, change password (user + admin). Pure Tailwind + Alpine.js, no Bootstrap/jQuery.
 - **`user/main.blade.php`** — User dashboard. Tailwind CDN + Alpine.js layered on top of legacy Blithe/jQuery for inner view backward compatibility.
 - **`admin/main.blade.php`** — Admin dashboard. Same hybrid approach as user dashboard.
-- **`docs.php`** — API documentation pages.
+- **`docs.php`** — Legacy layout (no longer used; developer pages now use `general.php` via DocController).
 
 ### JavaScript Stack
 - **`public/assets/js/app.js`** — Vanilla JS for auth pages (loaded only in `auth.php` layout, NOT in dashboard layouts to avoid duplication with legacy scripts). Provides:
@@ -36,6 +36,7 @@ The template system (`app/Libraries/Template.php`) routes through `app/Views/lay
 ### CDN Dependencies
 - Tailwind CSS: `https://cdn.tailwindcss.com` (dev CDN, production should use build step)
 - Alpine.js: `https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js`
+- Alpine Collapse plugin: `https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js` (for FAQ accordions)
 
 ### Tailwind Config
 Custom colors used across layouts:
@@ -133,7 +134,7 @@ All v1 routes require `API-KEY` header (brand_key from brands table).
 - All `JSON.parse` calls in `blithe.js`, `process.js`, `process2.js` are wrapped in try/catch
 - `general.js` notification polling handles HTML responses gracefully (server returns HTML not JSON)
 - Auth layout defines `var token`, `PATH`, `user=''` globals for JS
-- Known harmless warnings: Swiper loop warning (cosmetic), Tailwind CDN production warning
+- Known harmless warnings: Tailwind CDN production warning
 
 ## Login Routes
 - User login: `/sign-in` (not `/login`)

@@ -10,13 +10,6 @@
   <link rel="icon" type="image/png" href="<?= get_logo(true) ?>">
   <link rel="canonical" href="<?= base_url() ?>">
 
-  <?= link_asset('frontend/vendor/bootstrap/css/bootstrap.min.css') ?>
-  <?= link_asset('frontend/vendor/bootstrap-icons/bootstrap-icons.css') ?>
-  <?= link_asset('frontend/vendor/aos/aos.css') ?>
-  <?= link_asset('frontend/vendor/glightbox/css/glightbox.min.css') ?>
-  <?= link_asset('frontend/vendor/swiper/swiper-bundle.min.css') ?>
-  <?= link_asset('frontend/css/style.css') ?>
-
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -29,6 +22,7 @@
       }
     }
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>
     [x-cloak] { display: none !important; }
@@ -48,7 +42,7 @@
       <nav class="hidden md:flex items-center gap-8">
         <a href="<?= base_url() ?>" class="text-sm font-medium <?= segment(1) == '' ? 'text-primary-600' : 'text-gray-600 hover:text-gray-900' ?>">Home</a>
         <a href="<?= base_url('developers') ?>" class="text-sm font-medium <?= segment(1) == 'developers' ? 'text-primary-600' : 'text-gray-600 hover:text-gray-900' ?>">API Docs</a>
-        <a href="<?= base_url('blogs') ?>" class="text-sm font-medium <?= segment(1) == 'blogs' ? 'text-primary-600' : 'text-gray-600 hover:text-gray-900' ?>">Blog</a>
+        <a href="<?= base_url('blogs') ?>" class="text-sm font-medium <?= segment(1) == 'blogs' || segment(1) == 'blog' ? 'text-primary-600' : 'text-gray-600 hover:text-gray-900' ?>">Blog</a>
       </nav>
       <div class="flex items-center gap-4">
         <a href="<?= base_url('sign-in') ?>" class="hidden md:inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors">Sign In</a>
@@ -60,7 +54,7 @@
     <div x-show="mobileOpen" x-cloak x-transition class="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-2">
       <a href="<?= base_url() ?>" class="block px-3 py-2 rounded-lg text-sm font-medium <?= segment(1) == '' ? 'bg-primary-50 text-primary-700' : 'text-gray-600' ?>">Home</a>
       <a href="<?= base_url('developers') ?>" class="block px-3 py-2 rounded-lg text-sm font-medium <?= segment(1) == 'developers' ? 'bg-primary-50 text-primary-700' : 'text-gray-600' ?>">API Docs</a>
-      <a href="<?= base_url('blogs') ?>" class="block px-3 py-2 rounded-lg text-sm font-medium <?= segment(1) == 'blogs' ? 'bg-primary-50 text-primary-700' : 'text-gray-600' ?>">Blog</a>
+      <a href="<?= base_url('blogs') ?>" class="block px-3 py-2 rounded-lg text-sm font-medium <?= segment(1) == 'blogs' || segment(1) == 'blog' ? 'bg-primary-50 text-primary-700' : 'text-gray-600' ?>">Blog</a>
       <a href="<?= base_url('sign-in') ?>" class="block px-3 py-2 rounded-lg text-sm font-medium text-white bg-primary-600 text-center">Sign In</a>
     </div>
   </header>
@@ -124,14 +118,6 @@
     </div>
   </footer>
 
-  <?= script_asset('frontend/vendor/bootstrap/js/bootstrap.bundle.min.js') ?>
-  <?= script_asset('frontend/vendor/php-email-form/validate.js') ?>
-  <?= script_asset('frontend/vendor/aos/aos.js') ?>
-  <?= script_asset('frontend/vendor/glightbox/js/glightbox.min.js') ?>
-  <?= script_asset('frontend/vendor/purecounter/purecounter_vanilla.js') ?>
-  <?= script_asset('frontend/vendor/isotope-layout/isotope.pkgd.min.js') ?>
-  <?= script_asset('frontend/vendor/swiper/swiper-bundle.min.js') ?>
-  <?= script_asset('frontend/js/main.js') ?>
 </body>
 
 </html>
