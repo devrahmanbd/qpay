@@ -408,7 +408,7 @@ INSERT IGNORE INTO `user_roles` (`id`, `name`, `permissions`)
 VALUES (1, 'Super Admin', '*');
 
 INSERT IGNORE INTO `staffs` (`id`, `ids`, `email`, `first_name`, `last_name`, `role_id`, `password`, `status`)
-VALUES (1, '1', 'admin@qpay.com', 'Admin', 'User', 1, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1);
+VALUES (1, '1', 'admin@cloudman.one', 'Admin', 'User', 1, '$2y$10$JUo3XOgK8cbHV605rLF3TujR0dUQGdqlZuWeV/Mige8JYGsh1NbzO', 1);
 
 INSERT IGNORE INTO `faqs` (`question`, `answer`, `sort`, `status`) VALUES
 ('What is QPay?', 'QPay is a comprehensive payment gateway platform that allows businesses to accept payments easily and securely.', 1, 1),
