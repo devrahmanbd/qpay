@@ -36,13 +36,22 @@ $siteName = site_config("site_name", "QPay");
         <p class="px-3 py-1 pt-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Webhooks</p>
         <a href="#section-webhooks" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Webhook Events</a>
         <a href="#section-webhook-verify" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Signature Verification</a>
+        <a href="#ep-checkout" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Checkout Page</a>
         <p class="px-3 py-1 pt-3 text-xs font-bold text-gray-400 uppercase tracking-wider">SDKs & Plugins</p>
         <a href="#section-php-sdk" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">PHP SDK</a>
         <a href="#section-node-sdk" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Node.js SDK</a>
         <a href="#section-woocommerce" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">WooCommerce Plugin</a>
-        <p class="px-3 py-1 pt-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Other</p>
+        <a href="#section-wordpress" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">WordPress Plugin</a>
+        <p class="px-3 py-1 pt-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Testing</p>
+        <a href="#section-quickstart" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Quick Start Guide</a>
+        <a href="#section-testing-guide" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Testing Guide</a>
+        <a href="#section-sandbox" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Sandbox Reference</a>
+        <a href="#section-going-live" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Going Live Checklist</a>
+        <p class="px-3 py-1 pt-3 text-xs font-bold text-gray-400 uppercase tracking-wider">Reference</p>
         <a href="#section-errors" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Error Codes</a>
         <a href="#section-rate-limits" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Rate Limits</a>
+        <a href="#section-best-practices" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Best Practices</a>
+        <a href="#section-changelog" class="block px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">Changelog</a>
       </div>
     </nav>
 
@@ -318,6 +327,67 @@ $siteName = site_config("site_name", "QPay");
           <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
 <pre class="text-sm leading-relaxed"><code class="language-bash">curl <?= PAYMENT_URL ?>api/v1/payment/methods \
   -H "API-KEY: pk_test_your_key"</code></pre>
+        </div>
+      </article>
+
+      <article id="ep-checkout">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="method-badge method-get">GET</span>
+          <h2 class="text-xl font-bold text-gray-900">/payment/checkout/{payment_id}</h2>
+        </div>
+        <p class="text-gray-600 mb-4">The hosted checkout page is a customer-facing payment page that displays available payment methods and lets the customer complete their payment. It is automatically generated when you create a payment.</p>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">How It Works</h3>
+        <ol class="list-decimal list-inside text-gray-600 space-y-2 mb-6">
+          <li>Create a payment via the API and receive a <code class="bg-gray-100 px-1 rounded text-sm">checkout_url</code></li>
+          <li>Redirect your customer to the <code class="bg-gray-100 px-1 rounded text-sm">checkout_url</code></li>
+          <li>Customer selects a payment method and confirms payment</li>
+          <li>In <strong>test mode</strong>: payment is instantly marked as completed</li>
+          <li>In <strong>live mode</strong>: customer is redirected to the payment provider (bKash, Nagad, etc.)</li>
+          <li>After payment, customer is redirected to your <code class="bg-gray-100 px-1 rounded text-sm">success_url</code> or <code class="bg-gray-100 px-1 rounded text-sm">cancel_url</code></li>
+        </ol>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Checkout Page States</h3>
+        <div class="overflow-x-auto mb-6">
+          <table class="docs-table">
+            <thead><tr><th>Payment Status</th><th>Page Shows</th></tr></thead>
+            <tbody>
+              <tr><td><code>processing</code></td><td>Payment method selection form with "Pay" button</td></tr>
+              <tr><td><code>completed</code></td><td>Success confirmation with transaction ID</td></tr>
+              <tr><td><code>failed</code></td><td>Failure message with return link</td></tr>
+              <tr><td><code>refunded</code></td><td>Refund confirmation message</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Test Mode Behavior</h3>
+        <p class="text-gray-600 mb-4">When using test keys (<code>sk_test_</code>), the checkout page displays a yellow "Test Mode" banner. Clicking "Pay" immediately completes the payment without contacting any real provider. The customer is redirected to your <code>success_url</code> with query parameters:</p>
+        <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto mb-4">
+<pre class="text-sm leading-relaxed"><code class="language-bash">https://yoursite.com/success?payment_id=pay_abc123&status=completed</code></pre>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Integration Example</h3>
+        <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto mb-4">
+          <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
+<pre class="text-sm leading-relaxed"><code class="language-php">&lt;?php
+// 1. Create a payment on your server
+$payment = $qpay->createPayment([
+    'amount' => 500,
+    'customer_email' => $customer_email,
+    'success_url' => 'https://yoursite.com/order/success',
+    'cancel_url' => 'https://yoursite.com/order/cancel',
+]);
+
+// 2. Redirect customer to the checkout page
+header("Location: " . $payment['checkout_url']);
+exit;
+
+// 3. On your success page, verify the payment
+$verified = $qpay->verifyPayment($_GET['payment_id']);
+if ($verified['status'] === 'completed') {
+    // Mark order as paid
+}
+?&gt;</code></pre>
         </div>
       </article>
 
@@ -661,6 +731,510 @@ const valid = QPay.verifyWebhookSignature(payload, signatureHeader, secret);</co
         </a>
       </article>
 
+      <article id="section-wordpress">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">QPay for WordPress</h1>
+        <p class="text-gray-600 mb-4">The unified WordPress plugin lets you accept <?= $siteName ?> payments on any WordPress site &mdash; no WooCommerce required. Use simple shortcodes to add payment buttons, customizable forms, and donation widgets anywhere on your site.</p>
+
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <p class="text-sm text-green-800"><strong>Recommended:</strong> This is the easiest way to integrate <?= $siteName ?> with WordPress. It includes WooCommerce support as an optional add-on.</p>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Installation</h3>
+        <ol class="list-decimal list-inside text-gray-600 space-y-2 mb-6">
+          <li>Download the plugin ZIP file below</li>
+          <li>Go to <strong>WordPress Admin &rarr; Plugins &rarr; Add New &rarr; Upload Plugin</strong></li>
+          <li>Upload the ZIP and click <strong>Install Now</strong>, then <strong>Activate</strong></li>
+          <li>Go to <strong>QPay &rarr; Settings</strong> in your WordPress admin menu</li>
+          <li>Enter your API URL (<code><?= rtrim(base_url(), '/') ?></code>) and API keys</li>
+          <li>Configure your webhook URL in the <?= $siteName ?> dashboard: <code>https://yoursite.com/?qpay_webhook=1</code></li>
+          <li>Save settings and start using shortcodes</li>
+        </ol>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Shortcodes</h3>
+
+        <div class="space-y-6 mb-6">
+          <div class="border border-gray-200 rounded-xl p-5">
+            <h4 class="font-semibold text-gray-900 mb-2"><code class="bg-primary-50 text-primary-700 px-2 py-0.5 rounded">[qpay_button]</code> &mdash; Payment Button</h4>
+            <p class="text-gray-600 text-sm mb-3">Renders a styled payment button that redirects to the <?= $siteName ?> checkout page.</p>
+            <div class="overflow-x-auto mb-3">
+              <table class="docs-table">
+                <thead><tr><th>Attribute</th><th>Default</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><code>amount</code></td><td>100</td><td>Payment amount</td></tr>
+                  <tr><td><code>currency</code></td><td>BDT</td><td>Currency code</td></tr>
+                  <tr><td><code>label</code></td><td>Pay Now</td><td>Button text</td></tr>
+                  <tr><td><code>description</code></td><td>&mdash;</td><td>Payment description</td></tr>
+                  <tr><td><code>method</code></td><td>&mdash;</td><td>Preferred payment method (e.g. <code>bkash</code>)</td></tr>
+                  <tr><td><code>success_url</code></td><td>&mdash;</td><td>Redirect URL after payment</td></tr>
+                  <tr><td><code>cancel_url</code></td><td>&mdash;</td><td>Redirect URL on cancel</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto">
+              <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
+<pre class="text-sm leading-relaxed"><code class="language-html">[qpay_button amount="500" label="Pay BDT 500" description="Premium Plan"]
+
+[qpay_button amount="1000" method="bkash" label="Pay with bKash"]
+
+[qpay_button amount="250" success_url="https://yoursite.com/thank-you"]</code></pre>
+            </div>
+          </div>
+
+          <div class="border border-gray-200 rounded-xl p-5">
+            <h4 class="font-semibold text-gray-900 mb-2"><code class="bg-primary-50 text-primary-700 px-2 py-0.5 rounded">[qpay_form]</code> &mdash; Payment Form</h4>
+            <p class="text-gray-600 text-sm mb-3">Displays a full payment form with fields for name, email, phone, amount, and description. Supports saved form templates via the admin Form Builder.</p>
+            <div class="overflow-x-auto mb-3">
+              <table class="docs-table">
+                <thead><tr><th>Attribute</th><th>Default</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><code>id</code></td><td>&mdash;</td><td>Load a saved form template by ID (from Form Builder)</td></tr>
+                  <tr><td><code>amount</code></td><td>&mdash;</td><td>Fixed amount (hides amount field if set)</td></tr>
+                  <tr><td><code>title</code></td><td>Payment Form</td><td>Form heading</td></tr>
+                  <tr><td><code>fields</code></td><td>name,email,amount</td><td>Comma-separated fields to show: <code>name</code>, <code>email</code>, <code>phone</code>, <code>amount</code>, <code>description</code></td></tr>
+                  <tr><td><code>button_text</code></td><td>Proceed to Payment</td><td>Submit button label</td></tr>
+                  <tr><td><code>success_url</code></td><td>&mdash;</td><td>Redirect URL after payment</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto">
+              <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
+<pre class="text-sm leading-relaxed"><code class="language-html">[qpay_form title="Course Registration" amount="2500" fields="name,email,phone"]
+
+[qpay_form fields="name,email,amount,description" button_text="Submit Payment"]
+
+[qpay_form id="3"]  &lt;!-- Load saved form template #3 --&gt;</code></pre>
+            </div>
+          </div>
+
+          <div class="border border-gray-200 rounded-xl p-5">
+            <h4 class="font-semibold text-gray-900 mb-2"><code class="bg-primary-50 text-primary-700 px-2 py-0.5 rounded">[qpay_donate]</code> &mdash; Donation Widget</h4>
+            <p class="text-gray-600 text-sm mb-3">A donation widget with preset amounts, custom amount input, and optional donor information fields.</p>
+            <div class="overflow-x-auto mb-3">
+              <table class="docs-table">
+                <thead><tr><th>Attribute</th><th>Default</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><code>amounts</code></td><td>100,500,1000,5000</td><td>Comma-separated preset amounts</td></tr>
+                  <tr><td><code>title</code></td><td>Make a Donation</td><td>Widget heading</td></tr>
+                  <tr><td><code>currency</code></td><td>BDT</td><td>Currency code</td></tr>
+                  <tr><td><code>custom_amount</code></td><td>yes</td><td>Allow custom amount input (<code>yes</code>/<code>no</code>)</td></tr>
+                  <tr><td><code>fields</code></td><td>name,email</td><td>Donor info fields to collect</td></tr>
+                  <tr><td><code>success_url</code></td><td>&mdash;</td><td>Redirect URL after donation</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto">
+              <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
+<pre class="text-sm leading-relaxed"><code class="language-html">[qpay_donate title="Support Our Cause" amounts="200,500,1000,2000"]
+
+[qpay_donate amounts="50,100,250" custom_amount="yes" fields="name,email"]
+
+[qpay_donate title="Zakat" amounts="1000,5000,10000" currency="BDT"]</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Features</h3>
+        <ul class="list-disc list-inside text-gray-600 space-y-1 mb-6">
+          <li>Works with any WordPress theme (no WooCommerce required)</li>
+          <li>Test and live mode support with visual badge</li>
+          <li>Admin Form Builder for reusable payment form templates</li>
+          <li>Transaction management dashboard in WordPress admin</li>
+          <li>Email notifications for admin and customers</li>
+          <li>Webhook handling with signature verification</li>
+          <li>QPay Merchant role with custom capabilities</li>
+          <li>Optional WooCommerce gateway integration (auto-detected)</li>
+        </ul>
+
+        <div class="flex flex-wrap gap-3">
+          <a href="<?= base_url('sdks/wordpress/qpay-wordpress.zip') ?>" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download WordPress Plugin (ZIP)
+          </a>
+        </div>
+      </article>
+
+      <article id="section-quickstart">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">Quick Start Guide</h1>
+        <p class="text-gray-600 mb-6">Get up and running with <?= $siteName ?> in 5 minutes. This guide walks you through your first test payment.</p>
+
+        <div class="space-y-6">
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold">1</div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-900 mb-1">Create an Account</h3>
+              <p class="text-gray-600 text-sm">Register at <a href="<?= base_url('register') ?>" class="text-primary-600 hover:underline"><?= base_url('register') ?></a> and complete your merchant profile.</p>
+            </div>
+          </div>
+
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold">2</div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-900 mb-1">Generate API Keys</h3>
+              <p class="text-gray-600 text-sm mb-2">Go to <a href="<?= base_url('user/api/keys') ?>" class="text-primary-600 hover:underline">Dashboard &rarr; API Keys</a> and generate a test key pair. You will receive a <code class="bg-gray-100 px-1 rounded text-sm">sk_test_</code> secret key and a <code class="bg-gray-100 px-1 rounded text-sm">pk_test_</code> publishable key.</p>
+              <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p class="text-xs text-amber-800"><strong>Save your secret key immediately.</strong> It is only shown once. You can always generate a new one if lost.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold">3</div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-900 mb-1">Create Your First Test Payment</h3>
+              <p class="text-gray-600 text-sm mb-2">Run this command in your terminal:</p>
+              <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
+<pre class="text-sm leading-relaxed"><code class="language-bash">curl -X POST <?= PAYMENT_URL ?>api/v1/payment/create \
+  -H "API-KEY: sk_test_YOUR_KEY_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 500,
+    "customer_email": "test@example.com",
+    "success_url": "https://example.com/success",
+    "cancel_url": "https://example.com/cancel"
+  }'</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold">4</div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-900 mb-1">Open the Checkout Page</h3>
+              <p class="text-gray-600 text-sm">Copy the <code class="bg-gray-100 px-1 rounded text-sm">checkout_url</code> from the response and open it in your browser. You will see the payment method selection page with a "Test Mode" banner.</p>
+            </div>
+          </div>
+
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold">5</div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-900 mb-1">Complete the Test Payment</h3>
+              <p class="text-gray-600 text-sm">Select any payment method and click "Pay". In test mode, the payment is instantly marked as completed. You are redirected to your <code class="bg-gray-100 px-1 rounded text-sm">success_url</code>.</p>
+            </div>
+          </div>
+
+          <div class="flex gap-4">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold">6</div>
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-900 mb-1">Verify the Payment</h3>
+              <p class="text-gray-600 text-sm mb-2">Always verify payments server-side before fulfilling orders:</p>
+              <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
+<pre class="text-sm leading-relaxed"><code class="language-bash">curl <?= PAYMENT_URL ?>api/v1/payment/verify/pay_YOUR_PAYMENT_ID \
+  -H "API-KEY: sk_test_YOUR_KEY_HERE"</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article id="section-testing-guide">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">Testing Guide</h1>
+        <p class="text-gray-600 mb-6">This guide covers how to thoroughly test your <?= $siteName ?> integration before going live.</p>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">1. Payment Lifecycle Testing</h3>
+        <p class="text-gray-600 mb-4">Test every payment state by varying the amount:</p>
+        <div class="overflow-x-auto mb-6">
+          <table class="docs-table">
+            <thead><tr><th>Test Scenario</th><th>Amount</th><th>Expected Result</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Successful payment</td><td><code>500</code> (or any amount except 2/3)</td><td>Payment created with status <code>processing</code></td><td class="text-green-600">processing &rarr; completed</td></tr>
+              <tr><td>Declined payment</td><td><code>2.00</code></td><td>Payment immediately fails with decline reason</td><td class="text-red-600">failed</td></tr>
+              <tr><td>Insufficient funds</td><td><code>3.00</code></td><td>Payment fails with insufficient funds</td><td class="text-red-600">failed</td></tr>
+              <tr><td>Refund flow</td><td>Create a successful payment, then refund</td><td>Payment status changes to <code>refunded</code></td><td class="text-yellow-600">refunded</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">2. Checkout Page Testing</h3>
+        <div class="bg-gray-50 rounded-xl p-5 mb-6">
+          <ol class="list-decimal list-inside text-gray-600 space-y-2 text-sm">
+            <li>Create a test payment and open the <code>checkout_url</code> in your browser</li>
+            <li>Verify the "Test Mode" banner is visible</li>
+            <li>Confirm the correct amount, currency, and customer email are displayed</li>
+            <li>Select a payment method and click "Pay"</li>
+            <li>Verify you are redirected to your <code>success_url</code> with correct query parameters</li>
+            <li>Open the checkout URL again &mdash; it should show "Payment Completed"</li>
+            <li>Refund the payment and revisit the checkout URL &mdash; it should show "Payment Refunded"</li>
+            <li>Create a payment with amount <code>2.00</code> and check checkout shows "Payment Failed"</li>
+          </ol>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">3. Webhook Testing</h3>
+        <div class="bg-gray-50 rounded-xl p-5 mb-6">
+          <ol class="list-decimal list-inside text-gray-600 space-y-2 text-sm">
+            <li>Set up a webhook endpoint in your <a href="<?= base_url('user/api/webhooks') ?>" class="text-primary-600 hover:underline">merchant dashboard</a></li>
+            <li>Use a tool like <a href="https://webhook.site" target="_blank" class="text-primary-600 hover:underline">webhook.site</a> or <a href="https://requestbin.com" target="_blank" class="text-primary-600 hover:underline">RequestBin</a> to capture webhook payloads</li>
+            <li>Create a test payment and verify the <code>payment.created</code> event is delivered</li>
+            <li>Complete a checkout and verify the <code>payment.completed</code> event fires</li>
+            <li>Create a refund and verify the <code>refund.created</code> event fires</li>
+            <li>Verify the <code>QPay-Signature</code> header matches when computed with your webhook secret</li>
+          </ol>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">4. Error Handling Testing</h3>
+        <div class="bg-gray-50 rounded-xl p-5 mb-6">
+          <div class="space-y-3 text-sm text-gray-600">
+            <div>
+              <strong class="text-gray-900">Missing API key:</strong>
+              <div class="code-container bg-gray-900 rounded-lg p-3 overflow-x-auto mt-1">
+<pre class="text-sm leading-relaxed"><code class="language-bash">curl <?= PAYMENT_URL ?>api/v1/payments
+# Expected: 401 MISSING_API_KEY</code></pre>
+              </div>
+            </div>
+            <div>
+              <strong class="text-gray-900">Invalid API key:</strong>
+              <div class="code-container bg-gray-900 rounded-lg p-3 overflow-x-auto mt-1">
+<pre class="text-sm leading-relaxed"><code class="language-bash">curl <?= PAYMENT_URL ?>api/v1/payments -H "API-KEY: invalid_key"
+# Expected: 401 INVALID_API_KEY</code></pre>
+              </div>
+            </div>
+            <div>
+              <strong class="text-gray-900">Invalid payment ID:</strong>
+              <div class="code-container bg-gray-900 rounded-lg p-3 overflow-x-auto mt-1">
+<pre class="text-sm leading-relaxed"><code class="language-bash">curl <?= PAYMENT_URL ?>api/v1/payment/verify/pay_nonexistent -H "API-KEY: sk_test_YOUR_KEY"
+# Expected: 404 PAYMENT_NOT_FOUND</code></pre>
+              </div>
+            </div>
+            <div>
+              <strong class="text-gray-900">Missing required fields:</strong>
+              <div class="code-container bg-gray-900 rounded-lg p-3 overflow-x-auto mt-1">
+<pre class="text-sm leading-relaxed"><code class="language-bash">curl -X POST <?= PAYMENT_URL ?>api/v1/payment/create \
+  -H "API-KEY: sk_test_YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+# Expected: 422 VALIDATION_ERROR (amount is required)</code></pre>
+              </div>
+            </div>
+            <div>
+              <strong class="text-gray-900">Duplicate payment (idempotency):</strong>
+              <div class="code-container bg-gray-900 rounded-lg p-3 overflow-x-auto mt-1">
+<pre class="text-sm leading-relaxed"><code class="language-bash"># Send the same Idempotency-Key twice
+curl -X POST <?= PAYMENT_URL ?>api/v1/payment/create \
+  -H "API-KEY: sk_test_YOUR_KEY" \
+  -H "Idempotency-Key: order_12345" \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 500}'
+# Second request returns the original payment (not a duplicate)</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">5. SDK Integration Testing</h3>
+        <div x-data="{ tab: 'php' }" class="mb-6">
+          <div class="flex flex-wrap gap-1 border-b border-gray-200 mb-0">
+            <button @click="tab='php'" :class="tab==='php' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-gray-500 hover:text-gray-700'" class="px-4 py-2 text-sm font-medium">PHP</button>
+            <button @click="tab='node'" :class="tab==='node' ? 'border-b-2 border-primary-600 text-primary-600' : 'text-gray-500 hover:text-gray-700'" class="px-4 py-2 text-sm font-medium">Node.js</button>
+          </div>
+          <div x-show="tab==='php'" class="code-container bg-gray-900 rounded-b-lg p-4 overflow-x-auto">
+            <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
+<pre class="text-sm leading-relaxed"><code class="language-php">&lt;?php
+require_once 'QPay.php';
+
+$qpay = new QPay('sk_test_YOUR_KEY', '<?= rtrim(base_url(), '/') ?>');
+
+// Test 1: Create a successful payment
+$payment = $qpay->createPayment(['amount' => 500, 'customer_email' => 'test@test.com']);
+assert($payment['status'] === 'processing', 'Payment should be processing');
+echo "PASS: Payment created - {$payment['id']}\n";
+
+// Test 2: Verify payment
+$verified = $qpay->verifyPayment($payment['id']);
+assert($verified['status'] === 'completed', 'Payment should be completed after verify');
+assert($verified['verified'] === true, 'verified flag should be true');
+echo "PASS: Payment verified\n";
+
+// Test 3: List payments
+$list = $qpay->listPayments(['limit' => 5]);
+assert(count($list['data']) > 0, 'Should have at least 1 payment');
+echo "PASS: Listed " . count($list['data']) . " payments\n";
+
+// Test 4: Create and refund
+$refund = $qpay->createRefund($payment['id'], 'Test refund');
+assert($refund['status'] === 'succeeded', 'Refund should succeed');
+echo "PASS: Refund created - {$refund['id']}\n";
+
+// Test 5: Check balance
+$balance = $qpay->getBalance();
+assert(isset($balance['available']), 'Balance should have available field');
+echo "PASS: Balance retrieved\n";
+
+// Test 6: Create declined payment
+try {
+    $declined = $qpay->createPayment(['amount' => 2]);
+    assert($declined['status'] === 'failed', 'Amount 2 should be declined');
+    echo "PASS: Decline simulated correctly\n";
+} catch (QPayException $e) {
+    echo "PASS: Decline threw exception - {$e->getMessage()}\n";
+}
+
+// Test 7: Get payment methods
+$methods = $qpay->getPaymentMethods();
+assert(!empty($methods['data']['methods']), 'Should have payment methods');
+echo "PASS: Retrieved " . count($methods['data']['methods']) . " methods\n";
+
+echo "\nAll tests passed!\n";
+?&gt;</code></pre>
+          </div>
+          <div x-show="tab==='node'" x-cloak class="code-container bg-gray-900 rounded-b-lg p-4 overflow-x-auto">
+            <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
+<pre class="text-sm leading-relaxed"><code class="language-javascript">const { QPay } = require('./qpay');
+
+const qpay = new QPay('sk_test_YOUR_KEY', {
+  baseUrl: '<?= rtrim(base_url(), '/') ?>'
+});
+
+async function runTests() {
+  // Test 1: Create a successful payment
+  const payment = await qpay.createPayment({
+    amount: 500,
+    customer_email: 'test@test.com'
+  });
+  console.assert(payment.status === 'processing', 'Should be processing');
+  console.log('PASS: Payment created -', payment.id);
+
+  // Test 2: Verify payment
+  const verified = await qpay.verifyPayment(payment.id);
+  console.assert(verified.status === 'completed', 'Should be completed');
+  console.log('PASS: Payment verified');
+
+  // Test 3: List payments
+  const list = await qpay.listPayments({ limit: 5 });
+  console.assert(list.data.length > 0, 'Should have payments');
+  console.log('PASS: Listed', list.data.length, 'payments');
+
+  // Test 4: Refund
+  const refund = await qpay.createRefund(payment.id, 'Test refund');
+  console.assert(refund.status === 'succeeded', 'Refund should succeed');
+  console.log('PASS: Refund created -', refund.id);
+
+  // Test 5: Check balance
+  const balance = await qpay.getBalance();
+  console.assert('available' in balance, 'Should have available');
+  console.log('PASS: Balance retrieved');
+
+  // Test 6: Declined payment
+  const declined = await qpay.createPayment({ amount: 2 });
+  console.assert(declined.status === 'failed', 'Should be declined');
+  console.log('PASS: Decline simulated');
+
+  // Test 7: Payment methods
+  const methods = await qpay.getPaymentMethods();
+  console.assert(methods.data.methods.length > 0, 'Should have methods');
+  console.log('PASS:', methods.data.methods.length, 'methods');
+
+  console.log('\nAll tests passed!');
+}
+
+runTests().catch(console.error);</code></pre>
+          </div>
+        </div>
+      </article>
+
+      <article id="section-sandbox">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">Sandbox Reference</h1>
+        <p class="text-gray-600 mb-6">The sandbox (test mode) provides a safe environment to develop and test your integration without processing real payments.</p>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">Test vs Live Environment</h3>
+        <div class="overflow-x-auto mb-6">
+          <table class="docs-table">
+            <thead><tr><th>Feature</th><th>Test Mode</th><th>Live Mode</th></tr></thead>
+            <tbody>
+              <tr><td>API keys</td><td><code>sk_test_*</code> / <code>pk_test_*</code></td><td><code>sk_live_*</code> / <code>pk_live_*</code></td></tr>
+              <tr><td>Real charges</td><td>No</td><td>Yes</td></tr>
+              <tr><td>Payment providers</td><td>Simulated</td><td>Real (bKash, Nagad, etc.)</td></tr>
+              <tr><td>Checkout page</td><td>Instant completion on "Pay"</td><td>Redirect to provider</td></tr>
+              <tr><td>Webhooks</td><td>Delivered (same as live)</td><td>Delivered</td></tr>
+              <tr><td>Rate limits</td><td>200 req/min</td><td>100 req/min</td></tr>
+              <tr><td>Data visibility</td><td>Separate from live data</td><td>Production data</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">Test Amount Behaviors</h3>
+        <div class="overflow-x-auto mb-6">
+          <table class="docs-table">
+            <thead><tr><th>Amount (BDT)</th><th>Behavior</th><th>Use Case</th></tr></thead>
+            <tbody>
+              <tr><td><code>2.00</code></td><td class="text-red-600">Payment declined</td><td>Test decline handling and error UI</td></tr>
+              <tr><td><code>3.00</code></td><td class="text-red-600">Insufficient funds</td><td>Test specific failure reason handling</td></tr>
+              <tr><td>Any other amount</td><td class="text-green-600">Success (processing)</td><td>Test normal payment flow</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">Test Payment IDs</h3>
+        <p class="text-gray-600 mb-4">All test payments use real-looking IDs (e.g. <code>pay_a1b2c3d4...</code>) and test transaction IDs prefixed with <code>test_txn_</code>. These can be used with all API endpoints (verify, status, refund, etc.) exactly like live payments.</p>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">Idempotency in Test Mode</h3>
+        <p class="text-gray-600 mb-4">Idempotency keys work the same way in test and live mode. If you send the same <code>Idempotency-Key</code> header twice, you get back the original payment object rather than creating a duplicate.</p>
+      </article>
+
+      <article id="section-going-live">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">Going Live Checklist</h1>
+        <p class="text-gray-600 mb-6">Before switching to live mode, ensure you have completed the following:</p>
+
+        <div class="space-y-3 mb-6">
+          <label class="flex items-start gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 transition-colors">
+            <input type="checkbox" class="mt-1 text-primary-600 rounded">
+            <div>
+              <p class="font-semibold text-gray-900">Generate live API keys</p>
+              <p class="text-sm text-gray-500">Create <code>sk_live_</code> and <code>pk_live_</code> keys in your merchant dashboard. Store the secret key securely.</p>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 transition-colors">
+            <input type="checkbox" class="mt-1 text-primary-600 rounded">
+            <div>
+              <p class="font-semibold text-gray-900">Replace test keys with live keys</p>
+              <p class="text-sm text-gray-500">Update your server-side code to use <code>sk_live_</code> keys. Use environment variables, never hardcode keys.</p>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 transition-colors">
+            <input type="checkbox" class="mt-1 text-primary-600 rounded">
+            <div>
+              <p class="font-semibold text-gray-900">Set up webhook endpoint</p>
+              <p class="text-sm text-gray-500">Configure a production webhook URL with HTTPS. Verify signature validation is working.</p>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 transition-colors">
+            <input type="checkbox" class="mt-1 text-primary-600 rounded">
+            <div>
+              <p class="font-semibold text-gray-900">Implement server-side verification</p>
+              <p class="text-sm text-gray-500">Always verify payments server-side using <code>/payment/verify</code> before fulfilling orders. Never trust client-side redirects alone.</p>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 transition-colors">
+            <input type="checkbox" class="mt-1 text-primary-600 rounded">
+            <div>
+              <p class="font-semibold text-gray-900">Handle all payment states</p>
+              <p class="text-sm text-gray-500">Your integration should handle: <code>processing</code>, <code>completed</code>, <code>failed</code>, and <code>refunded</code> statuses gracefully.</p>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 transition-colors">
+            <input type="checkbox" class="mt-1 text-primary-600 rounded">
+            <div>
+              <p class="font-semibold text-gray-900">Implement error handling</p>
+              <p class="text-sm text-gray-500">Handle API errors (4xx, 5xx) with appropriate user-facing messages. Implement retry logic for network failures.</p>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 transition-colors">
+            <input type="checkbox" class="mt-1 text-primary-600 rounded">
+            <div>
+              <p class="font-semibold text-gray-900">Use idempotency keys</p>
+              <p class="text-sm text-gray-500">Send a unique <code>Idempotency-Key</code> header with payment creation requests to prevent duplicates from retries.</p>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 transition-colors">
+            <input type="checkbox" class="mt-1 text-primary-600 rounded">
+            <div>
+              <p class="font-semibold text-gray-900">Test with a real payment</p>
+              <p class="text-sm text-gray-500">Make a small live payment (e.g. BDT 10) to verify the complete flow end-to-end, then refund it.</p>
+            </div>
+          </label>
+        </div>
+      </article>
+
       <article id="section-errors">
         <h1 class="text-2xl font-bold text-gray-900 mb-4">Error Codes</h1>
         <div class="overflow-x-auto">
@@ -692,6 +1266,105 @@ const valid = QPay.verifyWebhookSignature(payload, signatureHeader, secret);</co
           </table>
         </div>
         <p class="text-gray-600 mt-4">When rate limited, the API returns HTTP 429 with a <code>Retry-After</code> header indicating seconds to wait.</p>
+      </article>
+
+      <article id="section-best-practices">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">Best Practices</h1>
+
+        <div class="space-y-6">
+          <div class="border-l-4 border-primary-500 pl-4">
+            <h3 class="font-semibold text-gray-900 mb-1">Always verify payments server-side</h3>
+            <p class="text-gray-600 text-sm">Never trust the <code>success_url</code> redirect alone. A customer could manually navigate to your success URL. Always call <code>/payment/verify</code> or <code>/payment/status</code> from your server before fulfilling orders.</p>
+          </div>
+
+          <div class="border-l-4 border-primary-500 pl-4">
+            <h3 class="font-semibold text-gray-900 mb-1">Use idempotency keys for payment creation</h3>
+            <p class="text-gray-600 text-sm">Include an <code>Idempotency-Key</code> header with a unique value (e.g. your order ID) when creating payments. This prevents duplicate charges if a network error causes a retry.</p>
+          </div>
+
+          <div class="border-l-4 border-primary-500 pl-4">
+            <h3 class="font-semibold text-gray-900 mb-1">Verify webhook signatures</h3>
+            <p class="text-gray-600 text-sm">Always validate the <code>QPay-Signature</code> header using HMAC-SHA256 before processing webhook events. This prevents attackers from sending fake webhook requests to your endpoint.</p>
+          </div>
+
+          <div class="border-l-4 border-primary-500 pl-4">
+            <h3 class="font-semibold text-gray-900 mb-1">Store API keys securely</h3>
+            <p class="text-gray-600 text-sm">Keep secret keys (<code>sk_</code>) in environment variables or a secrets manager. Never commit them to version control, embed them in client-side code, or log them in application logs.</p>
+          </div>
+
+          <div class="border-l-4 border-primary-500 pl-4">
+            <h3 class="font-semibold text-gray-900 mb-1">Handle webhook delivery failures</h3>
+            <p class="text-gray-600 text-sm">Return a 2xx status code quickly from your webhook handler. If you need to perform long-running work, acknowledge the webhook first, then process asynchronously. <?= $siteName ?> retries failed deliveries up to 3 times.</p>
+          </div>
+
+          <div class="border-l-4 border-primary-500 pl-4">
+            <h3 class="font-semibold text-gray-900 mb-1">Make webhooks idempotent</h3>
+            <p class="text-gray-600 text-sm">Your webhook handler may receive the same event multiple times due to retries. Use the payment ID to check if you have already processed the event before taking action.</p>
+          </div>
+
+          <div class="border-l-4 border-primary-500 pl-4">
+            <h3 class="font-semibold text-gray-900 mb-1">Use appropriate key types</h3>
+            <p class="text-gray-600 text-sm">Use <code>pk_</code> publishable keys for client-side operations (fetching payment methods, checking status). Use <code>sk_</code> secret keys for server-side operations (creating payments, refunds, verification).</p>
+          </div>
+
+          <div class="border-l-4 border-primary-500 pl-4">
+            <h3 class="font-semibold text-gray-900 mb-1">Implement proper error handling</h3>
+            <p class="text-gray-600 text-sm">Handle all HTTP error codes (400, 401, 403, 404, 422, 429, 500). Show user-friendly messages for expected errors and log unexpected errors for debugging. Implement exponential backoff for 429 rate limit responses.</p>
+          </div>
+        </div>
+      </article>
+
+      <article id="section-changelog">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4">Changelog</h1>
+        <div class="space-y-6">
+          <div>
+            <div class="flex items-center gap-3 mb-2">
+              <span class="px-2.5 py-0.5 text-xs font-semibold bg-green-100 text-green-800 rounded-full">Latest</span>
+              <h3 class="font-semibold text-gray-900">v1.4.0 &mdash; <?= date('F Y') ?></h3>
+            </div>
+            <ul class="list-disc list-inside text-gray-600 text-sm space-y-1 ml-4">
+              <li>Added hosted checkout page with payment method selection UI</li>
+              <li>Test mode checkout instantly completes payments</li>
+              <li>Added QPay for WordPress plugin with shortcodes (<code>[qpay_button]</code>, <code>[qpay_form]</code>, <code>[qpay_donate]</code>)</li>
+              <li>Added comprehensive testing guide and sandbox reference documentation</li>
+              <li>Added Going Live checklist and Best Practices guide</li>
+              <li>Fixed dashboard data endpoint JSON response format</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-900 mb-2">v1.3.0</h3>
+            <ul class="list-disc list-inside text-gray-600 text-sm space-y-1 ml-4">
+              <li>Added unified WordPress plugin with WooCommerce support</li>
+              <li>Added Form Builder for reusable payment forms</li>
+              <li>Webhook idempotency and improved event delivery</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-900 mb-2">v1.2.0</h3>
+            <ul class="list-disc list-inside text-gray-600 text-sm space-y-1 ml-4">
+              <li>PHP SDK and Node.js SDK released</li>
+              <li>WooCommerce gateway plugin</li>
+              <li>API documentation page</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-900 mb-2">v1.1.0</h3>
+            <ul class="list-disc list-inside text-gray-600 text-sm space-y-1 ml-4">
+              <li>Stripe-style API key system (pk_/sk_ with live/test modes)</li>
+              <li>Webhook signing with HMAC-SHA256</li>
+              <li>Rate limiting and API logging</li>
+              <li>Test mode with simulated payment adapter</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-900 mb-2">v1.0.0</h3>
+            <ul class="list-disc list-inside text-gray-600 text-sm space-y-1 ml-4">
+              <li>Initial API release with payment creation, verification, and status</li>
+              <li>Support for bKash, Nagad, Rocket and other MFS providers</li>
+              <li>Idempotency key support</li>
+            </ul>
+          </div>
+        </div>
       </article>
 
     </div>
