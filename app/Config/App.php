@@ -180,14 +180,20 @@ class App extends BaseConfig
     public function __construct()
     {
         parent::__construct();
-        // Auto-detect base URL from HTTP_HOST for proxy environments (Replit, ngrok, etc.)
         if (!empty($_SERVER['HTTP_HOST'])) {
-            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-            // Check for X-Forwarded-Proto header (Replit proxy sets this)
-            if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-                $scheme = $_SERVER['HTTP_X_FORWARDED_PROTO'];
+            $host = $_SERVER['HTTP_HOST'];
+            $scheme = 'http';
+            if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+                $scheme = 'https';
+            } elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+                $proto = strtolower(trim(explode(',', $_SERVER['HTTP_X_FORWARDED_PROTO'])[0]));
+                if ($proto === 'https' || $proto === 'http') {
+                    $scheme = $proto;
+                }
+            } elseif (strpos($host, '.replit.dev') !== false || strpos($host, '.repl.co') !== false) {
+                $scheme = 'https';
             }
-            $this->baseURL = $scheme . '://' . $_SERVER['HTTP_HOST'] . '/';
+            $this->baseURL = $scheme . '://' . $host . '/';
         } else {
             $this->baseURL = 'http://localhost:5000/';
         }

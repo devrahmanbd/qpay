@@ -28,7 +28,7 @@ The template system (`app/Libraries/Template.php`) routes through `app/Views/lay
   - Click handlers: `ajaxDeleteItem`, `ajaxToggleItemStatus`, `ajaxModal` (modal system)
   - Search, bulk actions, notification polling
   - Sortable table rows (vanilla JS drag-and-drop)
-- **`public/assets/js/app.js`** — Vanilla JS for auth pages (loaded only in `auth.php` layout).
+- Auth pages (`auth.php` layout) use inline Alpine.js — no external JS file needed.
 
 ### Modal System
 - `openModal(url)` / `closeModal()` functions in qpay-alpine.js
@@ -65,7 +65,7 @@ sidebar: { bg: '#1e293b', hover: '#334155', active: '#4f46e5' }
 app/
 ├── Adapters/              # Payment provider adapters
 ├── Config/
-│   ├── App.php            # Auto-detects base_url from HTTP_HOST
+│   ├── App.php            # Auto-detects base_url from HTTP_HOST (forces HTTPS for .replit.dev proxy)
 │   ├── Database.php       # DB credentials
 │   ├── Filters.php        # Includes api_auth filter
 │   ├── Routes.php         # Legacy + API v1 routes
@@ -93,8 +93,7 @@ app/
         └── common/modal/  # Modal templates
 
 public/assets/js/
-├── qpay-alpine.js  # Dashboard utility layer (vanilla JS + Alpine.js)
-└── app.js          # Auth page utilities
+└── qpay-alpine.js  # Dashboard utility layer (vanilla JS + Alpine.js)
 ```
 
 ## API v1 Endpoints
