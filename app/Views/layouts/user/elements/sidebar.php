@@ -87,6 +87,21 @@
             </div>
          </div>
 
+         <div x-data="{ open: <?= segment(2) == 'api' ? 'true' : 'false' ?> }">
+            <button @click="open = !open" class="flex items-center justify-between w-full px-3 py-2 text-sm rounded-lg hover:bg-sidebar-hover hover:text-white transition-colors">
+               <span class="flex items-center gap-3">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                  <span>API</span>
+               </span>
+               <svg :class="open ? 'rotate-90' : ''" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <div x-show="open" x-cloak x-collapse class="ml-5 mt-1 space-y-1 border-l border-gray-700 pl-3">
+               <a href="<?= user_url('api/keys') ?>" class="block px-3 py-1.5 text-sm rounded hover:bg-sidebar-hover hover:text-white <?= segment(3) == 'keys' ? 'text-white' : '' ?>">API Keys</a>
+               <a href="<?= user_url('api/webhooks') ?>" class="block px-3 py-1.5 text-sm rounded hover:bg-sidebar-hover hover:text-white <?= segment(3) == 'webhooks' ? 'text-white' : '' ?>">Webhooks</a>
+               <a href="<?= user_url('api/logs') ?>" class="block px-3 py-1.5 text-sm rounded hover:bg-sidebar-hover hover:text-white <?= segment(3) == 'logs' ? 'text-white' : '' ?>">API Logs</a>
+            </div>
+         </div>
+
          <p class="px-3 mt-6 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Others</p>
 
          <a href="<?= user_url('affiliates') ?>" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg hover:bg-sidebar-hover hover:text-white transition-colors">

@@ -7,6 +7,7 @@ use User\Controllers\Dashboard;
 use User\Controllers\Settings;
 use User\Controllers\AuthController;
 use User\Controllers\MerchantController;
+use User\Controllers\ApiDashboardController;
 use User\Controllers\Transactions;
 use User\Controllers\UserController;
 
@@ -68,6 +69,17 @@ $routes->group('user', ['filter' => 'user_auth'], static function ($routes) {
     $routes->match(['get', 'post'], 'transactions/add-data', [Transactions::class, 'addSms']);
     $routes->get('stored-data', [Transactions::class, 'storedData']);
     $routes->match(['get', 'post'], 'store_data/delete/(:any)', [Transactions::class, 'storedDatadelete']);
+
+    //api dashboard
+    $routes->get('api/keys', [ApiDashboardController::class, 'keys']);
+    $routes->post('api/generate-keys', [ApiDashboardController::class, 'generateKeys']);
+    $routes->post('api/revoke-key', [ApiDashboardController::class, 'revokeKey']);
+    $routes->post('api/rotate-key', [ApiDashboardController::class, 'rotateKey']);
+    $routes->get('api/webhooks', [ApiDashboardController::class, 'webhooks']);
+    $routes->post('api/add-webhook', [ApiDashboardController::class, 'addWebhook']);
+    $routes->post('api/delete-webhook', [ApiDashboardController::class, 'deleteWebhook']);
+    $routes->get('api/webhook-events', [ApiDashboardController::class, 'webhookEvents']);
+    $routes->get('api/logs', [ApiDashboardController::class, 'logs']);
 
     //user affiliates
     $routes->get('affiliates', [Settings::class, 'affiliates']);

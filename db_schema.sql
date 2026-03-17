@@ -1662,3 +1662,130 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*M!999999\- enable the sandbox mode */ 
+-- MariaDB dump 10.19  Distrib 10.11.13-MariaDB, for Linux (x86_64)
+--
+-- Host: localhost    Database: main
+-- ------------------------------------------------------
+-- Server version	10.11.13-MariaDB
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `api_keys`
+--
+
+DROP TABLE IF EXISTS `api_keys`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_keys` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `brand_id` int(10) unsigned NOT NULL,
+  `merchant_id` int(10) unsigned NOT NULL,
+  `name` varchar(100) NOT NULL DEFAULT 'Default',
+  `key_type` enum('publishable','secret') NOT NULL,
+  `key_prefix` varchar(12) NOT NULL,
+  `key_hash` varchar(64) NOT NULL,
+  `key_last4` varchar(4) NOT NULL,
+  `environment` enum('test','live') NOT NULL DEFAULT 'test',
+  `last_used_at` datetime DEFAULT NULL,
+  `expires_at` datetime DEFAULT NULL,
+  `revoked_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `key_prefix` (`key_prefix`),
+  KEY `key_hash` (`key_hash`),
+  KEY `brand_id_merchant_id` (`brand_id`,`merchant_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `api_logs`
+--
+
+DROP TABLE IF EXISTS `api_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_logs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `api_key_id` int(10) unsigned DEFAULT NULL,
+  `brand_id` int(10) unsigned DEFAULT NULL,
+  `merchant_id` int(10) unsigned DEFAULT NULL,
+  `method` varchar(10) NOT NULL,
+  `endpoint` varchar(255) NOT NULL,
+  `status_code` smallint(5) unsigned NOT NULL,
+  `ip_address` varchar(50) DEFAULT NULL,
+  `response_time_ms` int(10) DEFAULT NULL,
+  `environment` enum('test','live') NOT NULL DEFAULT 'live',
+  `created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `brand_id_created_at` (`brand_id`,`created_at`),
+  KEY `api_key_id` (`api_key_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `webhooks`
+--
+
+DROP TABLE IF EXISTS `webhooks`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `webhooks` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `brand_id` int(10) unsigned NOT NULL,
+  `merchant_id` int(10) unsigned NOT NULL,
+  `url` varchar(500) NOT NULL,
+  `secret` varchar(64) NOT NULL,
+  `events` text DEFAULT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `brand_id_merchant_id` (`brand_id`,`merchant_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `webhook_events`
+--
+
+DROP TABLE IF EXISTS `webhook_events`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `webhook_events` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `webhook_id` int(10) unsigned NOT NULL,
+  `event_type` varchar(50) NOT NULL,
+  `payload` text NOT NULL,
+  `status` enum('pending','delivered','failed') NOT NULL DEFAULT 'pending',
+  `attempts` tinyint(3) NOT NULL DEFAULT 0,
+  `last_attempt_at` datetime DEFAULT NULL,
+  `response_code` smallint(6) DEFAULT NULL,
+  `response_body` text DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `webhook_id` (`webhook_id`),
+  KEY `event_type` (`event_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-03-17 10:47:13

@@ -13,6 +13,7 @@ use Admin\Controllers\PlanController;
 use Admin\Controllers\Settings;
 use Admin\Controllers\StaffController;
 use Admin\Controllers\Transactions;
+use Admin\Controllers\ApiAnalyticsController;
 use Admin\Controllers\UserController;
 
 $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
@@ -152,4 +153,6 @@ $routes->group('admin', ['filter' => 'admin_auth'], static function ($routes) {
     $routes->get('bank_transactions', [Transactions::class, 'bankTrx']);
     $routes->match(['get', 'post'], 'view-transaction/(:any)/(:any)', [Transactions::class, 'trxView']);
     $routes->match(['get', 'post'], 'transactions/add-sms', [Transactions::class, 'addSms']);
+
+    $routes->get('api-analytics', [ApiAnalyticsController::class, 'index']);
 });

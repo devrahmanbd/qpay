@@ -32,4 +32,8 @@ $routes->group('api/v1', ['filter' => 'api_auth'], static function ($routes) {
         $routes->match(['get', 'post'], 'payment/verify', [PaymentController::class, 'verify']);
         $routes->get('payment/status/(:any)', [PaymentController::class, 'status/$1']);
         $routes->get('payment/methods', [PaymentController::class, 'getMethods']);
+        $routes->get('payments', [PaymentController::class, 'listPayments']);
+        $routes->get('payments/(:any)', [PaymentController::class, 'status/$1']);
+        $routes->post('refunds', [PaymentController::class, 'refund']);
+        $routes->get('balance', [PaymentController::class, 'balance']);
 });

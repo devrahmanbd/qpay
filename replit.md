@@ -51,7 +51,7 @@ sidebar: { bg: '#1e293b', hover: '#334155', active: '#4f46e5' }
 ### Helper Functions (Tailwind)
 - `partials_helper.php` — `show_page_header`, `show_page_header_filter`, `show_item_status` (Tailwind toggle switches), `render_table_thead`, `show_item_button_action`, `show_pagination`, `show_empty_item`, `show_bulk_btn_action`
 - `form_template_helper.php` — `modal_buttons()` (Tailwind submit/cancel), `render_element_form()` / `render_elements_form()` with Tailwind classes (`w-full`, `w-full md:w-1/2 px-2`)
-- `app_helper.php` — General application helpers
+- `app_helper.php` — General application helpers including `plan_message()` and `duration_type()`
 
 ### View Patterns
 - **Table index views**: Wrap in `bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden`
@@ -63,7 +63,10 @@ sidebar: { bg: '#1e293b', hover: '#334155', active: '#4f46e5' }
 ## Key Directories
 ```
 app/
-├── Adapters/              # Payment provider adapters
+├── Adapters/
+│   ├── DirectApiAdapter.php      # Direct API payment adapter
+│   ├── SmsVerificationAdapter.php # SMS-based payment verification
+│   └── TestPaymentAdapter.php    # Test mode payment adapter (simulates success/decline)
 ├── Config/
 │   ├── App.php            # Auto-detects base_url from HTTP_HOST (forces HTTPS for .replit.dev proxy)
 │   ├── Database.php       # DB credentials
@@ -73,16 +76,29 @@ app/
 ├── Controllers/
 │   ├── ApiController.php  # Legacy device/SMS endpoints
 │   └── Api/V1/
-│       └── PaymentController.php  # REST API
+│       └── PaymentController.php  # Stripe-style REST API
+├── Database/Migrations/   # CI4 migrations for api_keys, webhooks, webhook_events, api_logs, api_payments alterations
+├── Filters/
+│   └── ApiAuth.php        # API authentication filter (new pk/sk keys + legacy fallback, rate limiting)
 ├── Helpers/
 │   ├── app_helper.php     # General helpers
 │   ├── partials_helper.php # UI component helpers (Tailwind)
 │   └── form_template_helper.php # Form helpers (Tailwind)
+├── Libraries/
+│   ├── ApiKeyService.php  # Stripe-style key generation, validation, rotation, revocation
+│   ├── ApiLogger.php      # API request logging and stats (merchant + admin)
+│   ├── WebhookService.php # Webhook event dispatch, HMAC-SHA256 signing, retry logic
+│   ├── PaymentProviderFactory.php # Payment provider selection
+│   └── Template.php       # View templating engine
 ├── Modules/
-│   ├── Admin/Views/       # All admin views (Tailwind + Alpine.js)
+│   ├── Admin/
+│   │   ├── Controllers/ApiAnalyticsController.php  # Admin API usage analytics
+│   │   └── Views/api/index.php                     # Admin API analytics dashboard view
 │   ├── Blocks/Views/      # Ticket/queue views (Tailwind + Alpine.js)
 │   ├── Home/              # Public pages, migrations
-│   └── User/Views/        # All user views (Tailwind + Alpine.js)
+│   └── User/
+│       ├── Controllers/ApiDashboardController.php  # Merchant API dashboard (keys, webhooks, logs)
+│       └── Views/merchant/api/                     # Merchant API management views (keys, webhooks, logs)
 └── Views/
     └── layouts/
         ├── template.php   # Router
@@ -96,8 +112,17 @@ public/assets/js/
 └── qpay-alpine.js  # Dashboard utility layer (vanilla JS + Alpine.js)
 ```
 
+## API Key System (Stripe-style)
+- **Key formats**: `pk_live_`, `sk_live_`, `pk_test_`, `sk_test_` + 48 hex chars
+- **Storage**: SHA-256 hash stored in `api_keys` table; plaintext shown once on creation
+- **Key types**: `publishable` (read-only, safe for frontend) and `secret` (full access)
+- **Legacy fallback**: Old `brand_key` from `brands` table still works via `ApiAuth` filter
+- **Rate limiting**: 100 req/min (live), 200 req/min (test); enforced via `api_logs` window count
+- **Webhook signing**: `QPay-Signature: t={timestamp},v1={hmac_sha256}` header format
+- **Test mode**: `sk_test_*` keys auto-use `TestPaymentAdapter`; amount=2.00 declines, amount=3.00 insufficient funds, all others succeed
+
 ## API v1 Endpoints
-All v1 routes require `API-KEY` header (brand_key from brands table).
+All v1 routes require `API-KEY` header (new pk/sk key or legacy brand_key).
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -105,6 +130,9 @@ All v1 routes require `API-KEY` header (brand_key from brands table).
 | GET | `/api/v1/payment/verify/{id}` | Verify a payment with provider |
 | GET | `/api/v1/payment/status/{id}` | Get payment status |
 | GET | `/api/v1/payment/methods` | List available payment methods |
+| GET | `/api/v1/payments` | List payments (paginated, Stripe-style) |
+| POST | `/api/v1/refunds` | Create a refund |
+| GET | `/api/v1/balance` | Get merchant balance |
 
 ## Legacy API Endpoints (preserved)
 | Method | Endpoint | Description |
@@ -114,9 +142,13 @@ All v1 routes require `API-KEY` header (brand_key from brands table).
 | GET | `/cron` | Background task processing |
 
 ## Key Database Tables
-- `api_payments` - New v1 payment records (with idempotency)
+- `api_payments` - Payment records (with idempotency, test_mode, webhook_delivered columns)
+- `api_keys` - Stripe-style API keys (hashed, with environment/type)
+- `api_logs` - API request logs (method, endpoint, status, response time)
+- `webhooks` - Registered webhook endpoints per merchant
+- `webhook_events` - Webhook delivery log (status, attempts, response)
 - `transactions` / `temp_transactions` - Legacy transaction records
-- `brands` - Merchant brands with API keys
+- `brands` - Merchant brands with legacy API keys
 - `user_payment_settings` - Merchant wallet configurations
 - `module_data` - Raw SMS data from devices
 - `payments` - System payment gateway configs
@@ -142,6 +174,14 @@ All v1 routes require `API-KEY` header (brand_key from brands table).
 ## Admin Credentials
 - Email: `admin@cloudman.one`
 - Password: stored in environment / secrets
+
+## Merchant API Dashboard
+- `/user/api/keys` — Manage API keys (generate, rotate, revoke)
+- `/user/api/webhooks` — Configure webhook endpoints
+- `/user/api/logs` — View API request logs with filtering
+
+## Admin API Analytics
+- `/admin/api-analytics` — Platform-wide API usage stats, top merchants, error rates
 
 ## Developer Docs
 - `/developers` - Overview landing page

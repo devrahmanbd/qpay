@@ -5,6 +5,7 @@ namespace App\Libraries;
 use App\Interfaces\PaymentProviderInterface;
 use App\Adapters\SmsVerificationAdapter;
 use App\Adapters\DirectApiAdapter;
+use App\Adapters\TestPaymentAdapter;
 
 class PaymentProviderFactory
 {

@@ -102,8 +102,7 @@ echo "Database and tables setup done."
 
 echo "Running migrations..."
 cd $WORKDIR
-php spark migrate --all -n Home 2>&1 || true
-php spark migrate --all -n Blocks 2>&1 || true
+php spark migrate --all 2>&1 || true
 echo "Migrations done."
 
 echo "Starting PHP server on 0.0.0.0:5000..."

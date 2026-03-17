@@ -85,6 +85,11 @@
             </div>
          </div>
 
+         <a href="<?= admin_url('api-analytics') ?>" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg hover:bg-sidebar-hover hover:text-white transition-colors <?= segment(2) == 'api-analytics' ? 'bg-sidebar-active text-white' : '' ?>">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+            <span>API Analytics</span>
+         </a>
+
          <p class="px-3 mt-6 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Others</p>
 
          <a href="<?= admin_url('payments') ?>" class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg hover:bg-sidebar-hover hover:text-white transition-colors <?= segment(2) == 'payments' ? 'bg-sidebar-active text-white' : '' ?>">
