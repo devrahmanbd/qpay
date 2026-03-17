@@ -11,7 +11,8 @@ class AdminModel extends Model
     protected $allowedFields = ['ids', 'email', 'first_name', 'last_name', 'more_information', 'avatar', 'activation_key', 'reset_key', 'password', 'status'];
     protected $primaryKey = 'id';
     protected $returnType = 'object';
-    protected $useSoftDeletes   = false;
+    protected $useSoftDeletes   = true;
+    protected $deletedField     = 'deleted_at';
     protected $useTimestamps    = true;
 
     // Validation

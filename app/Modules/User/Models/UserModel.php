@@ -14,9 +14,6 @@ class UserModel extends Model
     protected $useSoftDeletes = true;
     protected $useTimestamps = true;
     protected $deletedField = 'deleted_at';
-    protected $beforeFind = ['processFind'];
-
-
 
     protected $validationRules = [
         'email' => 'required|valid_email|is_unique[users.email]',
@@ -47,11 +44,6 @@ class UserModel extends Model
             'in_list' => 'Invalid active status.',
         ],
     ];
-
-    protected function processFind(array $params)
-    {
-        $this->where('deleted_at', NULL);
-    }
 
     public function login()
     {
