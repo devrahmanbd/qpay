@@ -174,7 +174,7 @@ All v1 routes require `API-KEY` header (new pk/sk key or legacy brand_key).
 - User accounts stored in `users` table, admin accounts in `staffs` table
 
 ## Admin Credentials
-- Email: `admin@cloudman.one`
+- Email: `admin@qpay.qubickle.com`
 - Password: stored in environment / secrets
 
 ## Merchant API Dashboard

@@ -95,7 +95,7 @@ INSERT IGNORE INTO `user_roles` (`id`, `name`, `permissions`)
 VALUES (1, 'Super Admin', '*');
 
 INSERT IGNORE INTO `staffs` (`id`, `ids`, `email`, `first_name`, `last_name`, `role_id`, `password`, `status`, `created_at`)
-VALUES (1, 'admin', 'admin@cloudman.one', 'Admin', '', 1, '$2y$10$JUo3XOgK8cbHV605rLF3TujR0dUQGdqlZuWeV/Mige8JYGsh1NbzO', 1, NOW());
+VALUES (1, 'admin', 'admin@qpay.qubickle.com', 'Admin', '', 1, '$2y$10$JUo3XOgK8cbHV605rLF3TujR0dUQGdqlZuWeV/Mige8JYGsh1NbzO', 1, NOW());
 SQLTABLES
 
 echo "Database and tables setup done."

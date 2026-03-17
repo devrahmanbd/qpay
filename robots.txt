@@ -6,4 +6,4 @@ Disallow: /sign-in
 Disallow: /sign-up
 Disallow: /api/
 
-Sitemap: https://qpay.com/sitemap.xml
+Sitemap: https://qpay.qubickle.com/sitemap.xml

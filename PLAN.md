@@ -38,10 +38,6 @@
 - [x] Micro-Task 4.2: WebhookService with retry logic
 - [x] Micro-Task 4.3: Test mode with TestPaymentAdapter
 
----
-
-## Pending Tasks
-
 ### Task #3: Unified WordPress Plugin ✅ COMPLETED
 - [x] Core plugin setup (`public/sdks/wordpress/qpay-wordpress/`)
 - [x] QPay SDK class for API communication
@@ -57,60 +53,35 @@
 - [x] Transaction management admin page (list, filter, search, detail view, refund)
 - [x] WooCommerce gateway (optional, auto-detected, shared API keys from QPay settings)
 - [x] QPay Merchant role with custom capabilities
-- [x] Frontend CSS (buttons, forms, donation presets, test badges)
-- [x] Frontend JS (AJAX handlers, form validation, preset amount selection)
-- [x] Admin CSS (settings cards, stats row, transaction badges, detail grid)
+- [x] Frontend CSS/JS (buttons, forms, donation presets, AJAX handlers)
 - [x] Plugin ZIP package for distribution
-- [x] Merchant dashboard SDK page updated (WordPress plugin featured as recommended)
-
----
 
 ### Task #4: Testing & Sandboxing ✅ COMPLETED
-**Status**: COMPLETED
-**Priority**: HIGH
-**Description**: Systematic testing of all platform features, bug fixes, and sandbox validation
+- [x] Sandbox environment validation (test keys, test payments, checkout flow)
+- [x] API endpoint testing (all v1 endpoints verified)
+- [x] Frontend & dashboard bug fixes
+- [x] Public pages validation (homepage, sign-in, docs, SDKs)
 
-#### 4.1: Sandbox Environment Validation ✅
-- [x] Test mode API key authentication (sk_test_*, pk_test_*)
-- [x] Test payment creation (processing, declined, insufficient funds)
-- [x] Test payment verification and status endpoints
-- [x] Test refund flow in sandbox mode
-- [x] Test balance endpoint with test transactions
-- [x] Checkout page renders proper payment UI (was returning raw JSON — fixed)
-- [x] Checkout process flow works for test mode payments
-- [x] Test mode banner displays on checkout page
+### Task #5: Masterclass Landing Page & SEO ✅ COMPLETED
+- [x] Mercury/Airwallex-style dark hero with gradient mesh backgrounds
+- [x] Animated stats counters (Alpine.js x-intersect)
+- [x] Premium feature cards, how-it-works steps, testimonials
+- [x] Sales/contact form with validation and DB storage (sales_leads table)
+- [x] Full SEO: Open Graph, Twitter cards, JSON-LD schema, canonical URLs
+- [x] Security headers filter (X-Content-Type-Options, X-Frame-Options, HSTS, etc.)
+- [x] robots.txt and scroll-reveal animations
+- [x] Expanded API docs (8 new sections: Checkout, WordPress, Quick Start, Testing, etc.)
 
-#### 4.2: API Endpoint Testing ✅
-- [x] POST /api/v1/payment/create — correct response format
-- [x] GET /api/v1/payment/verify/:id — returns verified status
-- [x] GET /api/v1/payment/status/:id — returns current status
-- [x] GET /api/v1/payments — lists payments with pagination
-- [x] POST /api/v1/refunds — processes refund correctly
-- [x] GET /api/v1/balance — returns available/pending/refunded
-- [x] GET /api/v1/payment/methods — lists all payment methods with brand info
-- [x] Invalid/missing API key returns proper error responses
-
-#### 4.3: Frontend & Dashboard Bug Fixes ✅
-- [x] Dashboard JSON parse error fixed (used CI4 Response object instead of echo)
-- [x] Admin dashboard same JSON fix applied
-- [x] Checkout page built with proper payment method UI, status views
-- [x] Checkout process endpoint added for test mode payments
-- [x] Webhook firing on checkout completion
-
-#### 4.4: Public Pages Validation ✅
-- [x] Homepage (/) — 200 OK
-- [x] Sign-in (/sign-in) — 200 OK, form renders correctly
-- [x] Register (/register) — 200 OK
-- [x] Blog (/blog) — 200 OK
-- [x] Developers hub (/developers) — 200 OK
-- [x] API Docs (/developers/docs) — 200 OK with full Stripe-style reference
-- [x] SDK download (WordPress ZIP) — 200 OK
-
-#### 4.5: Known Non-Issues (Cosmetic)
-- Alpine.js x-collapse plugin warning — harmless, FAQ accordion cosmetic
-- Tailwind CDN warning — expected in development, not production
+### Task #6: Complete Rebranding ✅ COMPLETED
+- [x] All "demopay", "cloudman", "Auto Pay Solution" references removed
+- [x] Domain set to qpay.qubickle.com
+- [x] Admin email updated to admin@qpay.qubickle.com
+- [x] Contact email updated to support@qpay.qubickle.com
+- [x] Site name, keywords, meta tags all QPay-branded
 
 ---
+
+## Pending Tasks
 
 ### Sprint 5: Financial Integrity (The Double-Entry Ledger)
 **Status**: NOT STARTED
@@ -139,14 +110,14 @@
   - Dockerfile for CodeIgniter 4 + PHP 8.2 FPM
   - docker-compose.yml with services: app, mariadb, redis
   - Build and push to container registry
-  
+
 - [ ] Micro-Task 6.2: Redis integration
   - Configure CI4 session handler: Redis
   - Configure caching backend: Redis
   - Update .env for REDIS_HOST, REDIS_PASSWORD
-  
+
 - [ ] Micro-Task 6.3: Queue system for background jobs
-  - Set up Redis-backed queue (e.g., Bull/BullMQ for Node, or custom PHP queue)
+  - Set up Redis-backed queue
   - Move webhook delivery to async queue
   - Move email notifications to queue
   - Add queue monitor/dashboard (optional)
@@ -155,7 +126,7 @@
 
 ## Summary
 
-**Completed**: 8/10 major components (80%)
+**Completed**: 10/12 major components (83%)
 **Pending**: Sprint 5 (ledger), Sprint 6 (infrastructure)
 
 **Next Step**: Sprint 5 (double-entry ledger for merchant balances)
