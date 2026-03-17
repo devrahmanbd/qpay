@@ -157,6 +157,10 @@ class PaymentController extends ResourceController
         $merchant = $request->merchant;
         $isTest = $request->isTestMode ?? false;
 
+        if (($request->keyType ?? 'secret') === 'publishable') {
+            return $this->respondError('FORBIDDEN', 'Publishable keys cannot verify payments. Use a secret key (sk_*).', 403);
+        }
+
         if (empty($paymentId)) {
             $paymentId = $request->getVar('payment_id');
         }
@@ -316,19 +320,32 @@ class PaymentController extends ResourceController
 
         $payment->status = 4;
 
+        $refundId = 'ref_' . bin2hex(random_bytes(12));
+
         $webhookService = new WebhookService();
         $webhookService->dispatch($brand->id, $merchant->id, 'refund.created', [
-            'id' => 'ref_' . bin2hex(random_bytes(12)),
+            'id' => $refundId,
             'object' => 'refund',
-            'payment_id' => $payment->ids,
+            'payment' => $payment->ids,
             'amount' => (float) $payment->amount,
             'currency' => $payment->currency,
             'reason' => $reason,
-            'status' => 'refunded',
+            'status' => 'succeeded',
             'test_mode' => $isTest,
         ]);
 
-        return $this->respond($this->formatPayment($payment));
+        return $this->respond([
+            'id' => $refundId,
+            'object' => 'refund',
+            'amount' => (float) $payment->amount,
+            'currency' => strtolower($payment->currency),
+            'payment' => $payment->ids,
+            'reason' => $reason,
+            'status' => 'succeeded',
+            'test_mode' => $isTest,
+            'created' => time(),
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
     }
 
     public function balance()

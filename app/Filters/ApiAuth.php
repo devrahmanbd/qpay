@@ -14,6 +14,8 @@ class ApiAuth implements FilterInterface
         'test' => 200,
     ];
 
+    protected bool $allowLegacyKeys = false;
+
     public function before(RequestInterface $request, $arguments = null)
     {
         $apiKey = $request->getHeaderLine('API-KEY');
@@ -42,6 +44,16 @@ class ApiAuth implements FilterInterface
 
         if ($isNewFormat) {
             return $this->authenticateNewKey($request, $apiKey, $keyService);
+        }
+
+        if (!$this->allowLegacyKeys) {
+            return service('response')
+                ->setStatusCode(401)
+                ->setJSON([
+                    'status' => 'error',
+                    'code' => 'INVALID_API_KEY',
+                    'message' => 'Invalid API key format. Use keys generated from the API Dashboard (pk_live_*, sk_live_*, pk_test_*, sk_test_*).',
+                ]);
         }
 
         return $this->authenticateLegacyKey($request, $apiKey);
