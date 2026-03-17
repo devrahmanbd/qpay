@@ -99,6 +99,9 @@ class ApiController extends BaseController
     public function cron()
     {
         $this->model->processPendingTasks();
+
+        $webhookService = new \App\Libraries\WebhookService();
+        $webhookService->retryFailed();
     }
 }
 

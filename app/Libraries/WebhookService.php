@@ -51,6 +51,8 @@ class WebhookService
             ->get()
             ->getResult();
 
+        $dispatched = false;
+
         foreach ($webhooks as $webhook) {
             $events = json_decode($webhook->events, true) ?: ['*'];
             if (!in_array('*', $events) && !in_array($eventType, $events)) {
@@ -69,7 +71,16 @@ class WebhookService
             $this->db->table('webhook_events')->insert($eventData);
             $eventId = $this->db->insertID();
 
-            $this->deliver($eventId, $webhook);
+            $delivered = $this->deliver($eventId, $webhook);
+            if ($delivered) {
+                $dispatched = true;
+            }
+        }
+
+        if ($dispatched && isset($payload['id']) && in_array($eventType, ['payment.created', 'payment.completed', 'payment.failed', 'refund.created'])) {
+            $this->db->table('api_payments')
+                ->where('ids', $payload['id'])
+                ->update(['webhook_delivered' => 1]);
         }
     }
 
