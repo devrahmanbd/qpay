@@ -12,23 +12,23 @@ $general_elements = [
   [
     'label'      => form_label('Status'),
     'element'    => form_dropdown('status', $status, @$payment_settings->status, ['class' => $class_element_select]),
-    'class_main' => "col-md-6 ",
+    'class_main' => "w-full md:w-1/2 px-2",
   ],
 
   [
     'label'      => form_label('2Checkout Seller ID'),
     'element'    => form_input(['name' => 'seller_id', 'value' =>  @get_value($payment_settings->params, 'seller_id'), 'type' => 'text', 'class' => $class_element]),
-    'class_main' => "col-md-6 col-sm-12 col-xs-12",
+    'class_main' => "w-full md:w-1/2 px-2",
   ],
   [
     'label'      => form_label('2Checkout Publishing Key'),
     'element'    => form_input(['name' => 'publishing_key', 'value' =>  @get_value($payment_settings->params, 'publishing_key'), 'type' => 'text', 'class' => $class_element]),
-    'class_main' => "col-md-6 col-sm-12 col-xs-12",
+    'class_main' => "w-full md:w-1/2 px-2",
   ],
   [
     'label'      => form_label('2Checkout Private Key'),
     'element'    => form_input(['name' => 'private_key', 'value' =>  @get_value($payment_settings->params, 'private_key'), 'type' => 'text', 'class' => $class_element]),
-    'class_main' => "col-md-6 col-sm-12 col-xs-12",
+    'class_main' => "w-full md:w-1/2 px-2",
   ],
 
 ];
@@ -36,8 +36,8 @@ include 'common.php';
 ?>
 
 <div class="">
-  <div class="card-header">
-    <h3 class="card-title"><i class="fa-brands fa-square-reddit"></i> <?= lang("2checkout Setup") ?></h3>
+  <div class="px-4 py-3 border-b border-gray-100">
+    <h3 class="text-base font-semibold text-gray-800"><i class="fa-brands fa-square-reddit"></i> <?= lang("2checkout Setup") ?></h3>
   </div>
   <div class="">
     <div class="">

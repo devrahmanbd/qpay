@@ -9,29 +9,32 @@ QPay is a payment gateway/orchestrator for South Asian markets (Bangladesh). It 
 - **Server**: PHP built-in server on port 5000 with `router.php` for static file serving
 - **Startup**: `start.sh` handles MariaDB init, table creation, migrations, and PHP server launch
 
-## Frontend Architecture (Alpine.js + Tailwind Migration)
+## Frontend Architecture (Tailwind CSS + Alpine.js)
 
 ### Layout System
 The template system (`app/Libraries/Template.php`) routes through `app/Views/layouts/template.php`:
-- **`general.php`** — Public pages (home, blogs, terms, privacy, developers, docs). Pure Tailwind CSS + Alpine.js (including Alpine Collapse plugin for accordions). No Bootstrap/jQuery dependencies.
-- **`auth.php`** — Sign-in, sign-up, password reset, activation, change password (user + admin). Pure Tailwind + Alpine.js, no Bootstrap/jQuery.
-- **`user/main.blade.php`** — User dashboard. Tailwind CDN + Alpine.js layered on top of legacy Blithe/jQuery for inner view backward compatibility.
-- **`admin/main.blade.php`** — Admin dashboard. Same hybrid approach as user dashboard.
-- **`docs.php`** — Legacy layout (no longer used; developer pages now use `general.php` via DocController).
+- **`general.php`** — Public pages (home, blogs, terms, privacy, developers, docs). Pure Tailwind CSS + Alpine.js.
+- **`auth.php`** — Sign-in, sign-up, password reset, activation, change password (user + admin). Pure Tailwind + Alpine.js.
+- **`user/main.blade.php`** — User dashboard. Tailwind CDN + Alpine.js + qpay-alpine.js. No Bootstrap/jQuery.
+- **`admin/main.blade.php`** — Admin dashboard. Tailwind CDN + Alpine.js + qpay-alpine.js. No Bootstrap/jQuery.
+- **`docs.php`** — Developer API documentation layout (separate from dashboards, retains its own CSS/JS).
 
 ### JavaScript Stack
-- **`public/assets/js/app.js`** — Vanilla JS for auth pages (loaded only in `auth.php` layout, NOT in dashboard layouts to avoid duplication with legacy scripts). Provides:
+- **`public/assets/js/qpay-alpine.js`** — Unified vanilla JS + Alpine.js utility layer for both dashboards. Replaces all legacy jQuery scripts (process.js, process2.js, general.js, admin.js, blithe.js). Provides:
   - `qpost()` — fetch-based AJAX helper with auto CSRF token injection
   - `notify()` — Toast notification system (pure CSS/JS, XSS-safe via textContent)
   - `pageOverlay` — Loading overlay component
-  - `alertMessage` — Inline alert component
-  - Form handlers: `actionForm`, `actionFormWithoutToast`, `actionAddFundsForm`, `ajaxSearchItem`
-  - Click handlers: `ajaxDeleteItem`, `ajaxActionOptions`, `ajaxToggleItemStatus`, `ajaxViewUser`
-  - Change handlers: `ajaxChangeLanguage`, `ajaxChangeSort`, `ajaxChangeCurrencyCode`, `ajaxChangeTicketSubject`
-  - Utilities: `is_json`, `reloadPage`, `confirm_notice`, `callPostAjax`, `copyToClipBoard`, `preparePrice`
-  - Notification polling (15s interval)
-  - Search area button handlers
-- **Legacy JS (dashboard only)**: `process.js`/`process2.js`, `general.js`, `admin.js`, `blithe.js` — still loaded in dashboard layouts as compatibility shim until inner views are migrated.
+  - Form handlers: `actionForm`, file upload, clipboard copy
+  - Click handlers: `ajaxDeleteItem`, `ajaxToggleItemStatus`, `ajaxModal` (modal system)
+  - Search, bulk actions, notification polling
+  - Sortable table rows (vanilla JS drag-and-drop)
+- **`public/assets/js/app.js`** — Vanilla JS for auth pages (loaded only in `auth.php` layout).
+
+### Modal System
+- `openModal(url)` / `closeModal()` functions in qpay-alpine.js
+- `.ajaxModal` class on links triggers modal open on click
+- Modal templates: `app/Views/layouts/common/modal/modal_top.php` and `modal_bottom.php`
+- Update/edit views use `modal_buttons()` helper for consistent submit/cancel buttons
 
 ### CDN Dependencies
 - Tailwind CSS: `https://cdn.tailwindcss.com` (dev CDN, production should use build step)
@@ -45,52 +48,53 @@ primary: { 50-900 indigo shades from #eef2ff to #312e81 }
 sidebar: { bg: '#1e293b', hover: '#334155', active: '#4f46e5' }
 ```
 
+### Helper Functions (Tailwind)
+- `partials_helper.php` — `show_page_header`, `show_page_header_filter`, `show_item_status` (Tailwind toggle switches), `render_table_thead`, `show_item_button_action`, `show_pagination`, `show_empty_item`, `show_bulk_btn_action`
+- `form_template_helper.php` — `modal_buttons()` (Tailwind submit/cancel), `render_element_form()` / `render_elements_form()` with Tailwind classes (`w-full`, `w-full md:w-1/2 px-2`)
+- `app_helper.php` — General application helpers
+
+### View Patterns
+- **Table index views**: Wrap in `bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden`
+- **Settings elements**: Same card pattern with `content` class
+- **Update/modal views**: Use `flex flex-wrap -mx-2` for form element containers
+- **Toggle switches**: SR-only peer pattern (no jQuery)
+- **Alpine.js data**: Used for interactive UI (e.g., `x-data="{protocol:...}"` in email settings)
+
 ## Key Directories
 ```
 app/
-├── Adapters/              # Payment provider adapters (Sprint 3)
-│   ├── SmsVerificationAdapter.php   (legacy SMS-based verification)
-│   └── DirectApiAdapter.php         (new direct API integration)
+├── Adapters/              # Payment provider adapters
 ├── Config/
-│   ├── App.php            # Auto-detects base_url from HTTP_HOST for proxy env
-│   ├── Database.php       # Hardcoded DB credentials in constructor
-│   ├── Filters.php        # Includes api_auth filter for API routes
+│   ├── App.php            # Auto-detects base_url from HTTP_HOST
+│   ├── Database.php       # DB credentials
+│   ├── Filters.php        # Includes api_auth filter
 │   ├── Routes.php         # Legacy + API v1 routes
-│   └── Site_config.php    # HTTPS redirect disabled (enable_https='0')
+│   └── Site_config.php    # HTTPS redirect config
 ├── Controllers/
 │   ├── ApiController.php  # Legacy device/SMS endpoints
 │   └── Api/V1/
-│       └── PaymentController.php  # New REST API (Sprint 1-2)
-├── Filters/
-│   ├── ApiAuth.php        # API key auth via brands table (Sprint 2)
-│   ├── Auth.php           # Session-based auth redirect
-│   └── IPBlocker.php      # Rate limiting
-├── Interfaces/
-│   └── PaymentProviderInterface.php  # Provider contract (Sprint 3)
-├── Libraries/
-│   ├── GatewayApi.php     # Legacy cURL payment library
-│   ├── Template.php       # Template engine — layout routing via set_layout()
-│   └── PaymentProviderFactory.php  # Factory pattern for adapters
+│       └── PaymentController.php  # REST API
+├── Helpers/
+│   ├── app_helper.php     # General helpers
+│   ├── partials_helper.php # UI component helpers (Tailwind)
+│   └── form_template_helper.php # Form helpers (Tailwind)
 ├── Modules/
-│   ├── Admin/             # Admin panel (staff management, txn views)
-│   ├── Blocks/            # Queue/background tasks
+│   ├── Admin/Views/       # All admin views (Tailwind + Alpine.js)
+│   ├── Blocks/Views/      # Ticket/queue views (Tailwind + Alpine.js)
 │   ├── Home/              # Public pages, migrations
-│   └── User/              # Merchant dashboard, wallets, transactions
+│   └── User/Views/        # All user views (Tailwind + Alpine.js)
 └── Views/
     └── layouts/
-        ├── template.php   # Router: admin → admin/main, user → user/main, default → general
-        ├── general.php    # Public layout (Tailwind nav/footer + legacy vendor CSS/JS)
-        ├── auth.php       # Auth layout (pure Tailwind + Alpine.js)
-        ├── user/main.blade.php   # User dashboard (hybrid Tailwind + legacy)
-        └── admin/main.blade.php  # Admin dashboard (hybrid Tailwind + legacy)
+        ├── template.php   # Router
+        ├── general.php    # Public layout
+        ├── auth.php       # Auth layout
+        ├── user/main.blade.php   # User dashboard (Tailwind + Alpine.js)
+        ├── admin/main.blade.php  # Admin dashboard (Tailwind + Alpine.js)
+        └── common/modal/  # Modal templates
 
 public/assets/js/
-├── app.js          # New vanilla JS utilities (replaces jQuery patterns)
-├── process.js      # Legacy jQuery utilities (loaded in admin dashboard)
-├── process2.js     # Legacy jQuery utilities (loaded in user dashboard)
-├── general.js      # Legacy jQuery event handlers (loaded in dashboards)
-├── admin.js        # Legacy admin jQuery handlers (loaded in dashboards)
-└── blithe.js       # Legacy sidebar/sortable (loaded in dashboards)
+├── qpay-alpine.js  # Dashboard utility layer (vanilla JS + Alpine.js)
+└── app.js          # Auth page utilities
 ```
 
 ## API v1 Endpoints
@@ -122,19 +126,13 @@ All v1 routes require `API-KEY` header (brand_key from brands table).
 ## CSRF Configuration
 - `tokenName = 'token'` and `cookieName = 'token'` in `app/Config/Security.php`
 - All forms use `form_open()` / `form_close()` which auto-insert CSRF hidden field
-- CSRF is cookie-based with `regenerate = false` (prevents token mismatch on sequential AJAX calls)
+- CSRF is cookie-based with `regenerate = false`
 - API routes (`api/*`) are CSRF-exempt via `app/Config/Filters.php`
-- `app.js` auto-injects CSRF token into all `qpost()` calls
+- `qpay-alpine.js` auto-injects CSRF token into all `qpost()` calls
 
 ## Cookie Configuration
 - `SameSite=Lax`, `secure=false`, `httponly=true` in `app/Config/Cookie.php`
 - For production/iframe deployment: change to `SameSite=None` and `secure=true`
-
-## JS Stability
-- All `JSON.parse` calls in `blithe.js`, `process.js`, `process2.js` are wrapped in try/catch
-- `general.js` notification polling handles HTML responses gracefully (server returns HTML not JSON)
-- Auth layout defines `var token`, `PATH`, `user=''` globals for JS
-- Known harmless warnings: Tailwind CDN production warning
 
 ## Login Routes
 - User login: `/sign-in` (not `/login`)
@@ -147,13 +145,14 @@ All v1 routes require `API-KEY` header (brand_key from brands table).
 - Password: stored in environment / secrets
 
 ## Developer Docs
-- `/developers` - Overview landing page (developers/index.php via DocController)
-- `/developers/docs` - Full API documentation (developers/docs.php) with code samples in PHP, Node.js, Python, Go
-- Docs use `base_url()` for PAYMENT_URL (not env var)
-- All code samples reference v1 API endpoints with single API-KEY header
+- `/developers` - Overview landing page
+- `/developers/docs` - Full API documentation with code samples
+- Docs use `base_url()` for PAYMENT_URL
+- Docs layout (`docs.php`) retains its own separate CSS/JS (not part of dashboard migration)
 
 ## Environment Notes
 - `APP_STATUS=installed` and `CI_ENVIRONMENT=development` set via putenv() in index.php
 - CSRF is disabled for `api/*` routes
 - `router.php` serves static files from workspace root; all other requests go through CodeIgniter
 - MariaDB data persists in `/home/runner/mysql_data` across restarts
+- Known harmless warnings: Tailwind CDN production warning

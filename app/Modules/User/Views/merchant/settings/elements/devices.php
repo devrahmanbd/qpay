@@ -39,7 +39,7 @@
                                       <td class="w-5p"><?= $item['device_name'].show_device_status($item['device_key'],session('uid'))?></td>
                                       <td class=""><?= $item['created']; ?></td>
                                       <td class="w-5p"><?= $item['device_key']; ?></td>
-                                      <td class="text-center "><input readonly type="hidden" class="form-control text-to-cliboard" value="<?= $item['device_key']; ?>" ><i class="fas fa-copy my-copy-btn btn"></i></td>
+                                      <td class="text-center "><input readonly type="hidden" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-to-cliboard" value="<?= $item['device_key']; ?>" ><i class="fas fa-copy my-copy-btn btn"></i></td>
                                     </tr>
 
       <?php

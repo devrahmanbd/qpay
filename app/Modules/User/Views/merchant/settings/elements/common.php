@@ -13,13 +13,13 @@
       $brand_elements[] = [
         'label'      => '',
         'element'    => form_hidden(["brand_id" => $brand->id]),
-        'class_main' => "col-md-12 col-sm-12 col-xs-12",
+        'class_main' => "w-full px-2",
       ];
     if (!empty($active)) {
       $brand_elements[] = [
         'label'      => 'Active Payment Type',
         'element'    => '',
-        'class_main' => "col-md-12 col-sm-12 col-xs-12",
+        'class_main' => "w-full px-2",
       ];
       foreach ($active as $key => $act) {
         $active_value = (isset($active_payments[$key]) && $active_payments[$key]) ? 1 : 0;
@@ -29,7 +29,7 @@
         $active_elements[] = [
           'label'      => $act,
           'element'    => $hidden_value . form_checkbox(['name' => "active_payments[$key]", 'value' => 1, 'checked' => $active_check, 'class' => 'custom-switch-input my','data-id'=>$key.$brand->id]),
-          'class_main' => "col-md-3 col-sm-4 col-xs-4",
+          'class_main' => "w-1/4 px-2",
           'type'       => "switch",
         ];
       }

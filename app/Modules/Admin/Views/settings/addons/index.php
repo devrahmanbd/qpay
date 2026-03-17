@@ -1,93 +1,73 @@
+<div class="mb-4">
+  <h4 class="text-lg font-semibold text-gray-800">User Addons</h4>
+</div>
+<?php
+  echo show_page_header('addons', ['page-options' => 'add-new', 'page-options-type' => 'ajax-modal']);
+  if(!empty($items)){
+?>
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+  <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+    <h3 class="text-base font-semibold text-gray-800"><?=lang("Lists")?></h3>
+    <div><?php echo show_bulk_btn_action('user-addon'); ?></div>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <?php echo render_table_thead($columns); ?>
+      <tbody class="divide-y divide-gray-100 sortable">
+        <?php if (!empty($items)) {
+          $i = 0;
+          foreach ($items as $key => $item) {
+            $item = (array)$item;
+            $i++;
+            $item_checkbox = show_item_check_box('check_item', $item['id']);
+            $show_item_buttons = show_item_button_action('user-addon', $item['id']);
+        ?>
+          <tr class="tr_<?php echo esc($item['id']); ?> hover:bg-gray-50 transition-colors" data-code="<?php echo esc($item['id']); ?>">
+            <td class="px-4 py-3 text-center"><?php echo $item_checkbox; ?></td>
+            <td class="px-4 py-3 text-center text-gray-500"><?=$i?></td>
+            <td class="px-4 py-3"><?= $item['name']; ?></td>
+            <td class="px-4 py-3 text-center"><?= currency_format($item['price']); ?></td>
+            <td class="px-4 py-3 text-center"><?php echo $item['version']; ?></td>
+            <td class="px-4 py-3 text-center"><?php echo $show_item_buttons; ?></td>
+          </tr>
+        <?php }}?>
+      </tbody>
+    </table>
+  </div>
+</div>
+<?php }?>
 
-<div class="row">
-    <h4>User Addons</h4>
-  <?php 
-    echo show_page_header('addons', ['page-options' => 'add-new', 'page-options-type' => 'ajax-modal']);
-    if(!empty($items)){
-  ?>
-    <div class="col-md-12">
-      <div class="card">
-        <div class="card-body">
-          <div class="card-header">
-            <h3 class="card-title"><?=lang("Lists")?></h3>
-            <div class="card-options">
-              <?php echo show_bulk_btn_action('user-addon'); ?>
-            </div>
-          </div>
-          <div class="table-responsive">
-            <table class="table table-hover table-bordered table-vcenter card-table">
-              <?php echo render_table_thead($columns); ?>
-              <tbody class="sortable">
-                <?php if (!empty($items)) {
-                  $i = 0;
-                  foreach ($items as $key => $item) {
-                    $item = (array)$item;
-                    $i++;
-                    $item_checkbox      = show_item_check_box('check_item', $item['id']);
-                    $show_item_buttons  = show_item_button_action('user-addon', $item['id']);
-
-                ?>
-                  <tr class="tr_<?php echo esc($item['id']); ?>" data-code="<?php echo esc($item['id']); ?>">
-                    <th class="text-center"><?php echo $item_checkbox; ?></th>
-                    <td class="text-center text-muted w-5p"><?=$i?></td>
-                    <td class="w-5p"><?= $item['name']; ?></td>
-                    <td class="text-center w-5p"><?= currency_format($item['price']); ?></td>
-                    <td class="text-center w-5p"><?php echo $item['version']; ?></td>
-                    <td class="text-center w-5p"><?php echo $show_item_buttons; ?></td>
-                  </tr>
-                <?php }}?>
-              </tbody>
-            </table>
-          </div>
-        </div>
+<?=form_open('','class="actionForm" data-redirect="'.admin_url('addons').'" ')?>
+<div class="mb-6">
+  <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-primary-400 transition-colors">
+    <div class="settings">
+      <input type="text" name="file" class="hidden" value="">
+      <div class="flex flex-col items-center gap-3">
+        <label for="file-input" class="cursor-pointer px-4 py-2 border border-primary-500 text-primary-600 rounded-lg text-sm font-medium hover:bg-primary-50 transition-colors">Upload a ZIP File</label>
+        <input class="settings_fileupload hidden" id="file-input" data-type="zip" type="file" name="files[]" onchange="document.getElementById('upload-btn').style.display='inline'">
+        <button id="upload-btn" class="hidden px-4 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors" type="submit">Extract File</button>
       </div>
     </div>
-  <?php }?>
-</div>
-
-
-<style>#upload-btn{display: none;} #drop-area {border: 2px dashed #ccc; border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; } #drop-area.highlight {border-color: #007bff; } #file-input {display: none; }</style>
-<?=form_open('','class="actionForm" data-redirect= "'.admin_url('addons').'" ')?>
-
-<div class="container mt-5">
-    <div id="drop-area" class="mb-3">
-        <div class="settings">
-            <input type="text" name="file" class="d-none" value="" >
-            <span class="text-center">
-                <label for="file-input" class="btn p-2 m-4 border border-primary">Upload a ZIP File</label>
-                <input class="settings_fileupload" id="file-input" data-type="zip" type="file" name="files[]" onchange="myF()">
-                <button id="upload-btn" class="btn btn-success" type="submit">Extract File</button>
-    
-            </span>
-        </div>
-    </div>
+  </div>
 </div>
 <?=form_close();?>
-<script>
-    function myF(){
-        const uploadBtn = document.getElementById('upload-btn');
-        uploadBtn.style.display = 'inline';
-    }
-</script>
 
-<div class="bg-secondary rounded h-100 p-4">
-    <div class="row">
-        <?php foreach($addons as $addon): ?>
-            <div class="col-md-4 bg-dark p-4">
-                <div class="form-check form-switch">
-                    <label class="form-check-label" for="<?=$addon?>">Status</label>
-                    <?php
-                     $id = get_option('enable_'.lcfirst($addon), '0');
-                     $item_status        = show_item_status('addons', $addon,$id , 'switch');
-                     echo $item_status;                     
-                    ?>
-                </div>
-                <div>
-                    <?php
-                        echo get_addon_details($addon);
-                    ?>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
+<div class="bg-gray-800 rounded-xl p-4">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <?php foreach($addons as $addon): ?>
+      <div class="bg-gray-900 rounded-lg p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-sm text-gray-300">Status</span>
+          <?php
+           $id = get_option('enable_'.lcfirst($addon), '0');
+           $item_status = show_item_status('addons', $addon, $id, 'switch');
+           echo $item_status;
+          ?>
+        </div>
+        <div class="text-gray-300 text-sm">
+          <?php echo get_addon_details($addon); ?>
+        </div>
+      </div>
+    <?php endforeach; ?>
+  </div>
 </div>

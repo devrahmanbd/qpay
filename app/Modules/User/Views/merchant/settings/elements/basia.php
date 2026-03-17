@@ -14,27 +14,27 @@
     [
       'label'      => form_label('Status'),
       'element'    => form_dropdown('status', $status, @$payment_settings->status, ['class' => $class_element_select]),
-      'class_main' => "col-md-6 ",
+      'class_main' => "w-full md:w-1/2 px-2",
     ],
     [
       'label'      => form_label('Bank ASIA Ltd. Account Name'),
       'element'    => form_input(['name' => 'bank_account_name', 'value' =>  @get_value($payment_settings->params,'bank_account_name'), 'type' => 'text', 'class' => $class_element]),
-      'class_main' => "col-md-6 col-sm-12 col-xs-12",
+      'class_main' => "w-full md:w-1/2 px-2",
     ],
     [
       'label'      => form_label('Bank ASIA Ltd. Account Number'),
       'element'    => form_input(['name' => 'bank_account_number', 'value' =>  @get_value($payment_settings->params,'bank_account_number'), 'type' => 'text', 'class' => $class_element]),
-      'class_main' => "col-md-6 col-sm-12 col-xs-12",
+      'class_main' => "w-full md:w-1/2 px-2",
     ],
     [
       'label'      => form_label('Bank ASIA Ltd. Branch Name'),
       'element'    => form_input(['name' => 'bank_account_branch_name', 'value' =>  @get_value($payment_settings->params,'bank_account_branch_name'), 'type' => 'text', 'class' => $class_element]),
-      'class_main' => "col-md-6 col-sm-12 col-xs-12",
+      'class_main' => "w-full md:w-1/2 px-2",
     ],
     [
       'label'      => form_label('Bank ASIA Ltd. Routing Number'),
       'element'    => form_input(['name' => 'bank_account_routing_number', 'value' =>  @get_value($payment_settings->params,'bank_account_routing_number'), 'type' => 'text', 'class' => $class_element]),
-      'class_main' => "col-md-6 col-sm-12 col-xs-12",
+      'class_main' => "w-full md:w-1/2 px-2",
     ],
     
   ];
@@ -44,8 +44,8 @@
 ?>
 
 <div class="content">
-  <div class="card-header">
-    <h3 class="card-title"><i class="fa-brands fa-square-reddit"></i> <?=lang("Bank ASIA Ltd. Setup for-".$brand->brand_name)?></h3>
+  <div class="px-4 py-3 border-b border-gray-100">
+    <h3 class="text-base font-semibold text-gray-800"><i class="fa-brands fa-square-reddit"></i> <?=lang("Bank ASIA Ltd. Setup for-".$brand->brand_name)?></h3>
   </div>
   <div class="">
     <div class="">

@@ -26,13 +26,6 @@
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-  <?=link_asset('blithe/css/app.min.css');?>
-  <?=link_asset('blithe/css/style.css');?>
-  <?=link_asset('js/jquery-toast/css/jquery.toast.css')?>
-  <?=link_asset('js/select2/css/select2.min.css')?>
-  <?=link_asset('blithe/css/components.css');?>
-  <?=link_asset('blithe/css/jqvmap.min.css');?>
-
   <style>
     [x-cloak] { display: none !important; }
     #page-overlay { display:none; position:fixed; inset:0; background:rgba(255,255,255,.7); z-index:9998; align-items:center; justify-content:center; }
@@ -41,7 +34,6 @@
     @keyframes qspin { to { transform:rotate(360deg); } }
   </style>
 
-  <?=script_asset("blithe/js/app.min.js");?>
   <script type="text/javascript">
       var token = '<?= csrf_hash() ?>',PATH = '<?=base_url()?>',user='admin';
   </script>
@@ -59,29 +51,13 @@
     </div>
   </main>
 
-  <?=script_asset("blithe/js/scripts.js");?>
-
-  <?=script_asset('js/notify.min.js')?>
-  <?=script_asset('js/tinymce/tinymce.min.js')?>
-  <?=script_asset('js/jquery-toast/js/jquery.toast.js')?>
-  <?=script_asset('js/process.js')?>
-  <?=script_asset('js/general.js')?>
-  <?=script_asset('js/select2/js/select2.full.min.js')?>
-  <?=script_asset('js/admin.js')?>
-  <?=script_asset('js/jquery-upload/js/vendor/jquery.ui.widget.js')?>
-  <?=script_asset('js/jquery-upload/js/jquery.iframe-transport.js')?>
-  <?=script_asset('js/jquery-upload/js/jquery.fileupload.js')?>
+  <?=script_asset('js/qpay-alpine.js')?>
 
   <?php if ($msg = session()->getFlashdata('message')) : ?>
       <script type="text/javascript">
           notify('<?= esc($msg['message']) ?>', '<?= esc($msg['status']) ?>');
       </script>
   <?php endif; ?>
-
-  <div id="modal-ajax" class="modal fade"></div>
-
-  <?=script_asset('js/jquery-ui.min.js')?>
-  <?=script_asset('js/blithe.js')?>
 </body>
 
 </html>
