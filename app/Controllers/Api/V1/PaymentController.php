@@ -480,6 +480,47 @@ class PaymentController extends ResourceController
         return $this->respond($body, $httpCode);
     }
 
+    public function checkout($paymentId = null)
+    {
+        if (empty($paymentId)) {
+            return $this->respondError('MISSING_PAYMENT_ID', 'Payment ID is required.', 400);
+        }
+
+        $payment = $this->db->table('api_payments')
+            ->where('ids', $paymentId)
+            ->get()
+            ->getRow();
+
+        if (!$payment) {
+            return $this->respondError('PAYMENT_NOT_FOUND', 'No payment found with the provided ID.', 404);
+        }
+
+        $providerResponse = json_decode($payment->provider_response ?? '{}', true);
+        $redirectUrl = $providerResponse['redirect_url'] ?? null;
+        $successUrl = $payment->success_url ?? null;
+
+        if ((int) $payment->status === 2) {
+            if ($successUrl) {
+                return redirect()->to($successUrl);
+            }
+            return $this->respond(['message' => 'Payment already completed.', 'payment_id' => $paymentId]);
+        }
+
+        if ((int) $payment->status === 3) {
+            $cancelUrl = $payment->cancel_url ?? null;
+            if ($cancelUrl) {
+                return redirect()->to($cancelUrl);
+            }
+            return $this->respondError('PAYMENT_FAILED', 'This payment has failed.', 400);
+        }
+
+        if ($redirectUrl) {
+            return redirect()->to($redirectUrl);
+        }
+
+        return $this->respond($this->formatPayment($payment));
+    }
+
     protected function generatePaymentId(): string
     {
         return 'pay_' . bin2hex(random_bytes(12));

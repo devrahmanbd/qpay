@@ -106,6 +106,22 @@ class WC_QPay_Gateway extends WC_Payment_Gateway
                 'description' => 'Your QPay webhook signing secret (whsec_...). <br>Webhook URL: <code>' . esc_html($webhook_url) . '</code>',
                 'default' => '',
             ],
+            'enabled_methods' => [
+                'title' => 'Payment Methods',
+                'type' => 'multiselect',
+                'description' => 'Select which QPay payment methods to offer at checkout. Leave empty to show all available methods.',
+                'default' => '',
+                'options' => [
+                    'bkash' => 'bKash',
+                    'nagad' => 'Nagad',
+                    'rocket' => 'Rocket',
+                    'upay' => 'Upay',
+                    'bank' => 'Bank Transfer',
+                    'card' => 'Card Payment',
+                ],
+                'class' => 'wc-enhanced-select',
+                'css' => 'width: 400px;',
+            ],
         ];
     }
 
@@ -135,6 +151,11 @@ class WC_QPay_Gateway extends WC_Payment_Gateway
                     'site_url' => get_site_url(),
                 ],
             ];
+
+            $enabledMethods = $this->get_option('enabled_methods', []);
+            if (!empty($enabledMethods) && is_array($enabledMethods)) {
+                $params['allowed_methods'] = $enabledMethods;
+            }
 
             $result = $sdk->createPayment($params);
 

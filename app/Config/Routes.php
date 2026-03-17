@@ -26,6 +26,8 @@ $routes->group('/', static function ($routes) {
         $routes->match(['get', 'post'], 'api/add-data', [ApiController::class, 'addMessage']);
 });
 
+$routes->get('api/v1/payment/checkout/(:any)', [PaymentController::class, 'checkout/$1']);
+
 $routes->group('api/v1', ['filter' => 'api_auth'], static function ($routes) {
         $routes->post('payment/create', [PaymentController::class, 'create']);
         $routes->match(['get', 'post'], 'payment/verify/(:any)', [PaymentController::class, 'verify/$1']);

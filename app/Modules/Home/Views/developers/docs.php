@@ -565,19 +565,25 @@ $methods = $qpay->getPaymentMethods();
 
       <article id="section-node-sdk">
         <h1 class="text-2xl font-bold text-gray-900 mb-4">Node.js SDK</h1>
-        <p class="text-gray-600 mb-4">A lightweight JavaScript SDK for Node.js applications.</p>
+        <p class="text-gray-600 mb-4">A lightweight JavaScript SDK for Node.js applications. Includes TypeScript declarations and supports both CommonJS and ES module imports.</p>
 
         <h3 class="text-lg font-semibold text-gray-900 mb-2">Installation</h3>
         <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto mb-4">
           <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
-<pre class="text-sm leading-relaxed"><code class="language-bash"># Download qpay.js and include it in your project
-curl -o qpay.js <?= PAYMENT_URL ?>sdks/nodejs/qpay.js</code></pre>
+<pre class="text-sm leading-relaxed"><code class="language-bash"># Download the SDK files into your project
+curl -o qpay.js <?= PAYMENT_URL ?>sdks/nodejs/qpay.js
+curl -o qpay.mjs <?= PAYMENT_URL ?>sdks/nodejs/qpay.mjs
+curl -o qpay.d.ts <?= PAYMENT_URL ?>sdks/nodejs/qpay.d.ts</code></pre>
         </div>
 
         <h3 class="text-lg font-semibold text-gray-900 mb-2">Usage</h3>
         <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto mb-4">
           <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
-<pre class="text-sm leading-relaxed"><code class="language-javascript">const { QPay } = require('./qpay');
+<pre class="text-sm leading-relaxed"><code class="language-javascript">// CommonJS
+const { QPay } = require('./qpay');
+
+// ES Modules
+// import QPay from './qpay.mjs';
 
 const qpay = new QPay('sk_test_your_secret_key', {
   baseUrl: '<?= rtrim(base_url(), '/') ?>'

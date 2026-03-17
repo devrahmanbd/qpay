@@ -59,10 +59,16 @@ class WebhookService
                 continue;
             }
 
+            $wrappedPayload = json_encode([
+                'event' => $eventType,
+                'data' => $payload,
+                'created' => time(),
+            ]);
+
             $eventData = [
                 'webhook_id' => $webhook->id,
                 'event_type' => $eventType,
-                'payload' => json_encode($payload),
+                'payload' => $wrappedPayload,
                 'status' => 'pending',
                 'attempts' => 0,
                 'created_at' => date('Y-m-d H:i:s'),
