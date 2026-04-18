@@ -196,7 +196,7 @@ function apiKeysManager() {
             try {
                 const res = await fetch(toRelativeUrl('<?= user_url('api/generate-keys') ?>'), { 
                     method: 'POST', 
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': token },
                     body: formData 
                 });
                 const data = await res.json();
@@ -218,7 +218,7 @@ function apiKeysManager() {
             try {
                 const res = await fetch(toRelativeUrl('<?= user_url('api/revoke-key') ?>'), { 
                     method: 'POST', 
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': token },
                     body: formData 
                 });
                 const data = await res.json();
@@ -236,7 +236,7 @@ function apiKeysManager() {
             try {
                 const res = await fetch(toRelativeUrl('<?= user_url('api/rotate-key') ?>'), { 
                     method: 'POST', 
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': token },
                     body: formData 
                 });
                 const data = await res.json();

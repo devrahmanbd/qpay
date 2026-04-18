@@ -25,7 +25,7 @@ document.addEventListener('alpine:init', () => {
             try {
                 const res = await fetch(toRelativeUrl('<?= user_url('api/ping-webhook') ?>'), { 
                     method: 'POST', 
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': token },
                     body: formData 
                 });
                 const data = await res.json();
@@ -44,7 +44,7 @@ document.addEventListener('alpine:init', () => {
             try {
                 const res = await fetch(toRelativeUrl('<?= user_url('api/add-webhook') ?>'), { 
                     method: 'POST', 
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': token },
                     body: formData 
                 });
                 const data = await res.json();
@@ -66,7 +66,7 @@ document.addEventListener('alpine:init', () => {
             try {
                 const res = await fetch(toRelativeUrl('<?= user_url('api/delete-webhook') ?>'), { 
                     method: 'POST', 
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': token },
                     body: formData 
                 });
                 const data = await res.json();
@@ -97,7 +97,7 @@ document.addEventListener('alpine:init', () => {
             try {
                 const res = await fetch(toRelativeUrl('<?= user_url('api/clear-webhook-events') ?>'), { 
                     method: 'POST', 
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': token },
                     body: formData 
                 });
                 const data = await res.json();

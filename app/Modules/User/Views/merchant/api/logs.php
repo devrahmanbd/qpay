@@ -28,7 +28,7 @@
         try {
             const res = await fetch(toRelativeUrl('<?= user_url('api/clear-logs') ?>'), { 
                 method: 'POST', 
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': token },
                 body: formData 
             });
             const data = await res.json();

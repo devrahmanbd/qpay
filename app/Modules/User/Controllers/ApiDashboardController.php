@@ -179,13 +179,19 @@ class ApiDashboardController extends UserController
             return;
         }
 
-        $result = $this->webhookService->registerWebhook($brandId, $uid, $url, is_array($events) ? $events : [$events]);
+        try {
+            $result = $this->webhookService->registerWebhook($brandId, $uid, $url, is_array($events) ? $events : [$events]);
 
-        ms([
-            'status' => 'success',
-            'message' => 'Webhook registered. Copy your signing secret — it will not be shown again.',
-            'data' => ['secret' => $result['secret']],
-        ]);
+            ms([
+                'status' => 'success',
+                'message' => 'Webhook registered. Copy your signing secret — it will not be shown again.',
+                'data' => ['secret' => $result['secret']],
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            ms(['status' => 'error', 'message' => $e->getMessage()]);
+        } catch (\Exception $e) {
+            ms(['status' => 'error', 'message' => 'An unexpected error occurred while saving the webhook.']);
+        }
     }
 
     public function deleteWebhook()
