@@ -1,4 +1,121 @@
-<div x-data="webhookManager()" class="space-y-6 relative">
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('webhookManager', () => ({
+        showAddModal: false,
+        showEventsModal: false,
+        webhookSecret: null,
+        webhookEvents: [],
+        newWebhookUrl: '',
+        newWebhookEvents: ['*'],
+        selectedWebhookId: null,
+        toast: {
+            show: false,
+            message: ''
+        },
+        showToast(msg) {
+            this.toast.message = msg;
+            this.toast.show = true;
+            setTimeout(() => { this.toast.show = false; }, 3000);
+        },
+
+        async pingWebhook(id) {
+            const formData = new FormData();
+            formData.append('webhook_id', id);
+            formData.append('token', token);
+            try {
+                const res = await fetch(toRelativeUrl('<?= user_url('api/ping-webhook') ?>'), { 
+                    method: 'POST', 
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData 
+                });
+                const data = await res.json();
+                this.showToast(data.message);
+            } catch (e) {
+                this.showToast('Failed to send ping');
+            }
+        },
+
+        async addWebhook() {
+            const formData = new FormData();
+            formData.append('brand_id', '<?= $selected_brand_id ?>');
+            formData.append('url', this.newWebhookUrl);
+            this.newWebhookEvents.forEach(e => formData.append('events[]', e));
+            formData.append('token', token);
+            try {
+                const res = await fetch(toRelativeUrl('<?= user_url('api/add-webhook') ?>'), { 
+                    method: 'POST', 
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData 
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    this.showAddModal = false;
+                    this.webhookSecret = data.data.secret;
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                alert('Failed to add webhook');
+            }
+        },
+        async deleteWebhookAction(id) {
+            if (!confirm('Delete this webhook endpoint?')) return;
+            const formData = new FormData();
+            formData.append('webhook_id', id);
+            formData.append('token', token);
+            try {
+                const res = await fetch(toRelativeUrl('<?= user_url('api/delete-webhook') ?>'), { 
+                    method: 'POST', 
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData 
+                });
+                const data = await res.json();
+                if (data.status === 'success') window.location.reload();
+                else alert(data.message);
+            } catch (e) {
+                alert('Failed to delete webhook');
+            }
+        },
+        async viewEvents(id) {
+            try {
+                const res = await fetch(toRelativeUrl('<?= user_url('api/webhook-events') ?>') + '?webhook_id=' + id, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+                this.webhookEvents = data.data || [];
+                this.selectedWebhookId = id;
+                this.showEventsModal = true;
+            } catch (e) {
+                alert('Failed to load events');
+            }
+        },
+        async clearWebhookEvents() {
+            if (!confirm('Clear all delivery records for this endpoint?')) return;
+            const formData = new FormData();
+            formData.append('webhook_id', this.selectedWebhookId);
+            formData.append('token', token);
+            try {
+                const res = await fetch(toRelativeUrl('<?= user_url('api/clear-webhook-events') ?>'), { 
+                    method: 'POST', 
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData 
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    this.webhookEvents = [];
+                    this.showToast('Events cleared');
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                alert('Failed to clear events');
+            }
+        }
+    }));
+});
+</script>
+
+<div x-data="webhookManager" x-cloak class="space-y-6 relative">
     <!-- Toast Notification -->
     <div x-show="toast.show" 
          x-transition:enter="transition ease-out duration-300"
@@ -177,117 +294,3 @@
         </div>
     </template>
 </div>
-
-<script>
-function webhookManager() {
-    return {
-        showAddModal: false,
-        showEventsModal: false,
-        webhookSecret: null,
-        webhookEvents: [],
-        newWebhookUrl: '',
-        newWebhookEvents: ['*'],
-        toast: {
-            show: false,
-            message: ''
-        },
-        showToast(msg) {
-            this.toast.message = msg;
-            this.toast.show = true;
-            setTimeout(() => { this.toast.show = false; }, 3000);
-        },
-        async pingWebhook(id) {
-            const formData = new FormData();
-            formData.append('webhook_id', id);
-            formData.append('token', token);
-            try {
-                const res = await fetch(toRelativeUrl('<?= user_url('api/ping-webhook') ?>'), { 
-                    method: 'POST', 
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    body: formData 
-                });
-                const data = await res.json();
-                this.showToast(data.message);
-            } catch (e) {
-                this.showToast('Failed to send ping');
-            }
-        },
-
-        async addWebhook() {
-            const formData = new FormData();
-            formData.append('brand_id', '<?= $selected_brand_id ?>');
-            formData.append('url', this.newWebhookUrl);
-            this.newWebhookEvents.forEach(e => formData.append('events[]', e));
-            formData.append('token', token);
-            try {
-                const res = await fetch(toRelativeUrl('<?= user_url('api/add-webhook') ?>'), { 
-                    method: 'POST', 
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    body: formData 
-                });
-                const data = await res.json();
-                if (data.status === 'success') {
-                    this.showAddModal = false;
-                    this.webhookSecret = data.data.secret;
-                } else {
-                    alert(data.message);
-                }
-            } catch (e) {
-                alert('Failed to add webhook');
-            }
-        },
-        async deleteWebhookAction(id) {
-            if (!confirm('Delete this webhook endpoint?')) return;
-            const formData = new FormData();
-            formData.append('webhook_id', id);
-            formData.append('token', token);
-            try {
-                const res = await fetch(toRelativeUrl('<?= user_url('api/delete-webhook') ?>'), { 
-                method: 'POST', 
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                body: formData 
-            });
-                const data = await res.json();
-                if (data.status === 'success') window.location.reload();
-                else alert(data.message);
-            } catch (e) {
-                alert('Failed to delete webhook');
-            }
-        },
-        async viewEvents(id) {
-            try {
-                const res = await fetch(toRelativeUrl('<?= user_url('api/webhook-events') ?>') + '?webhook_id=' + id, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const data = await res.json();
-                this.webhookEvents = data.data || [];
-                this.selectedWebhookId = id; // Store for clearing
-                this.showEventsModal = true;
-            } catch (e) {
-                alert('Failed to load events');
-            }
-        },
-        async clearWebhookEvents() {
-            if (!confirm('Clear all delivery records for this endpoint?')) return;
-            const formData = new FormData();
-            formData.append('webhook_id', this.selectedWebhookId);
-            formData.append('token', token);
-            try {
-                const res = await fetch(toRelativeUrl('<?= user_url('api/clear-webhook-events') ?>'), { 
-                    method: 'POST', 
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    body: formData 
-                });
-                const data = await res.json();
-                if (data.status === 'success') {
-                    this.webhookEvents = [];
-                } else {
-                    alert(data.message);
-                }
-            } catch (e) {
-                alert('Failed to clear events');
-            }
-        }
-    }
-}
-</script>

@@ -27,7 +27,7 @@ class WebhookService
             'url' => $url,
             'secret' => $secret,
             'events' => json_encode($events),
-            'status' => 1,
+            'is_active' => 1,
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
         ];
@@ -47,7 +47,7 @@ class WebhookService
         $webhooks = $this->db->table('webhooks')
             ->where('brand_id', $brandId)
             ->where('merchant_id', $merchantId)
-            ->where('status', 1)
+            ->where('is_active', 1)
             ->get()
             ->getResult();
 
@@ -67,7 +67,7 @@ class WebhookService
 
             $eventData = [
                 'webhook_id' => $webhook->id,
-                'event_type' => $eventType,
+                'event' => $eventType,
                 'payload' => $wrappedPayload,
                 'status' => 'pending',
                 'attempts' => 0,
@@ -126,7 +126,7 @@ class WebhookService
         $headers = [
             'Content-Type: application/json',
             'QPay-Signature: t=' . $timestamp . ',v1=' . $signature,
-            'QPay-Event-Type: ' . $event->event_type,
+            'QPay-Event-Type: ' . $event->event,
         ];
 
         $ch = curl_init($webhook->url);
@@ -263,7 +263,8 @@ class WebhookService
         }
 
         $host = $parsed['host'];
-        if (($isDev || $globalDebug) && ($host === 'localhost' || $host === '127.0.0.1')) {
+        $baseUrl = config('App')->baseURL ?? '';
+        if (($isDev || $globalDebug || strpos($baseUrl, 'localhost') !== false) && ($host === 'localhost' || $host === '127.0.0.1')) {
             return true;
         }
 
@@ -359,7 +360,7 @@ class WebhookService
 
         $eventData = [
             'webhook_id' => $webhook->id,
-            'event_type' => $eventType,
+            'event' => $eventType,
             'payload' => $wrappedPayload,
             'status' => 'pending',
             'attempts' => 0,
