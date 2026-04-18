@@ -4,7 +4,7 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
         xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
 
-    <?php foreach ($items as $item) : ?>
+    <?php foreach (($items ?? []) as $item) : ?>
         <url>
             <loc><?= $item['loc'] ?></loc>
 

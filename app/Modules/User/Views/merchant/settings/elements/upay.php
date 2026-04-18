@@ -19,7 +19,7 @@ $general_elements = [
   [
     'label'      => form_label('Status'),
     'element'    => form_dropdown('status', $status, @$payment_settings->status, ['class' => $class_element_select]),
-    'class_main' => "col-md-6",
+    'class_main' => "w-full md:w-1/2 px-2",
   ],
 
 
@@ -29,8 +29,8 @@ include 'common.php';
 ?>
 
 <div class="">
-  <div class="card-header">
-    <h3 class="card-title"><i class="fa-brands fa-square-reddit"></i> <?= lang("Upay Setup for-" . $brand->brand_name) ?></h3>
+  <div class="px-4 py-3 border-b border-gray-100">
+    <h3 class="text-base font-semibold text-gray-800"><i class="fa-brands fa-square-reddit"></i> <?= lang("Upay Setup for-" . $brand->brand_name) ?></h3>
   </div>
   <div class="">
     <div class="">
@@ -38,21 +38,21 @@ include 'common.php';
       <?php echo render_elements_form($general_elements); ?>
       <div id="personal<?= $brand->id ?>" class="type-class">
         <label>Upay Personal number</label>
-        <input type="text" name="personal_number" class="form-control" value="<?= @get_value($payment_settings->params, 'personal_number') ?>" placeholder="Enter your Upay number">
+        <input type="text" name="personal_number" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" value="<?= @get_value($payment_settings->params, 'personal_number') ?>" placeholder="Enter your Upay number">
       </div>
       <div id="agent<?= $brand->id ?>" class="type-class">
         <label>Upay Agent number</label>
-        <input type="text" name="agent_number" value="<?= @get_value($payment_settings->params, 'agent_number') ?>" class="form-control" placeholder="Enter your agent number">
+        <input type="text" name="agent_number" value="<?= @get_value($payment_settings->params, 'agent_number') ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="Enter your agent number">
       </div>
       <div id="merchant<?= $brand->id ?>" class="type-class">
         <label>Upay Merchant ID</label>
-        <input type="text" name="merchant_id" value="<?= @get_value($payment_settings->params, 'merchant_id') ?>" class="form-control">
+        <input type="text" name="merchant_id" value="<?= @get_value($payment_settings->params, 'merchant_id') ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
         <label>Upay Merchant Key</label>
-        <input type="text" name="merchant_key" value="<?= @get_value($payment_settings->params, 'merchant_key') ?>" class="form-control">
+        <input type="text" name="merchant_key" value="<?= @get_value($payment_settings->params, 'merchant_key') ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
         <label>Upay Merchant Code</label>
-        <input type="text" name="merchant_code" value="<?= @get_value($payment_settings->params, 'merchant_code') ?>" class="form-control">
+        <input type="text" name="merchant_code" value="<?= @get_value($payment_settings->params, 'merchant_code') ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
         <label>Upay Merchant Name</label>
-        <input type="text" name="merchant_name" value="<?= @get_value($payment_settings->params, 'merchant_name') ?>" class="form-control">
+        <input type="text" name="merchant_name" value="<?= @get_value($payment_settings->params, 'merchant_name') ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
       </div>
       <?= modal_buttons2('Save Upay Setting'); ?>
 

@@ -2,12 +2,6 @@
 
 use CodeIgniter\I18n\Time;
 
-/**
- * Create Form Template based on Elements
- *
- * @param array $elements
- * @return string
- */
 function render_elements_form(array $elements): string
 {
     $xhtml = '';
@@ -19,80 +13,52 @@ function render_elements_form(array $elements): string
     return $xhtml;
 }
 
-/**
- * Generate modal buttons
- *
- * @param string $btn1
- * @param string $btn2
- * @return string
- */
 function modal_buttons(string $btn1 = 'Save', string $btn2 = 'Close'): string
 {
     return sprintf(
-        '<div class="modal-footer">
-          <button type="submit" class="btn btn-primary btn-min-width mr-1 mb-1">%s</button>
-          <button type="button" class="btn btn-dark" data-bs-dismiss="modal">%s</button>
+        '<div class="flex items-center justify-end gap-3 pt-4 mt-4 border-t border-gray-100">
+          <button type="submit" class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">%s</button>
+          <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">%s</button>
         </div>',
         $btn1,
         $btn2
     );
 }
 
-
-/**
- * Generate modal buttons (alternative)
- *
- * @param string $btn1
- * @param string $btn2
- * @return string
- */
 function modal_buttons2(string $btn1 = 'Save', string $btn2 = 'Close'): string
 {
     return sprintf(
-        '<div class="modal-footer">
-          <button type="submit" class="btn btn-primary btn-min-width mr-1 mb-1">%s</button>
+        '<div class="flex items-center justify-end gap-3 pt-4 mt-4 border-t border-gray-100">
+          <button type="submit" class="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">%s</button>
         </div>',
         $btn1
     );
 }
 
-/**
- * Get document status badge
- *
- * @param mixed $value
- * @return string
- */
 function doc_status($value = ''): string
 {
     switch ($value) {
         case 1:
-            $c = 'bg-info';
+            $c = 'bg-blue-100 text-blue-700';
             $t = 'Reviewing';
             break;
         case 2:
-            $c = 'bg-warning';
+            $c = 'bg-yellow-100 text-yellow-700';
             $t = 'Canceled';
             break;
         case 3:
-            $c = 'bg-primary';
+            $c = 'bg-primary-100 text-primary-700';
             $t = 'Verified';
             break;
         default:
-            $c = 'bg-warning';
+            $c = 'bg-yellow-100 text-yellow-700';
             $t = 'Sent for Reviewing';
             break;
     }
 
-    return sprintf('<span class="badge light %s">%s</span>', $c, $t);
+    return sprintf('<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium %s">%s</span>', $c, $t);
 }
 
-/**
- * Render a form element
- *
- * @param array $element
- * @param mixed $param
- * @return string
- */
 function render_element_form(array $element, $param = null): string
 {
     $xhtml = '';
@@ -103,7 +69,7 @@ function render_element_form(array $element, $param = null): string
         case 'password':
             $xhtml = sprintf(
                 '<div class="%s">
-                    <div class="form-group">
+                    <div class="mb-4">
                         %s
                         %s
                     </div>
@@ -117,10 +83,9 @@ function render_element_form(array $element, $param = null): string
         case 'switch':
             $xhtml = sprintf(
                 '<div class="%s">
-                    <label class="custom-switch">      
+                    <label class="relative inline-flex items-center cursor-pointer gap-3">
                         %s
-                        <span class="custom-switch-indicator"></span>
-                        <span class="custom-switch-description">%s</span> 
+                        <span class="text-sm text-gray-700">%s</span>
                     </label>
                 </div> ',
                 $element['class_main'],
@@ -132,13 +97,11 @@ function render_element_form(array $element, $param = null): string
         case 'checkbox':
             $xhtml = sprintf(
                 '<div class="%s">
-                    <div class="form-group">
-                        <div class="custom-controls-stacked">
-                            <label class="form-check">
-                                %s
-                                <span class="custom-control-label">&nbsp;%s</span>
-                            </label>
-                        </div>
+                    <div class="mb-4">
+                        <label class="inline-flex items-center gap-2">
+                            %s
+                            <span class="text-sm text-gray-700">%s</span>
+                        </label>
                     </div>
                 </div> ',
                 $element['class_main'],
@@ -152,16 +115,12 @@ function render_element_form(array $element, $param = null): string
             $item2_title = $element['item2']['name'];
             $xhtml = sprintf(
                 '<div class="%s">
-                    <div class="form-group">
+                    <div class="mb-4">
                         %s
-                        <div class="input-group">
-                            <span class="input-group-prepend">
-                                <span class="input-group-text">1 %s =</span>
-                            </span>
+                        <div class="flex items-center">
+                            <span class="inline-flex items-center px-3 py-2 border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm rounded-l-lg">1 %s =</span>
                             %s
-                            <span class="input-group-append">
-                                <span class="input-group-text new-currency-code"> %s </span>
-                            </span>
+                            <span class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm rounded-r-lg new-currency-code">%s</span>
                         </div>
                     </div>
                 </div>',
@@ -176,12 +135,9 @@ function render_element_form(array $element, $param = null): string
         case 'admin-change-provider-service-list':
             $xhtml = sprintf(
                 '<div class="%s">
-                    <div class="dimmer">
-                    <div class="loader"></div>
-                    <div class="dimmer-content">
+                    <div class="relative">
                         %s
                         %s
-                    </div>
                     </div>
                 </div>',
                 $element['class_main'],
@@ -192,9 +148,8 @@ function render_element_form(array $element, $param = null): string
 
         case 'button':
             $xhtml = sprintf(
-                '<div class="ln_solid"></div>
-                <div class="form-group">
-                    <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">
+                '<div class="border-t border-gray-100 mt-4 pt-4">
+                    <div>
                         %s
                     </div>
                 </div>',
@@ -206,57 +161,40 @@ function render_element_form(array $element, $param = null): string
     return $xhtml;
 }
 
-/**
- * Create HTML for modal
- *
- * @param array $params
- * @return string
- */
 function render_modal_html(array $params = []): string
 {
     $params = [
-        'btn-class'           => $params['btn-class'] ?? 'btn-outline-primary',
+        'btn-class'           => $params['btn-class'] ?? 'border-primary-300 text-primary-700',
         'btn-title'           => $params['btn-title'] ?? 'Detail',
         'modal-id'            => $params['modal-id'] ?? 'modal-1',
-        'modal-size'          => $params['modal-size'] ?? 'modal-lg',
+        'modal-size'          => $params['modal-size'] ?? 'max-w-2xl',
         'modal-title'         => $params['modal-title'] ?? 'Modal Details',
         'modal-body-content'  => $params['modal-body-content'] ?? 'Modal content',
     ];
 
-    $dataTarget = '#' . $params['modal-id'];
-
     return sprintf(
-        '<button class="btn %s btn-sm" type="button" class="dash-btn" data-toggle="modal" data-target="%s">%s</button>
-        <div id="%s" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog %s" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">%s</h4>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
+        '<div x-data="{ open: false }">
+            <button @click="open = true" class="inline-flex items-center px-2 py-1 text-xs border rounded-lg hover:bg-gray-50 %s" type="button">%s</button>
+            <div x-show="open" x-cloak @click.self="open = false" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
+                <div class="bg-white rounded-xl shadow-2xl w-full %s max-h-[90vh] overflow-y-auto">
+                    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                        <h4 class="text-lg font-semibold text-gray-800">%s</h4>
+                        <button @click="open = false" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
                     </div>
-                    <div class="modal-body" style="text-align:left">
-                        %s
-                    </div>
+                    <div class="p-5 text-left">%s</div>
                 </div>
             </div>
         </div>',
         $params['btn-class'],
-        $dataTarget,
         $params['btn-title'],
-        $params['modal-id'],
         $params['modal-size'],
         $params['modal-title'],
         $params['modal-body-content']
     );
 }
 
-/**
- * Render modal body content
- *
- * @param string $controllerName
- * @param array $item
- * @return string
- */
 function render_modal_body_content(string $controllerName, array $item = []): string
 {
     switch ($controllerName) {
@@ -265,18 +203,14 @@ function render_modal_body_content(string $controllerName, array $item = []): st
             $details = json_encode(json_decode($item['details']), JSON_PRETTY_PRINT);
             $date = convert_timezone($item['last_updated'], "user");
             return sprintf(
-                '<div class="row justify-content-md-center">
-                    <div class="col-md-12 col-sm-12 col-xs-12">
-                        <div class="form-group">
-                            <label>%s</label>
-                            <textarea rows="7" readonly class="form-control square">%s</textarea>
-                        </div>
-                    </div> 
-                    <div class="col-md-12 col-sm-12 col-xs-12">
-                        <div class="form-group">
-                            <label>Last Update</label>
-                            <input type="text" class="form-control square" readonly value="%s">
-                        </div>
+                '<div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">%s</label>
+                        <textarea rows="7" readonly class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50">%s</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Last Update</label>
+                        <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-50" readonly value="%s">
                     </div>
                 </div>',
                 $apiName,
@@ -288,38 +222,19 @@ function render_modal_body_content(string $controllerName, array $item = []): st
         case 'services':
             $description = !empty($item['desc']) ? html_entity_decode($item['desc'], ENT_QUOTES) : '';
             $description = str_replace("\n", "<br>", $description);
-            return sprintf(
-                '<div class="form-group">
-                    %s
-                </div>',
-                $description
-            );
+            return sprintf('<div class="text-sm text-gray-600">%s</div>', $description);
             break;
     }
 
     return '';
 }
 
-/**
- * Convert timezone
- *
- * @param string $dateTime
- * @param string $userTimeZone
- * @return string
- */
 function convert_timezone(string $dateTime): string
 {
-    // Assuming $dateTime is in the 'UTC' timezone, adjust it if necessary
     $time = Time::parse($dateTime, 'UTC');
-
-    // Retrieve userTimezone from the request
     $request = service('request');
     $userTimezone = $request->getJSON()->userTimezone ?? 'Asia/Dhaka';
-
-    // Convert to the user's timezone
     $time->setTimezone($userTimezone);
-
-    // Format the time as a string
     return $time->toLocalizedString();
 }
 
@@ -328,12 +243,12 @@ if (!function_exists('show_device_status')) {
     {
         $xhtml = null;
         $status = 'Expired';
-        $type = 'warning';
+        $type = 'yellow';
         if (deviceValidation($device_key, $uid)) {
             $status = 'Active';
-            $type = 'success';
+            $type = 'green';
         }
-        $xhtml = sprintf('<small class="ml-auto badge bg-%s">%s</small>', $type, $status);
+        $xhtml = sprintf('<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-%s-100 text-%s-700 ml-auto">%s</span>', $type, $type, $status);
         return $xhtml;
     }
 }
@@ -343,12 +258,12 @@ if (!function_exists('show_brand_status')) {
     {
         $xhtml = null;
         $status = 'Expired';
-        $type = 'warning';
+        $type = 'yellow';
         if (brandValidation($brand_key, $uid)) {
             $status = 'Active';
-            $type = 'success';
+            $type = 'green';
         }
-        $xhtml = sprintf('<small class="ml-auto badge bg-%s">%s</small>', $type, $status);
+        $xhtml = sprintf('<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-%s-100 text-%s-700 ml-auto">%s</span>', $type, $type, $status);
         return $xhtml;
     }
 }

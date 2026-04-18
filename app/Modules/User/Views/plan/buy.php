@@ -8,88 +8,59 @@ $class_element = app_config('template')['form']['class_element'];
 $class_element_editor = app_config('template')['form']['class_element_editor'];
 $class_element_select = app_config('template')['form']['class_element_select'];
 
-
 $general_elements = [
   [
     'label'      => form_label('Plan Name'),
     'element'    => form_input(['name' => 'name', 'value' => @$item->name, 'type' => 'text', 'readonly' => 'readonly', 'class' => $class_element]),
-    'class_main' => "col-md-12 col-sm-12 col-xs-12",
+    'class_main' => "w-full",
   ],
-
   [
     'label'      => form_label('Plan Price'),
     'element'    => form_input(['name' => 'price', 'value' => @$item->final_price, 'type' => 'text', 'readonly' => 'readonly', 'class' => $class_element]),
-    'class_main' => "col-md-12 col-sm-12 col-xs-12",
+    'class_main' => "w-full",
   ],
-
-
 ];
 
 $data['modal_title'] = 'Buy this Plan';
-
 ?>
-<style type="text/css">
-  .coupon {
-    display: none;
-  }
 
-  .coupon.active {
-    display: block;
-  }
-
-  .coupon-btn {
-    cursor: pointer;
-  }
-</style>
 <?= view('layouts/common/modal/modal_top', $data); ?>
-
 <?php echo form_open('', $form_attributes, $form_hidden); ?>
-<div class="modal-body mb-2">
-  <div class="row justify-content-md-center">
-    <?php echo render_elements_form($general_elements); ?>
+<div class="mb-4" x-data="{ showCoupon: false }">
+  <?php echo render_elements_form($general_elements); ?>
 
-    <div class="col-md-12 col-sm-12 col-xs-12 coupon">
-      <div class="input-group mt-3">
-        <input type="text" name="coupon" class="form-control coupon-code" placeholder="Enter coupon code" aria-label="Coupon Code" aria-describedby="apply-coupon-btn">
-        <button class="btn btn-primary" type="button" id="apply-coupon-btn"><i class="fa-regular fa-square-caret-right"></i></button>
-      </div>
-      <span id="coupon-result" class="text-danger"></span>
+  <div x-show="showCoupon" x-cloak class="mt-3">
+    <div class="flex items-center gap-2">
+      <input type="text" name="coupon" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm coupon-code focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="Enter coupon code">
+      <button class="px-3 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors" type="button" id="apply-coupon-btn">Apply</button>
     </div>
+    <span id="coupon-result" class="text-xs text-red-500 mt-1 block"></span>
   </div>
 
-  <span class="coupon-btn">Have a coupon? <span class="text-primary">Click to enter your code</span></span>
+  <button type="button" @click="showCoupon = !showCoupon" class="text-sm text-gray-500 mt-2">Have a coupon? <span class="text-primary-600 hover:text-primary-700">Click to enter your code</span></button>
 </div>
 <?= modal_buttons2('BUY NOW'); ?>
 <?php echo form_close(); ?>
 <?= view('layouts/common/modal/modal_bottom', $data); ?>
 
-<script type="text/javascript">
-  $(document).ready(function() {
-    $(".coupon-btn").click(function(e) {
-      $(".coupon").toggle();
+<script>
+document.addEventListener('click', function(e) {
+  if (e.target.id === 'apply-coupon-btn') {
+    var coupon = document.querySelector('.coupon-code').value;
+    var id = "<?= $item->id ?>";
+    fetch('<?= user_url("buy-plan/apply_coupon"); ?>', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'token=' + encodeURIComponent(token) + '&coupon=' + encodeURIComponent(coupon) + '&id=' + id
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(response) {
+      if (response.status === 'success') {
+        document.getElementById('apply-coupon-btn').classList.add('hidden');
+      }
+      notify(response.message, response.status);
+      document.getElementById('coupon-result').textContent = response.message;
     });
-    $('#apply-coupon-btn').click(function() {
-      var coupon = $('.coupon-code').val(),
-        id = "<?= $item->id ?>";
-
-      $.ajax({
-        url: '<?= user_url('buy-plan/apply_coupon'); ?>',
-        type: 'POST',
-        data: {
-          token: token,
-          coupon: coupon,
-          id: id
-        },
-        success: function(response) {
-          response = JSON.parse(response);
-          if (response.status == 'success') {
-            $("#apply-coupon-btn").addClass('d-none');
-          }
-          notify(response.message, response.status);
-          $('#coupon-result').html(response.message);
-        }
-      });
-    });
-
-  });
+  }
+});
 </script>

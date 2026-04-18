@@ -20,7 +20,7 @@ $general_elements = [
   [
     'label'      => form_label('Status'),
     'element'    => form_dropdown('status', $status, @$payment_settings->status, ['class' => $class_element_select]),
-    'class_main' => "col-md-6 ",
+    'class_main' => "w-full md:w-1/2 px-2",
   ],
 
 ];
@@ -29,8 +29,8 @@ include 'common.php';
 ?>
 
 <div class="">
-  <div class="card-header">
-    <h3 class="card-title"><i class="fa-brands fa-square-reddit"></i> <?= lang("Nagad Setup for-") . $brand->brand_name; ?></h3>
+  <div class="px-4 py-3 border-b border-gray-100">
+    <h3 class="text-base font-semibold text-gray-800"><i class="fa-brands fa-square-reddit"></i> <?= lang("Nagad Setup for-") . $brand->brand_name; ?></h3>
   </div>
   <div class="">
     <div class="">
@@ -38,29 +38,29 @@ include 'common.php';
       <?php echo render_elements_form($general_elements); ?>
       <div id="personal<?= $brand->id ?>" class="type-class">
         <label>Nagad Personal number</label>
-        <input type="text" name="personal_number" class="form-control" value="<?= @get_value($payment_settings->params, 'personal_number') ?>" placeholder="Enter your Nagad number">
+        <input type="text" name="personal_number" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" value="<?= @get_value($payment_settings->params, 'personal_number') ?>" placeholder="Enter your Nagad number">
       </div>
       <div id="agent<?= $brand->id ?>" class="type-class">
         <label>Nagad Agent number</label>
-        <input type="text" name="agent_number" value="<?= @get_value($payment_settings->params, 'agent_number') ?>" class="form-control" placeholder="Enter your agent number">
+        <input type="text" name="agent_number" value="<?= @get_value($payment_settings->params, 'agent_number') ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="Enter your agent number">
       </div>
       <div id="merchant<?= $brand->id ?>" class="type-class" style="background:skyblue;padding: 5px;border-radius: 6px;">
         <label>Mode</label>
-        <select name="nagad_mode" class="form-control">
+        <select name="nagad_mode" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
           <option value="live" <?= @get_value($payment_settings->params, 'nagad_mode') == 'live' ? 'selected' : '' ?>>Live</option>
           <option value="sandbox" <?= @get_value($payment_settings->params, 'nagad_mode') == 'sandbox' ? 'selected' : '' ?>>Sandbox</option>
         </select>
         <label class="form-label">Callback URL (add it to nagad merchant panel)</label>
         <div class="input-group">
-          <input readonly type="text" class="form-control text-to-cliboard" value="<?= site_config('payment_url', 'https://local.pay.expensivepay.com') . '/callback/nagad'; ?>">
+          <input readonly type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-to-cliboard" value="<?= site_config('payment_url', 'https://local.pay.expensivepay.com') . '/callback/nagad'; ?>">
           <span class="input-group-text my-copy-btn cursor-pointer"><i class="fas fa-copy"></i></span>
         </div>
         <label>Merchant ID</label>
-        <input type="text" name="merchant_id" value="<?= @get_value($payment_settings->params, 'merchant_id') ?>" class="form-control" placeholder="Nagad Merchant ID">
+        <input type="text" name="merchant_id" value="<?= @get_value($payment_settings->params, 'merchant_id') ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="Nagad Merchant ID">
         <label>Merchant Private Key</label>
-        <input type="text" name="private_key" value="<?= @get_value($payment_settings->params, 'private_key') ?>" class="form-control" placeholder="Nagad Private Key">
+        <input type="text" name="private_key" value="<?= @get_value($payment_settings->params, 'private_key') ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="Nagad Private Key">
         <label>Nagad Gateway Server Public Key</label>
-        <input type="text" name="public_key" value="<?= @get_value($payment_settings->params, 'public_key') ?>" class="form-control" placeholder="Nagad Gateway Server Public Key">
+        <input type="text" name="public_key" value="<?= @get_value($payment_settings->params, 'public_key') ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="Nagad Gateway Server Public Key">
       </div>
       <?= modal_buttons2('Save Nagad Setting', ''); ?>
 

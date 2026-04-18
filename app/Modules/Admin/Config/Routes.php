@@ -13,6 +13,7 @@ use Admin\Controllers\PlanController;
 use Admin\Controllers\Settings;
 use Admin\Controllers\StaffController;
 use Admin\Controllers\Transactions;
+use Admin\Controllers\ApiAnalyticsController;
 use Admin\Controllers\UserController;
 
 $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
@@ -105,14 +106,14 @@ $routes->group('admin', ['filter' => 'admin_auth'], static function ($routes) {
     $routes->post('faqs/sortfaqs', [FaqsController::class, 'sortfaqs']);
     //payments
     $routes->get('payments', [PaymentsController::class, 'index']);
-    $routes->get('payments/update', [paymentsController::class, 'update']);
-    $routes->post('payments/change_sort/(:any)', [paymentsController::class, 'change_sort']);
-    $routes->get('payments/update/(:any)', [paymentsController::class, 'update']);
-    $routes->post('payments/store', [paymentsController::class, 'store']);
-    $routes->post('payments/change_status/(:any)', [paymentsController::class, 'changeStatus']);
-    $routes->post('payments/delete/(:any)', [paymentsController::class, 'delete']);
-    $routes->post('payments/bulk_action/(:any)', [paymentsController::class, 'bulk_action']);
-    $routes->post('payments/sortpayments', [paymentsController::class, 'sortpayments']);
+    $routes->get('payments/update', [PaymentsController::class, 'update']);
+    $routes->post('payments/change_sort/(:any)', [PaymentsController::class, 'change_sort']);
+    $routes->get('payments/update/(:any)', [PaymentsController::class, 'update']);
+    $routes->post('payments/store', [PaymentsController::class, 'store']);
+    $routes->post('payments/change_status/(:any)', [PaymentsController::class, 'changeStatus']);
+    $routes->post('payments/delete/(:any)', [PaymentsController::class, 'delete']);
+    $routes->post('payments/bulk_action/(:any)', [PaymentsController::class, 'bulk_action']);
+    $routes->post('payments/sortpayments', [PaymentsController::class, 'sortpayments']);
 
     //user management
     $routes->get('users/export/(:any)', [UserController::class, 'export']);
@@ -152,4 +153,6 @@ $routes->group('admin', ['filter' => 'admin_auth'], static function ($routes) {
     $routes->get('bank_transactions', [Transactions::class, 'bankTrx']);
     $routes->match(['get', 'post'], 'view-transaction/(:any)/(:any)', [Transactions::class, 'trxView']);
     $routes->match(['get', 'post'], 'transactions/add-sms', [Transactions::class, 'addSms']);
+
+    $routes->get('api-analytics', [ApiAnalyticsController::class, 'index']);
 });

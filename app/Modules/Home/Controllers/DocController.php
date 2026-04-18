@@ -15,12 +15,12 @@ class DocController extends BaseController
 
     public function index()
     {
-        $this->template->set_layout('docs');
+        $this->template->set_layout('general');
         return  $this->template->view('developers/index')->render();
     }
     public function docs()
     {
-        $this->template->set_layout('docs');
+        $this->template->set_layout('general');
         return  $this->template->view('developers/docs')->render();
     }
 }

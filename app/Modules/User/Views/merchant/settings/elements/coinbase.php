@@ -13,18 +13,18 @@ $general_elements = [
   [
     'label'      => form_label('Status'),
     'element'    => form_dropdown('status', $status, @$payment_settings->status, ['class' => $class_element_select]),
-    'class_main' => "col-md-6",
+    'class_main' => "w-full md:w-1/2 px-2",
   ],
 
   [
     'label'      => form_label('Client ID'),
     'element'    => form_input(['name' => 'client_id', 'value' =>  @get_value($payment_settings->params, 'client_id'), 'type' => 'text', 'class' => $class_element]),
-    'class_main' => "col-md-6 col-sm-12 col-xs-12",
+    'class_main' => "w-full md:w-1/2 px-2",
   ],
   [
     'label'      => form_label('Webhook Shared Secret'),
     'element'    => form_input(['name' => 'shared_secret', 'value' =>  @get_value($payment_settings->params, 'shared_secret'), 'type' => 'text', 'class' => $class_element]),
-    'class_main' => "col-md-6 col-sm-12 col-xs-12",
+    'class_main' => "w-full md:w-1/2 px-2",
   ],
 
 ];
@@ -34,8 +34,8 @@ include 'common.php';
 ?>
 
 <div class="">
-  <div class="card-header">
-    <h3 class="card-title"><i class="fa-brands fa-square-reddit"></i> <?= lang("Coinbase Setup for-" . $brand->brand_name) ?></h3>
+  <div class="px-4 py-3 border-b border-gray-100">
+    <h3 class="text-base font-semibold text-gray-800"><i class="fa-brands fa-square-reddit"></i> <?= lang("Coinbase Setup for-" . $brand->brand_name) ?></h3>
   </div>
   <div class="">
     <div class="">

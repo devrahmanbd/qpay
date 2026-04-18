@@ -1,274 +1,56 @@
-
-<div class="row">
-  <!-- User Sidebar -->
-  <div class="col-xl-4 col-lg-5 col-md-5 order-1 order-md-0">
-    <!-- User Card -->
-    <div class="card mb-4">
-      
-      <div class="card-body">
-        <div class="user-avatar-section">
-          <div class=" d-flex align-items-center flex-column">
-            <img class="img-fluid rounded my-4" src="<?=get_avatar('user',$item->id);?>" height="110" width="110" alt="User avatar">
-            <div class="user-info text-center">
-              <h4 class="mb-2"><?=$item->first_name?></h4>
-            </div>
-          </div>
-        </div>
-        
-        <h5 class="pb-2 border-bottom mb-4">Details</h5>
-        <div class="info-container">
-          <ul class="list-unstyled">
-            <li class="mb-3">
-              <span class="fw-medium me-2">Name:</span>
-              <span><?=$item->first_name.' '.$item->last_name;?></span>
-            </li>
-            <li class="mb-3">
-              <span class="fw-medium me-2">Email:</span>
-              <span><?=$item->email?></span>
-            </li>
-            <li class="mb-3">
-              <span class="fw-medium me-2">Status:</span>
-              <?=show_item_status('','',$item->status)?>
-            </li>
-          
-          </ul>
-        </div>
+<div class="flex flex-col lg:flex-row gap-6">
+  <div class="lg:w-1/3">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div class="flex flex-col items-center mb-6">
+        <img class="w-24 h-24 rounded-full object-cover mb-3" src="<?=get_avatar('user',$item->id);?>" alt="User avatar">
+        <h4 class="text-lg font-semibold text-gray-800"><?=$item->first_name.' '.$item->last_name?></h4>
       </div>
+      <h5 class="text-sm font-semibold text-gray-700 pb-2 border-b border-gray-200 mb-4">Details</h5>
+      <ul class="space-y-3 text-sm">
+        <li><span class="font-medium text-gray-600">Name:</span> <span class="text-gray-800"><?=$item->first_name.' '.$item->last_name;?></span></li>
+        <li><span class="font-medium text-gray-600">Email:</span> <span class="text-gray-800"><?=$item->email?></span></li>
+        <li><span class="font-medium text-gray-600">Status:</span> <?=show_item_status('','',$item->status)?></li>
+      </ul>
     </div>
   </div>
-  <!--/ User Sidebar -->
 
-  <!-- User Content -->
-  <div class="col-xl-8 col-lg-7 col-md-7 order-1">
-    <div class="card">
-      <div  class="card-header mb-4"> 
-          <?=form_open('',['class'=>"input-group"])?>
-          <input type="date" class="form-control" name="start_date" value="<?=post('start_date')??'';?>">
-          <span class="input-group-text">To</span>
-          <input type="date" class="form-control" name="end_date" value="<?=post('end_date')??'';?>">
-          <input type="submit" class="btn btn-success" value="Search">
-          <?=form_close()?>
+  <div class="lg:w-2/3">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+      <div class="px-5 py-4 border-b border-gray-100">
+        <?=form_open('',['class'=>"flex items-center gap-2"])?>
+          <input type="date" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" name="start_date" value="<?=post('start_date')??'';?>">
+          <span class="text-sm text-gray-500">To</span>
+          <input type="date" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" name="end_date" value="<?=post('end_date')??'';?>">
+          <input type="submit" class="px-4 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer" value="Search">
+        <?=form_close()?>
       </div>
-      <div class="card-body">
-        <ul class="timeline">
-          <?php 
-            foreach($items as $logs){
-          ?>
-          <li class="timeline-item timeline-item-transparent">
-            <span class="timeline-point-wrapper"><span class="timeline-point timeline-point-primary"></span></span>
-            <div class="timeline-event">
-              <div class="timeline-header border-bottom mb-3">
-                <h6 class="mb-0"><?=shorten_string($logs->activity)?></h6>
-                <span class="text-muted"><?=show_item_datetime($logs->created_at,'short')?></span>
+      <div class="p-5">
+        <div class="relative border-l-2 border-gray-200 ml-3 space-y-6">
+          <?php foreach($items as $logs){ ?>
+          <div class="relative pl-6">
+            <div class="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-primary-500 border-2 border-white"></div>
+            <div class="border border-gray-100 rounded-lg p-4">
+              <div class="flex items-center justify-between mb-2">
+                <h6 class="text-sm font-medium text-gray-800"><?=shorten_string($logs->activity)?></h6>
+                <span class="text-xs text-gray-400"><?=show_item_datetime($logs->created_at,'short')?></span>
               </div>
-              <div class="d-flex justify-content-between flex-wrap mb-2">
+              <div class="flex items-center justify-between text-sm text-gray-500">
                 <div>
-                  <span>User Activity: </span>
-                  <i class="bx bx-right-arrow-alt scaleX-n1-rtl mx-3"></i>
+                  <span>User Activity:</span>
+                  <span class="mx-2">&rarr;</span>
                   <span><?=$logs->activity;?></span>
                 </div>
-                <div>
-                  <span class="text-muted"><?= date("h:i A", strtotime($logs->created_at)) ?></span>
-                </div>
+                <span class="text-xs text-gray-400"><?= date("h:i A", strtotime($logs->created_at)) ?></span>
               </div>
               <?=getAnchor($logs->activity);?>
-              
             </div>
-          </li>
-
-          <?php 
-            }
-          ?>
-        
-          <li class="timeline-end-indicator">
-            <i class="bx bx-check-circle"></i>
-          </li>
-        </ul>
+          </div>
+          <?php } ?>
+          <div class="absolute -left-[9px] bottom-0 w-4 h-4 rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
+            <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <!--/ User Content -->
 </div>
-
-
-
-<div class="card-body">
-<button class="btn btn-primary" id="shepherd-example">
-    Start tour
-</button>
-</div>
-
-<?=link_asset('blithe/vendor/libs/shepherd/shepherd.css')?>
-<?=script_asset('blithe/vendor/libs/shepherd/shepherd.js')?>
-
-
-<script>
-
-"use strict";
-!function() {
-    var t = document.querySelector("#shepherd-example");
-    t && (t.onclick = function() {
-        var t, e, a = new Shepherd.Tour({
-            defaultStepOptions: {
-                scrollTo: !1,
-                cancelIcon: {
-                    enabled: !0
-                }
-            },
-            useModalOverlay: !0
-        });
-        t = "btn btn-sm btn-label-secondary md-btn-flat",
-        e = "btn btn-sm btn-primary btn-next",
-        (a = a).addStep({
-            title: "Navbar",
-            text: "This is your navbar",
-            attachTo: {
-                element: ".navbar",
-                on: "bottom"
-            },
-            buttons: [{
-                action: a.cancel,
-                classes: t,
-                text: "Skip"
-            }, {
-                text: "Next",
-                classes: e,
-                action: a.next
-            }]
-        }),
-        a.addStep({
-            title: "Card",
-            text: "This is a card",
-            attachTo: {
-                element: ".tour-card",
-                on: "top"
-            },
-            buttons: [{
-                text: "Skip",
-                classes: t,
-                action: a.cancel
-            }, {
-                text: "Back",
-                classes: t,
-                action: a.back
-            }, {
-                text: "Next",
-                classes: e,
-                action: a.next
-            }]
-        }),
-        a.addStep({
-            title: "Footer",
-            text: "This is the Footer",
-            attachTo: {
-                element: ".footer",
-                on: "top"
-            },
-            buttons: [{
-                text: "Skip",
-                classes: t,
-                action: a.cancel
-            }, {
-                text: "Back",
-                classes: t,
-                action: a.back
-            }, {
-                text: "Next",
-                classes: e,
-                action: a.next
-            }]
-        }),
-        a.addStep({
-            title: "Upgrade",
-            text: "Click here to upgrade plan",
-            attachTo: {
-                element: ".footer-link",
-                on: "top"
-            },
-            buttons: [{
-                text: "Back",
-                classes: t,
-                action: a.back
-            }, {
-                text: "Finish",
-                classes: e,
-                action: a.cancel
-            }]
-        }),
-        a.start()
-    }
-    );
-    t = document.querySelector("#shepherd-docs-example");
-    t && (t.onclick = function() {
-        var t, e, a = new Shepherd.Tour({
-            defaultStepOptions: {
-                scrollTo: !1,
-                cancelIcon: {
-                    enabled: !0
-                }
-            },
-            useModalOverlay: !0
-        });
-        t = "btn btn-sm btn-label-secondary md-btn-flat",
-        e = "btn btn-sm btn-primary btn-next",
-        (a = a).addStep({
-            title: "Navbar",
-            text: "This is your navbar",
-            attachTo: {
-                element: ".navbar",
-                on: "bottom"
-            },
-            buttons: [{
-                action: a.cancel,
-                classes: t,
-                text: "Skip"
-            }, {
-                text: "Next",
-                classes: e,
-                action: a.next
-            }]
-        }),
-        a.addStep({
-            title: "Footer",
-            text: "This is the Footer",
-            attachTo: {
-                element: ".footer",
-                on: "top"
-            },
-            buttons: [{
-                text: "Skip",
-                classes: t,
-                action: a.cancel
-            }, {
-                text: "Back",
-                classes: t,
-                action: a.back
-            }, {
-                text: "Next",
-                classes: e,
-                action: a.next
-            }]
-        }),
-        a.addStep({
-            title: "Social Link",
-            text: "Click here share on social media",
-            attachTo: {
-                element: ".footer-link",
-                on: "top"
-            },
-            buttons: [{
-                text: "Back",
-                classes: t,
-                action: a.back
-            }, {
-                text: "Finish",
-                classes: e,
-                action: a.cancel
-            }]
-        }),
-        a.start()
-    }
-    )
-}();
-
-</script>

@@ -17,7 +17,7 @@ $general_elements = [
   [
     'label'      => form_label('Status'),
     'element'    => form_dropdown('status', $status, @$payment_settings->status, ['class' => $class_element_select]),
-    'class_main' => "col-md-6 ",
+    'class_main' => "w-full md:w-1/2 px-2",
   ],
 
 ];
@@ -26,8 +26,8 @@ include 'common.php';
 ?>
 
 <div class="">
-  <div class="card-header">
-    <h3 class="card-title"><i class="fa-brands fa-square-reddit"></i> <?= lang("MCash Setup for-" . $brand->brand_name) ?></h3>
+  <div class="px-4 py-3 border-b border-gray-100">
+    <h3 class="text-base font-semibold text-gray-800"><i class="fa-brands fa-square-reddit"></i> <?= lang("MCash Setup for-" . $brand->brand_name) ?></h3>
   </div>
   <div class="">
     <div class="">
@@ -35,7 +35,7 @@ include 'common.php';
       <?php echo render_elements_form($general_elements); ?>
       <div id="personal<?= $brand->id ?>" class="type-class">
         <label>MCash Personal number</label>
-        <input type="text" name="personal_number" class="form-control" value="<?= @get_value($payment_settings->params, 'personal_number') ?>" placeholder="Enter your MCash number">
+        <input type="text" name="personal_number" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" value="<?= @get_value($payment_settings->params, 'personal_number') ?>" placeholder="Enter your MCash number">
       </div>
       
       <?= modal_buttons2('Save MCash Setting', ''); ?>

@@ -1,32 +1,17 @@
-<div class="wrapper">
-  <section class="login-content">
-    <div class="container">
-      <div class="row align-items-center justify-content-center height-self-center">
-        <div class="col-lg-8">
-          <div class="card auth-card">
-            <div class="card-body p-0">
-              <div class="d-flex align-items-center auth-content">
-                <div class="col-lg-7 align-self-center">
-                  <div class="p-3">
-                    <p>Please to continue with you account, click the button.</p>
-                    <?=form_open('','class="actionForm" data-redirect= "admin" ')?>
-                    <button type="submit" class="btn btn-success py-3 w-100 mb-4">Activate your Account</button>
-                    <?=form_close();?>
-
-                  </div>
-                </div>
-                <div class="col-lg-5 content-right">
-                  <img
-                    src="<?=base_url("public/assets/img/01.png")?>"
-                    class="img-fluid image-right"
-                    alt=""
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="w-full max-w-md mx-auto px-4">
+  <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+    <div class="px-6 py-5 border-b border-gray-100">
+      <h4 class="text-xl font-semibold text-gray-900">Activate Account</h4>
     </div>
-  </section>
+    <div class="px-6 py-6">
+      <p class="text-sm text-gray-600 mb-5">Please click the button below to continue with your account.</p>
+      <form action="" method="post" x-data="authForm()" @submit.prevent="submitForm($event)" data-redirect="admin">
+        <input type="hidden" name="token" value="<?= csrf_hash() ?>">
+        <button type="submit" class="w-full py-2.5 px-4 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors disabled:opacity-50" :disabled="loading">
+          <span x-show="!loading">Activate your Account</span>
+          <span x-show="loading" x-cloak>Activating...</span>
+        </button>
+      </form>
+    </div>
+  </div>
 </div>

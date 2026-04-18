@@ -1,0 +1,20 @@
+{
+  "name": "qpay-sdk",
+  "version": "1.0.0",
+  "description": "QPay Payment Gateway SDK for Node.js",
+  "main": "qpay.js",
+  "module": "qpay.mjs",
+  "types": "qpay.d.ts",
+  "exports": {
+    ".": {
+      "import": "./qpay.mjs",
+      "require": "./qpay.js",
+      "types": "./qpay.d.ts"
+    }
+  },
+  "keywords": ["qpay", "payment", "gateway", "bkash", "nagad", "rocket", "bangladesh"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
