@@ -52,7 +52,7 @@ class ApiAuth implements FilterInterface
                 ->setJSON([
                     'status' => 'error',
                     'code' => 'INVALID_API_KEY',
-                    'message' => 'Invalid API key format. Use keys generated from the API Dashboard (pk_live_*, sk_live_*, pk_test_*, sk_test_*).',
+                    'message' => 'Invalid API key format. Use keys generated from the API Dashboard (pk_live_*, qp_live_*, pk_test_*, qp_test_*).',
                 ]);
         }
 

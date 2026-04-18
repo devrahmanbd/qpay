@@ -29,7 +29,11 @@
               </td>
               <td class="px-4 py-3"><?= $item['price'] ?><?= get_option('currency_symbol') ?></td>
               <td class="px-4 py-3 text-gray-500"><?= show_item_datetime($item['expire']); ?></td>
-              <td class="px-4 py-3 countdown text-primary-600 font-medium"></td>
+              <td class="px-4 py-3">
+                <div class="countdown inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold transition-all">
+                  <span class="q-loader-sm mr-1"></span> Loading...
+                </div>
+              </td>
               <td class="px-4 py-3">
                 <a href="<?= admin_url('plans/edit_user_plan/' . $item['id']) ?>" class="ajaxModal text-primary-600 hover:text-primary-700 text-sm">
                   <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -47,15 +51,27 @@
 <script>
 function updateCountdown(targetTime, el) {
     var diff = targetTime - new Date();
-    if (diff <= 0) { el.textContent = "Expired"; return; }
-    var d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000),
-        m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
-    el.textContent = d + 'd ' + h + 'h ' + m + 'm ' + s + 's';
+    if (diff <= 0) {
+        el.textContent = "Expired";
+        el.className = "countdown inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-red-100 text-red-700 border border-red-200";
+        return;
+    }
+    var d = Math.floor(diff / 86400000), h = Math.floor((diff % 86400000) / 3600000);
+    el.textContent = d + 'd ' + h + 'h left';
+    
+    if (d < 3) {
+        el.className = "countdown inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200";
+    } else {
+        el.className = "countdown inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-green-100 text-green-700 border border-green-200";
+    }
 }
 function updateAllCountdowns() {
     document.querySelectorAll('.countdown').forEach(function(el) {
-        var dateCell = el.parentElement.querySelector('td:nth-child(6)');
-        if (dateCell) updateCountdown(new Date(dateCell.textContent), el);
+        var dateCell = el.parentElement.parentElement.querySelector('td:nth-child(6)');
+        if (dateCell) {
+            var dateStr = dateCell.textContent.trim();
+            updateCountdown(new Date(dateStr), el);
+        }
     });
 }
 setInterval(updateAllCountdowns, 1000);

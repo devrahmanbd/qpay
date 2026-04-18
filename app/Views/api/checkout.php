@@ -5,12 +5,28 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://cdn.tailwindcss.com"></script>
+    <?php
+        $branding = json_decode($brand->meta ?? '{}', true);
+        $primaryColor = $branding['primary_color'] ?? '#7c3aed'; // Default violet-600
+        $brandLogo = $brand->brand_logo ? base_url($brand->brand_logo) : null;
+    ?>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: { 50:'#f5f3ff',100:'#ede9fe',200:'#ddd6fe',300:'#c4b5fd',400:'#a78bfa',500:'#8b5cf6',600:'#7c3aed',700:'#6d28d9',800:'#5b21b6',900:'#4c1d95' }
+                        primary: { 
+                            50: '<?= $primaryColor ?>10',
+                            100: '<?= $primaryColor ?>20',
+                            200: '<?= $primaryColor ?>40',
+                            300: '<?= $primaryColor ?>60',
+                            400: '<?= $primaryColor ?>80',
+                            500: '<?= $primaryColor ?>',
+                            600: '<?= $primaryColor ?>dd',
+                            700: '<?= $primaryColor ?>bb',
+                            800: '<?= $primaryColor ?>99',
+                            900: '<?= $primaryColor ?>77'
+                        }
                     }
                 }
             }

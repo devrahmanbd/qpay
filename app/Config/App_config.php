@@ -6,12 +6,12 @@ class App_config extends \CodeIgniter\Config\BaseConfig
 {
     public $template = [
         'form' => [
-            'class_element'            => 'form-control',
-            'class_element_select'     => 'form-control automatic-selection',
-            'class_element_checkbox'   => 'form-check-input',
-            'class_element_editor'     => 'form-control plugin_editor',
-            'class_element_datepicker' => 'form-control datepicker',
-            'class_element_text_emoji' => 'form-control text-emoji',
+            'class_element'            => 'w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm transition-all',
+            'class_element_select'     => 'w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm bg-white transition-all automatic-selection',
+            'class_element_checkbox'   => 'w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500',
+            'class_element_editor'     => 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm plugin_editor',
+            'class_element_datepicker' => 'w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm datepicker',
+            'class_element_text_emoji' => 'w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm text-emoji',
         ],
         'datetime' => [
             'long' => 'Y-m-d H:i:s',

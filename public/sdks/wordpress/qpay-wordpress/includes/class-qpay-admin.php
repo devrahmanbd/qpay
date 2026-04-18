@@ -120,10 +120,11 @@ class QPay_Admin
 
                     <div class="qpay-card">
                         <h2><?php esc_html_e('API Keys', 'qpay'); ?></h2>
+                        <p class="description"><?php esc_html_e('You can find your keys in the Brand Settings -> API Keys section of your QPay dashboard.', 'qpay'); ?></p>
                         <table class="form-table">
                             <tr>
                                 <th><label for="qpay_test_secret_key"><?php esc_html_e('Test Secret Key', 'qpay'); ?></label></th>
-                                <td><input type="password" id="qpay_test_secret_key" name="qpay_test_secret_key" value="<?php echo esc_attr(get_option('qpay_test_secret_key')); ?>" class="regular-text" placeholder="sk_test_..."></td>
+                                <td><input type="password" id="qpay_test_secret_key" name="qpay_test_secret_key" value="<?php echo esc_attr(get_option('qpay_test_secret_key')); ?>" class="regular-text" placeholder="qp_test_..."></td>
                             </tr>
                             <tr>
                                 <th><label for="qpay_test_publishable_key"><?php esc_html_e('Test Publishable Key', 'qpay'); ?></label></th>
@@ -131,7 +132,7 @@ class QPay_Admin
                             </tr>
                             <tr>
                                 <th><label for="qpay_live_secret_key"><?php esc_html_e('Live Secret Key', 'qpay'); ?></label></th>
-                                <td><input type="password" id="qpay_live_secret_key" name="qpay_live_secret_key" value="<?php echo esc_attr(get_option('qpay_live_secret_key')); ?>" class="regular-text" placeholder="sk_live_..."></td>
+                                <td><input type="password" id="qpay_live_secret_key" name="qpay_live_secret_key" value="<?php echo esc_attr(get_option('qpay_live_secret_key')); ?>" class="regular-text" placeholder="qp_live_..."></td>
                             </tr>
                             <tr>
                                 <th><label for="qpay_live_publishable_key"><?php esc_html_e('Live Publishable Key', 'qpay'); ?></label></th>

@@ -60,16 +60,17 @@ class PlanController extends AdminController
                 "expire"            => $expire,
             );
             $this->db->table('user_plans')->update($data_plan, ["id" => post('id')]);
-            if ($this->db->affectedRows() > 0) {
-                ms(["status"  => "success", "message" => 'Update successfully']);
-            } else {
-                ms(["status"  => "error", "message" => 'Failed to update successfully']);
-            }
+            ms(["status"  => "success", "message" => 'Update successfully']);
         }
 
         $item = null;
         if ($id !== null) {
-            $item = $this->main_model->get("*", 'user_plans', ['id' => $id], '', '', true);;
+            $item = $this->db->table('user_plans as up')
+                ->select('up.*, u.email')
+                ->join('users u', 'u.id = up.uid', 'left')
+                ->where('up.id', $id)
+                ->get()
+                ->getRowArray();
         }
         $data = array(
             "controller_name"   => $this->controller_name,

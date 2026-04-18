@@ -3,12 +3,18 @@ const http = require('http');
 const { URL } = require('url');
 
 class QPay {
-  static VERSION = '1.0.0';
+  static VERSION = '1.1.0';
   static API_VERSION = 'v1';
 
   constructor(apiKey, options = {}) {
-    if (!apiKey) throw new Error('API key is required.');
+    if (typeof apiKey === 'object' && apiKey !== null) {
+      options = apiKey;
+      apiKey = options.apiKey || options.secretKey;
+    }
+
+    if (!apiKey) throw new Error('API key is required (qp_...).');
     this.apiKey = apiKey;
+    
     if (!options.baseUrl) throw new Error("'baseUrl' option is required (e.g. 'https://pay.yourdomain.com').");
     this.baseUrl = options.baseUrl.replace(/\/+$/, '');
     this.timeout = options.timeout || 30000;
@@ -102,6 +108,7 @@ class QPay {
         method: method,
         headers: {
           'API-KEY': this.apiKey,
+          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'User-Agent': `QPay-Node-SDK/${QPay.VERSION}`,

@@ -61,6 +61,8 @@ class ApiDashboardController extends UserController
         $environment = post('environment') === 'live' ? 'live' : 'test';
         $name = post('name') ?: 'Default';
 
+        q_debug(['brand_id' => $brandId, 'environment' => $environment, 'name' => $name, 'uid' => $uid], 'API_KEY_GEN_START');
+
         $brand = $this->db->table('brands')
             ->where('id', $brandId)
             ->where('uid', $uid)
@@ -247,6 +249,42 @@ class ApiDashboardController extends UserController
         ];
 
         $this->template->view('merchant/api/logs', $data)->render();
+    }
+
+    public function clearLogs()
+    {
+        _is_ajax();
+        $uid = session('uid');
+        $brandId = (int) post('brand_id');
+
+        $this->apiLogger->clearLogs($brandId, $uid);
+        ms(['status' => 'success', 'message' => 'API logs cleared successfully']);
+    }
+
+    public function clearWebhookEvents()
+    {
+        _is_ajax();
+        $uid = session('uid');
+        $webhookId = (int) post('webhook_id');
+
+        if ($this->webhookService->clearEvents($webhookId, $uid)) {
+            ms(['status' => 'success', 'message' => 'Webhook events cleared successfully']);
+        } else {
+            ms(['status' => 'error', 'message' => 'Failed to clear webhook events']);
+        }
+    }
+
+    public function pingWebhook()
+    {
+        _is_ajax();
+        $uid = session('uid');
+        $webhookId = (int) post('webhook_id');
+
+        if ($this->webhookService->ping($webhookId, $uid)) {
+            ms(['status' => 'success', 'message' => 'Test ping sent successfully!']);
+        } else {
+            ms(['status' => 'error', 'message' => 'Failed to send test ping. Please check your URL.']);
+        }
     }
 
     public function sdks()

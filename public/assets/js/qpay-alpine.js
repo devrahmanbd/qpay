@@ -73,7 +73,10 @@ function removeToast(toast) {
 function qPost(url, data) {
   return fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { 
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
     body: data
   }).then(function(r) { return r.text(); });
 }
@@ -81,7 +84,10 @@ function qPost(url, data) {
 function qPostJson(url, data) {
   return fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { 
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
     body: data
   }).then(function(r) { return r.json(); });
 }
@@ -511,7 +517,9 @@ function openModal(url) {
   }
   document.body.style.overflow = 'hidden';
 
-  fetch(url).then(function(r) { return r.text(); }).then(function(html) {
+  fetch(url, {
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  }).then(function(r) { return r.text(); }).then(function(html) {
     var body = document.getElementById('modal-body');
     body.innerHTML = html;
     body.querySelectorAll('script').forEach(function(s) {

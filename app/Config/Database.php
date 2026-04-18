@@ -82,12 +82,5 @@ class Database extends Config
             $this->defaultGroup = 'tests';
         }
 
-        // Force socket connection for Replit environment (override any .env settings)
-        $this->default['hostname'] = 'localhost';
-        $this->default['database'] = 'clou_qpay1';
-        $this->default['username'] = 'clou_qpay1';
-        $this->default['password'] = 'harry71Nahid920*';
-        $this->default['DBDriver'] = 'MySQLi';
-        $this->default['port']     = 3306;
     }
 }

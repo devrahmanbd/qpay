@@ -80,6 +80,8 @@ $routes->group('user', ['filter' => 'user_auth'], static function ($routes) {
     $routes->post('api/delete-webhook', [ApiDashboardController::class, 'deleteWebhook']);
     $routes->get('api/webhook-events', [ApiDashboardController::class, 'webhookEvents']);
     $routes->get('api/logs', [ApiDashboardController::class, 'logs']);
+    $routes->post('api/clear-logs', [ApiDashboardController::class, 'clearLogs']);
+    $routes->post('api/clear-webhook-events', [ApiDashboardController::class, 'clearWebhookEvents']);
     $routes->get('api/sdks', [ApiDashboardController::class, 'sdks']);
 
     //user affiliates

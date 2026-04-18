@@ -67,6 +67,34 @@ if (!function_exists('encrypt_decode')) {
         return $encrypter->decrypt($binaryData);
     }
 }
+
+/**
+ * Global Debug Helper
+ * Logs data to writable/debug.log if global_debug is enabled or ?debug=enable is present for admins
+ */
+if (!function_exists('q_debug')) {
+    function q_debug($data, string $label = 'DEBUG')
+    {
+        $isEnabled = get_option('global_debug', 0) == 1;
+        $isAdmin = session('sid') !== null;
+        $forceDebug = $isAdmin && service('request')->getGet('debug') === 'enable';
+
+        if (!$isEnabled && !$forceDebug) {
+            return;
+        }
+
+        $logPath = WRITEPATH . 'debug.log';
+        $timestamp = date('Y-m-d H:i:s');
+        $content = is_scalar($data) ? $data : json_encode($data, JSON_PRETTY_PRINT);
+        $logEntry = "[{$timestamp}] [{$label}] {$content}" . PHP_EOL;
+
+        file_put_contents($logPath, $logEntry, FILE_APPEND);
+
+        if ($forceDebug) {
+            echo "<pre style='background:#f4f4f4; border:1px solid #ccc; padding:10px; margin:10px;'>[{$label}] " . esc($content) . "</pre>";
+        }
+    }
+}
 if (!function_exists("currency_format")) {
     function currency_format($number, $number_decimal = "", $decimalpoint = "", $separator = "")
     {

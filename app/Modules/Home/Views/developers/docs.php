@@ -69,12 +69,12 @@ $siteName = site_config("site_name", "QPay");
 
       <article id="section-auth">
         <h1 class="text-2xl font-bold text-gray-900 mb-4">Authentication</h1>
-        <p class="text-gray-600 mb-4">All API requests require an <code class="bg-gray-100 px-1 rounded text-sm">API-KEY</code> header containing your secret or publishable key.</p>
+        <p class="text-gray-600 mb-4">All API requests require authentication. You can provide your API key in either the <code class="bg-gray-100 px-1 rounded text-sm">API-KEY</code> header or as a <code class="bg-gray-100 px-1 rounded text-sm">Bearer</code> token in the <code class="bg-gray-100 px-1 rounded text-sm">Authorization</code> header.</p>
 
         <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto mb-6">
           <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
 <pre class="text-sm leading-relaxed"><code class="language-bash">curl -X POST <?= PAYMENT_URL ?>api/v1/payment/create \
-  -H "API-KEY: sk_test_your_secret_key_here" \
+  -H "API-KEY: qp_test_your_secret_key_here" \
   -H "Content-Type: application/json" \
   -d '{"amount": 500}'</code></pre>
         </div>
@@ -86,20 +86,20 @@ $siteName = site_config("site_name", "QPay");
               <thead><tr><th>Key Prefix</th><th>Type</th><th>Environment</th><th>Usage</th></tr></thead>
               <tbody>
                 <tr><td><code>pk_live_</code></td><td>Publishable</td><td>Live</td><td>Client-side only (payment methods, checkout)</td></tr>
-                <tr><td><code>sk_live_</code></td><td>Secret</td><td>Live</td><td>Server-side only (create, verify, refund)</td></tr>
+                <tr><td><code>qp_live_</code></td><td>Secret</td><td>Live</td><td>Server-side only (create, verify, refund)</td></tr>
                 <tr><td><code>pk_test_</code></td><td>Publishable</td><td>Test</td><td>Client-side testing</td></tr>
-                <tr><td><code>sk_test_</code></td><td>Secret</td><td>Test</td><td>Server-side testing (mock payments)</td></tr>
+                <tr><td><code>qp_test_</code></td><td>Secret</td><td>Test</td><td>Server-side testing (mock payments)</td></tr>
               </tbody>
             </table>
           </div>
           <div class="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <p class="text-sm text-amber-800"><strong>Important:</strong> Secret keys (<code>sk_</code>) must never be exposed in client-side code, public repositories, or browser JavaScript. Only use publishable keys (<code>pk_</code>) on the client side.</p>
+            <p class="text-sm text-amber-800"><strong>Important:</strong> Secret keys (<code>qp_</code>) must never be exposed in client-side code, public repositories, or browser JavaScript. Only use publishable keys (<code>pk_</code>) on the client side.</p>
           </div>
         </div>
 
         <div id="section-test-mode">
           <h2 class="text-xl font-semibold text-gray-900 mb-3">Test Mode</h2>
-          <p class="text-gray-600 mb-4">Use test keys (<code>sk_test_</code> / <code>pk_test_</code>) for safe testing. Test mode simulates payment outcomes based on amount:</p>
+          <p class="text-gray-600 mb-4">Use test keys (<code>qp_test_</code> / <code>pk_test_</code>) for safe testing. Test mode simulates payment outcomes based on amount:</p>
           <div class="overflow-x-auto">
             <table class="docs-table">
               <thead><tr><th>Amount</th><th>Result</th><th>Description</th></tr></thead>
@@ -119,7 +119,7 @@ $siteName = site_config("site_name", "QPay");
           <h2 class="text-xl font-bold text-gray-900">/payment/create</h2>
         </div>
         <p class="text-gray-600 mb-4">Create a new payment. Returns a payment object with a <code>checkout_url</code> to redirect the customer.</p>
-        <p class="text-sm text-gray-500 mb-4"><strong>Required key:</strong> Secret key (<code>sk_</code>)</p>
+        <p class="text-sm text-gray-500 mb-4"><strong>Required key:</strong> Secret key (<code>qp_</code>)</p>
 
         <h3 class="text-lg font-semibold text-gray-900 mb-2">Request Parameters</h3>
         <div class="overflow-x-auto mb-6">
@@ -144,7 +144,7 @@ $siteName = site_config("site_name", "QPay");
           <table class="docs-table">
             <thead><tr><th>Header</th><th>Required</th><th>Description</th></tr></thead>
             <tbody>
-              <tr><td><code>API-KEY</code></td><td>Yes</td><td>Your secret API key</td></tr>
+              <tr><td><code>API-KEY</code> / <code>Authorization</code></td><td>Yes</td><td>Your secret API key (qp_...) or Bearer token</td></tr>
               <tr><td><code>Content-Type</code></td><td>Yes</td><td><code>application/json</code></td></tr>
               <tr><td><code>Idempotency-Key</code></td><td>No</td><td>Unique key to prevent duplicate payments</td></tr>
             </tbody>
@@ -185,7 +185,7 @@ $siteName = site_config("site_name", "QPay");
           <h2 class="text-xl font-bold text-gray-900">/payment/verify/{payment_id}</h2>
         </div>
         <p class="text-gray-600 mb-4">Verify a payment and trigger completion if the provider confirms it. Returns the payment object with a <code>verified</code> field.</p>
-        <p class="text-sm text-gray-500 mb-4"><strong>Required key:</strong> Secret key (<code>sk_</code>) only</p>
+        <p class="text-sm text-gray-500 mb-4"><strong>Required key:</strong> Secret key (<code>qp_</code>) only</p>
 
         <h3 class="text-lg font-semibold text-gray-900 mb-2">Example Request</h3>
         <?= view('Home\Views\developers\integration2'); ?>
@@ -200,7 +200,7 @@ $siteName = site_config("site_name", "QPay");
         <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto mb-4">
           <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
 <pre class="text-sm leading-relaxed"><code class="language-bash">curl <?= PAYMENT_URL ?>api/v1/payment/status/pay_PAYMENT_ID \
-  -H "API-KEY: sk_test_your_key"</code></pre>
+  -H "Authorization: Bearer qp_test_your_key"</code></pre>
         </div>
         <h3 class="text-lg font-semibold text-gray-900 mb-2">Payment Statuses</h3>
         <div class="overflow-x-auto mb-4">
@@ -237,7 +237,7 @@ $siteName = site_config("site_name", "QPay");
         <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto mb-4">
           <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
 <pre class="text-sm leading-relaxed"><code class="language-bash">curl "<?= PAYMENT_URL ?>api/v1/payments?limit=10&status=completed" \
-  -H "API-KEY: sk_test_your_key"</code></pre>
+  -H "API-KEY: qp_test_your_key"</code></pre>
         </div>
         <h3 class="text-lg font-semibold text-gray-900 mb-2">Response</h3>
         <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto mb-4">
@@ -259,7 +259,7 @@ $siteName = site_config("site_name", "QPay");
           <h2 class="text-xl font-bold text-gray-900">/refunds</h2>
         </div>
         <p class="text-gray-600 mb-4">Create a refund for a completed payment. Only completed payments can be refunded.</p>
-        <p class="text-sm text-gray-500 mb-4"><strong>Required key:</strong> Secret key (<code>sk_</code>) only</p>
+        <p class="text-sm text-gray-500 mb-4"><strong>Required key:</strong> Secret key (<code>qp_</code>) only</p>
         <div class="overflow-x-auto mb-4">
           <table class="docs-table">
             <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
@@ -272,7 +272,7 @@ $siteName = site_config("site_name", "QPay");
         <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto mb-4">
           <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
 <pre class="text-sm leading-relaxed"><code class="language-bash">curl -X POST <?= PAYMENT_URL ?>api/v1/refunds \
-  -H "API-KEY: sk_live_your_key" \
+  -H "API-KEY: qp_live_your_key" \
   -H "Content-Type: application/json" \
   -d '{"payment_id": "pay_abc123", "reason": "Customer requested"}'</code></pre>
         </div>
@@ -302,7 +302,7 @@ $siteName = site_config("site_name", "QPay");
         <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto mb-4">
           <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
 <pre class="text-sm leading-relaxed"><code class="language-bash">curl <?= PAYMENT_URL ?>api/v1/balance \
-  -H "API-KEY: sk_test_your_key"</code></pre>
+  -H "API-KEY: qp_test_your_key"</code></pre>
         </div>
         <h3 class="text-lg font-semibold text-gray-900 mb-2">Response</h3>
         <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto mb-4">
@@ -361,7 +361,7 @@ $siteName = site_config("site_name", "QPay");
         </div>
 
         <h3 class="text-lg font-semibold text-gray-900 mb-2">Test Mode Behavior</h3>
-        <p class="text-gray-600 mb-4">When using test keys (<code>sk_test_</code>), the checkout page displays a yellow "Test Mode" banner. Clicking "Pay" immediately completes the payment without contacting any real provider. The customer is redirected to your <code>success_url</code> with query parameters:</p>
+        <p class="text-gray-600 mb-4">When using test keys (<code>qp_test_</code>), the checkout page displays a yellow "Test Mode" banner. Clicking "Pay" immediately completes the payment without contacting any real provider. The customer is redirected to your <code>success_url</code> with query parameters:</p>
         <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto mb-4">
 <pre class="text-sm leading-relaxed"><code class="language-bash">https://yoursite.com/success?payment_id=pay_abc123&status=completed</code></pre>
         </div>
@@ -585,7 +585,7 @@ curl -o QPay.php <?= PAYMENT_URL ?>sdks/php/QPay.php</code></pre>
 <pre class="text-sm leading-relaxed"><code class="language-php">&lt;?php
 require_once 'QPay.php';
 
-$qpay = new QPay('sk_test_your_secret_key', '<?= rtrim(base_url(), '/') ?>');
+$qpay = new QPay('qp_test_your_secret_key', '<?= rtrim(base_url(), '/') ?>');
 
 // Create a payment
 try {
@@ -655,7 +655,7 @@ const { QPay } = require('./qpay');
 // ES Modules
 // import QPay from './qpay.mjs';
 
-const qpay = new QPay('sk_test_your_secret_key', {
+const qpay = new QPay('qp_test_your_secret_key', {
   baseUrl: '<?= rtrim(base_url(), '/') ?>'
 });
 
@@ -725,7 +725,7 @@ const valid = QPay.verifyWebhookSignature(payload, signatureHeader, secret);</co
           <li>Supports all <?= $siteName ?> payment methods</li>
         </ul>
 
-        <a href="<?= base_url('sdks/woocommerce/qpay-woocommerce.zip') ?>" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
+        <a href="<?= base_url('sdks/woocommerce/qpay-woocommercev1.1.zip') ?>" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
           Download WooCommerce Plugin (ZIP)
         </a>
@@ -870,7 +870,7 @@ const valid = QPay.verifyWebhookSignature(payload, signatureHeader, secret);</co
             <div class="flex-shrink-0 w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold">2</div>
             <div class="flex-1">
               <h3 class="font-semibold text-gray-900 mb-1">Generate API Keys</h3>
-              <p class="text-gray-600 text-sm mb-2">Go to <a href="<?= base_url('user/api/keys') ?>" class="text-primary-600 hover:underline">Dashboard &rarr; API Keys</a> and generate a test key pair. You will receive a <code class="bg-gray-100 px-1 rounded text-sm">sk_test_</code> secret key and a <code class="bg-gray-100 px-1 rounded text-sm">pk_test_</code> publishable key.</p>
+              <p class="text-gray-600 text-sm mb-2">Go to <a href="<?= base_url('user/api/keys') ?>" class="text-primary-600 hover:underline">Dashboard &rarr; API Keys</a> and generate a test key pair. You will receive a <code class="bg-gray-100 px-1 rounded text-sm">qp_test_</code> secret key and a <code class="bg-gray-100 px-1 rounded text-sm">pk_test_</code> publishable key.</p>
               <div class="bg-amber-50 border border-amber-200 rounded-lg p-3">
                 <p class="text-xs text-amber-800"><strong>Save your secret key immediately.</strong> It is only shown once. You can always generate a new one if lost.</p>
               </div>
@@ -885,7 +885,7 @@ const valid = QPay.verifyWebhookSignature(payload, signatureHeader, secret);</co
               <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto">
                 <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
 <pre class="text-sm leading-relaxed"><code class="language-bash">curl -X POST <?= PAYMENT_URL ?>api/v1/payment/create \
-  -H "API-KEY: sk_test_YOUR_KEY_HERE" \
+  -H "API-KEY: qp_test_YOUR_KEY_HERE" \
   -H "Content-Type: application/json" \
   -d '{
     "amount": 500,
@@ -921,7 +921,7 @@ const valid = QPay.verifyWebhookSignature(payload, signatureHeader, secret);</co
               <div class="code-container bg-gray-900 rounded-lg p-4 overflow-x-auto">
                 <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
 <pre class="text-sm leading-relaxed"><code class="language-bash">curl <?= PAYMENT_URL ?>api/v1/payment/verify/pay_YOUR_PAYMENT_ID \
-  -H "API-KEY: sk_test_YOUR_KEY_HERE"</code></pre>
+  -H "API-KEY: qp_test_YOUR_KEY_HERE"</code></pre>
               </div>
             </div>
           </div>
@@ -992,7 +992,7 @@ const valid = QPay.verifyWebhookSignature(payload, signatureHeader, secret);</co
             <div>
               <strong class="text-gray-900">Invalid payment ID:</strong>
               <div class="code-container bg-gray-900 rounded-lg p-3 overflow-x-auto mt-1">
-<pre class="text-sm leading-relaxed"><code class="language-bash">curl <?= PAYMENT_URL ?>api/v1/payment/verify/pay_nonexistent -H "API-KEY: sk_test_YOUR_KEY"
+<pre class="text-sm leading-relaxed"><code class="language-bash">curl <?= PAYMENT_URL ?>api/v1/payment/verify/pay_nonexistent -H "API-KEY: qp_test_YOUR_KEY"
 # Expected: 404 PAYMENT_NOT_FOUND</code></pre>
               </div>
             </div>
@@ -1000,7 +1000,7 @@ const valid = QPay.verifyWebhookSignature(payload, signatureHeader, secret);</co
               <strong class="text-gray-900">Missing required fields:</strong>
               <div class="code-container bg-gray-900 rounded-lg p-3 overflow-x-auto mt-1">
 <pre class="text-sm leading-relaxed"><code class="language-bash">curl -X POST <?= PAYMENT_URL ?>api/v1/payment/create \
-  -H "API-KEY: sk_test_YOUR_KEY" \
+  -H "API-KEY: qp_test_YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{}'
 # Expected: 422 VALIDATION_ERROR (amount is required)</code></pre>
@@ -1011,7 +1011,7 @@ const valid = QPay.verifyWebhookSignature(payload, signatureHeader, secret);</co
               <div class="code-container bg-gray-900 rounded-lg p-3 overflow-x-auto mt-1">
 <pre class="text-sm leading-relaxed"><code class="language-bash"># Send the same Idempotency-Key twice
 curl -X POST <?= PAYMENT_URL ?>api/v1/payment/create \
-  -H "API-KEY: sk_test_YOUR_KEY" \
+  -H "API-KEY: qp_test_YOUR_KEY" \
   -H "Idempotency-Key: order_12345" \
   -H "Content-Type: application/json" \
   -d '{"amount": 500}'
@@ -1032,7 +1032,7 @@ curl -X POST <?= PAYMENT_URL ?>api/v1/payment/create \
 <pre class="text-sm leading-relaxed"><code class="language-php">&lt;?php
 require_once 'QPay.php';
 
-$qpay = new QPay('sk_test_YOUR_KEY', '<?= rtrim(base_url(), '/') ?>');
+$qpay = new QPay('qp_test_YOUR_KEY', '<?= rtrim(base_url(), '/') ?>');
 
 // Test 1: Create a successful payment
 $payment = $qpay->createPayment(['amount' => 500, 'customer_email' => 'test@test.com']);
@@ -1081,7 +1081,7 @@ echo "\nAll tests passed!\n";
             <button class="copy-btn px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded hover:bg-gray-600" onclick="copyCode(this)">Copy</button>
 <pre class="text-sm leading-relaxed"><code class="language-javascript">const { QPay } = require('./qpay');
 
-const qpay = new QPay('sk_test_YOUR_KEY', {
+const qpay = new QPay('qp_test_YOUR_KEY', {
   baseUrl: '<?= rtrim(base_url(), '/') ?>'
 });
 
@@ -1141,7 +1141,7 @@ runTests().catch(console.error);</code></pre>
           <table class="docs-table">
             <thead><tr><th>Feature</th><th>Test Mode</th><th>Live Mode</th></tr></thead>
             <tbody>
-              <tr><td>API keys</td><td><code>sk_test_*</code> / <code>pk_test_*</code></td><td><code>sk_live_*</code> / <code>pk_live_*</code></td></tr>
+              <tr><td>API keys</td><td><code>qp_test_*</code> / <code>pk_test_*</code></td><td><code>qp_live_*</code> / <code>pk_live_*</code></td></tr>
               <tr><td>Real charges</td><td>No</td><td>Yes</td></tr>
               <tr><td>Payment providers</td><td>Simulated</td><td>Real (bKash, Nagad, etc.)</td></tr>
               <tr><td>Checkout page</td><td>Instant completion on "Pay"</td><td>Redirect to provider</td></tr>
@@ -1180,14 +1180,14 @@ runTests().catch(console.error);</code></pre>
             <input type="checkbox" class="mt-1 text-primary-600 rounded">
             <div>
               <p class="font-semibold text-gray-900">Generate live API keys</p>
-              <p class="text-sm text-gray-500">Create <code>sk_live_</code> and <code>pk_live_</code> keys in your merchant dashboard. Store the secret key securely.</p>
+              <p class="text-sm text-gray-500">Create <code>qp_live_</code> and <code>pk_live_</code> keys in your merchant dashboard. Store the secret key securely.</p>
             </div>
           </label>
           <label class="flex items-start gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 transition-colors">
             <input type="checkbox" class="mt-1 text-primary-600 rounded">
             <div>
               <p class="font-semibold text-gray-900">Replace test keys with live keys</p>
-              <p class="text-sm text-gray-500">Update your server-side code to use <code>sk_live_</code> keys. Use environment variables, never hardcode keys.</p>
+              <p class="text-sm text-gray-500">Update your server-side code to use <code>qp_live_</code> keys. Use environment variables, never hardcode keys.</p>
             </div>
           </label>
           <label class="flex items-start gap-3 p-4 border border-gray-200 rounded-xl hover:border-primary-300 transition-colors">
@@ -1260,8 +1260,8 @@ runTests().catch(console.error);</code></pre>
           <table class="docs-table">
             <thead><tr><th>Key Type</th><th>Limit</th><th>Window</th></tr></thead>
             <tbody>
-              <tr><td>Live keys (<code>sk_live_</code>, <code>pk_live_</code>)</td><td>100 requests</td><td>per minute</td></tr>
-              <tr><td>Test keys (<code>sk_test_</code>, <code>pk_test_</code>)</td><td>200 requests</td><td>per minute</td></tr>
+              <tr><td>Live keys (<code>qp_live_</code>, <code>pk_live_</code>)</td><td>100 requests</td><td>per minute</td></tr>
+              <tr><td>Test keys (<code>qp_test_</code>, <code>pk_test_</code>)</td><td>200 requests</td><td>per minute</td></tr>
             </tbody>
           </table>
         </div>
@@ -1289,7 +1289,7 @@ runTests().catch(console.error);</code></pre>
 
           <div class="border-l-4 border-primary-500 pl-4">
             <h3 class="font-semibold text-gray-900 mb-1">Store API keys securely</h3>
-            <p class="text-gray-600 text-sm">Keep secret keys (<code>sk_</code>) in environment variables or a secrets manager. Never commit them to version control, embed them in client-side code, or log them in application logs.</p>
+            <p class="text-gray-600 text-sm">Keep secret keys (<code>qp_</code>) in environment variables or a secrets manager. Never commit them to version control, embed them in client-side code, or log them in application logs.</p>
           </div>
 
           <div class="border-l-4 border-primary-500 pl-4">
@@ -1304,7 +1304,7 @@ runTests().catch(console.error);</code></pre>
 
           <div class="border-l-4 border-primary-500 pl-4">
             <h3 class="font-semibold text-gray-900 mb-1">Use appropriate key types</h3>
-            <p class="text-gray-600 text-sm">Use <code>pk_</code> publishable keys for client-side operations (fetching payment methods, checking status). Use <code>sk_</code> secret keys for server-side operations (creating payments, refunds, verification).</p>
+            <p class="text-gray-600 text-sm">Use <code>pk_</code> publishable keys for client-side operations (fetching payment methods, checking status). Use <code>qp_</code> secret keys for server-side operations (creating payments, refunds, verification).</p>
           </div>
 
           <div class="border-l-4 border-primary-500 pl-4">
@@ -1350,7 +1350,7 @@ runTests().catch(console.error);</code></pre>
           <div>
             <h3 class="font-semibold text-gray-900 mb-2">v1.1.0</h3>
             <ul class="list-disc list-inside text-gray-600 text-sm space-y-1 ml-4">
-              <li>Stripe-style API key system (pk_/sk_ with live/test modes)</li>
+              <li>Stripe-style API key system (pk_/qp_ with live/test modes)</li>
               <li>Webhook signing with HMAC-SHA256</li>
               <li>Rate limiting and API logging</li>
               <li>Test mode with simulated payment adapter</li>

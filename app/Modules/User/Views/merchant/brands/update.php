@@ -54,6 +54,16 @@ $general_elements = [
         'class_main' => "w-full md:w-1/2 px-2",
     ],
     [
+        'label'      => form_label('Primary Color'),
+        'element'    => form_input(['name' => 'primary_color', 'value' => @get_value($item['meta'], 'primary_color', false, '#7c3aed'), 'type' => 'color', 'class' => 'h-10 w-full rounded-lg border-gray-300']),
+        'class_main' => "w-full md:w-1/2 px-2",
+    ],
+    [
+        'label'      => form_label('Brand Identifier (Public)'),
+        'element'    => form_input(['name' => 'brand_key', 'value' => @$item['brand_key'], 'type' => 'text', 'class' => $class_element . ' bg-gray-50', 'readonly' => 'true']),
+        'class_main' => "w-full md:w-1/2 px-2",
+    ],
+    [
         'label'      => form_label('Charge type'),
         'element'    => form_dropdown('fees_type', $fees_type, @$item['fees_type'], ['class' => $class_element_select]),
         'class_main' => "w-full md:w-1/2 px-2",

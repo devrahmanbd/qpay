@@ -70,7 +70,7 @@ function render_element_form(array $element, $param = null): string
             $xhtml = sprintf(
                 '<div class="%s">
                     <div class="mb-4">
-                        %s
+                        <div class="block text-sm font-medium text-gray-700 mb-1">%s</div>
                         %s
                     </div>
                 </div> ',

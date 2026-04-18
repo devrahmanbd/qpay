@@ -145,14 +145,14 @@ class ApiKeyService
 
     protected function buildPrefix(string $keyType, string $environment): string
     {
-        $typePrefix = $keyType === 'publishable' ? 'pk' : 'sk';
+        $typePrefix = $keyType === 'publishable' ? 'pk' : 'qp';
         $envPrefix = $environment === 'live' ? 'live' : 'test';
         return $typePrefix . '_' . $envPrefix . '_';
     }
 
     protected function extractPrefix(string $apiKey): ?string
     {
-        if (preg_match('/^((?:pk|sk)_(?:live|test)_)/', $apiKey, $matches)) {
+        if (preg_match('/^((?:pk|qp)_(?:live|test)_)/', $apiKey, $matches)) {
             return $matches[1];
         }
         return null;
@@ -160,7 +160,7 @@ class ApiKeyService
 
     public function isSecretKey(string $apiKey): bool
     {
-        return strpos($apiKey, 'sk_') === 0;
+        return strpos($apiKey, 'qp_') === 0;
     }
 
     public function isPublishableKey(string $apiKey): bool

@@ -4,11 +4,18 @@ Tags: payment, gateway, bkash, nagad, rocket, mobile banking, bangladesh, donati
 Requires at least: 5.8
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Accept payments via QPay (bKash, Nagad, Rocket, bank transfer and more) on any WordPress site.
+
+== QPay for WordPress vs QPay WooCommerce ==
+
+Which plugin is right for you?
+
+*   **QPay for WordPress (This Plugin)**: Use this if you need a full payment suite. It includes shortcodes for custom payment buttons, donation forms, and general payment forms. It **also includes** the WooCommerce gateway. It is best for sites that need flexible payment options across multiple pages.
+*   **QPay WooCommerce Gateway**: Use the standalone [WooCommerce plugin](https://qpay.com/sdks/woocommerce) if you **only** need a payment method for your store checkout and want to keep your site lightweight. It focuses strictly on the WooCommerce experience without extra shortcodes.
 
 == Description ==
 
@@ -63,6 +70,12 @@ Sign up at your QPay dashboard and generate API keys from the API Keys section.
 Yes. Enable Test Mode in QPay Settings to simulate payments.
 
 == Changelog ==
+
+= 1.1.0 =
+* Modernized security with qp_ and pk_ key prefixes
+* Standardized headers (Authorization: Bearer)
+* Improved WooCommerce block support
+* Added setup guidance for new security architecture
 
 = 1.0.0 =
 * Initial release

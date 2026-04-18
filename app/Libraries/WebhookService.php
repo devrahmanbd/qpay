@@ -252,11 +252,21 @@ class WebhookService
             return false;
         }
 
-        if (($parsed['scheme'] ?? '') !== 'https') {
-            return false;
+        $scheme = $parsed['scheme'] ?? '';
+        $isDev = defined('ENVIRONMENT') && ENVIRONMENT === 'development';
+        $globalDebug = get_option('global_debug', 0) == 1;
+
+        if ($scheme !== 'https') {
+            if (!$isDev && !$globalDebug && $scheme !== 'http') {
+                return false;
+            }
         }
 
         $host = $parsed['host'];
+        if (($isDev || $globalDebug) && ($host === 'localhost' || $host === '127.0.0.1')) {
+            return true;
+        }
+
         $ips = gethostbynamel($host);
         if (!$ips) {
             return false;
@@ -266,7 +276,11 @@ class WebhookService
             if (
                 filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false
             ) {
-                return false;
+                // In dev, we might allow private IPs if explicitly configured, 
+                // but usually localhost/127.0.0.1 is handled above.
+                if (!$isDev) {
+                    return false;
+                }
             }
         }
 
@@ -299,5 +313,62 @@ class WebhookService
             ->where('id', $webhookId)
             ->where('merchant_id', $merchantId)
             ->update($update);
+    }
+
+    public function clearEvents(int $webhookId, int $merchantId): bool
+    {
+        $webhook = $this->db->table('webhooks')
+            ->where('id', $webhookId)
+            ->where('merchant_id', $merchantId)
+            ->get()
+            ->getRow();
+
+        if (!$webhook) {
+            return false;
+        }
+
+        return $this->db->table('webhook_events')
+            ->where('webhook_id', $webhookId)
+            ->delete();
+    }
+
+    public function ping(int $webhookId, int $merchantId): bool
+    {
+        $webhook = $this->db->table('webhooks')
+            ->where('id', $webhookId)
+            ->where('merchant_id', $merchantId)
+            ->get()
+            ->getRow();
+
+        if (!$webhook) {
+            return false;
+        }
+
+        $eventType = 'ping';
+        $payload = [
+            'id' => 'ping_' . bin2hex(random_bytes(8)),
+            'message' => 'Hello from ' . site_config('site_name', 'QPay') . '!',
+            'timestamp' => time(),
+        ];
+
+        $wrappedPayload = json_encode([
+            'event' => $eventType,
+            'data' => $payload,
+            'created' => time(),
+        ]);
+
+        $eventData = [
+            'webhook_id' => $webhook->id,
+            'event_type' => $eventType,
+            'payload' => $wrappedPayload,
+            'status' => 'pending',
+            'attempts' => 0,
+            'created_at' => date('Y-m-d H:i:s'),
+        ];
+
+        $this->db->table('webhook_events')->insert($eventData);
+        $eventId = $this->db->insertID();
+
+        return $this->deliver($eventId, $webhook);
     }
 }

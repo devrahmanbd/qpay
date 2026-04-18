@@ -36,6 +36,12 @@
 
   <script type="text/javascript">
       var token = '<?= csrf_hash() ?>',PATH = '<?=base_url()?>',user='user';
+      function toRelativeUrl(url) {
+        try { 
+          if (url.startsWith('http')) return new URL(url).pathname + new URL(url).search;
+          return url;
+        } catch(e) { return url; }
+      }
   </script>
 </head>
 

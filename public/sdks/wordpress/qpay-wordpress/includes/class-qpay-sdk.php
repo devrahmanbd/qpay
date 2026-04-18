@@ -86,9 +86,16 @@ class QPay_SDK
             'timeout' => $this->timeout,
             'headers' => [
                 'API-KEY' => $this->apiKey,
+                'Authorization' => 'Bearer ' . $this->apiKey, // Support both for maximum compatibility
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
-                'User-Agent' => 'QPay-WordPress/' . QPAY_VERSION,
+                'X-QPay-Client-User-Agent' => wp_json_encode([
+                    'lang' => 'php',
+                    'lang_version' => PHP_VERSION,
+                    'publisher' => 'qpay',
+                    'sdk_version' => QPAY_VERSION,
+                    'plugin_version' => QPAY_VERSION,
+                ]),
             ],
         ];
 

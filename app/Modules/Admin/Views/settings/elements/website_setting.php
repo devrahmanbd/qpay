@@ -56,6 +56,17 @@ $form_attributes = array('class' => 'form actionForm', 'data-redirect' => curren
       <?php endforeach; ?>
     </div>
 
+    <div>
+      <h5 class="text-sm font-semibold text-primary-600 mb-2"><i class="fa fa-bug mr-1"></i> Global Debug Mode</h5>
+      <label class="relative inline-flex items-center cursor-pointer mb-1">
+        <input type="hidden" name="global_debug" value="0">
+        <input type="checkbox" name="global_debug" class="sr-only peer" <?= (get_option("global_debug", 0) == 1) ? "checked" : "" ?> value="1">
+        <div class="w-9 h-5 bg-gray-200 peer-focus:ring-2 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-600"></div>
+        <span class="ml-2 text-sm text-gray-600">Active</span>
+      </label>
+      <p class="text-xs text-gray-500"><strong>Note:</strong> When active, administrators can append <code>?debug=enable</code> to any URL to see detailed error logs and performance metrics.</p>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1"><?= lan("google_Auth_Client_Id") ?></label>

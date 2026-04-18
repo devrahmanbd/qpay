@@ -23,8 +23,10 @@ class PaymentController extends ResourceController
         $merchant = $request->merchant;
         $isTest = $request->isTestMode ?? false;
 
+        q_debug("Starting payment creation for Merchant: {$merchant->id}, Brand: {$brand->id}, Test: " . ($isTest ? 'Yes' : 'No'), 'PAYMENT_CREATE');
+
         if (($request->keyType ?? 'secret') === 'publishable') {
-            return $this->respondError('FORBIDDEN', 'Publishable keys cannot create payments. Use a secret key (sk_*).', 403);
+            return $this->respondError('FORBIDDEN', 'Publishable keys cannot create payments. Use a secret key (qp_*).', 403);
         }
 
         $rules = [
@@ -147,6 +149,8 @@ class PaymentController extends ResourceController
 
         $payment = $this->db->table('api_payments')->where('ids', $paymentIds)->get()->getRow();
 
+        q_debug($providerResult, 'PROVIDER_RESPONSE');
+
         return $this->respond($this->formatPayment($payment, [
             'fees' => round($fees, 3),
             'net_amount' => round($amount - $fees, 3),
@@ -163,7 +167,7 @@ class PaymentController extends ResourceController
         $isTest = $request->isTestMode ?? false;
 
         if (($request->keyType ?? 'secret') === 'publishable') {
-            return $this->respondError('FORBIDDEN', 'Publishable keys cannot verify payments. Use a secret key (sk_*).', 403);
+            return $this->respondError('FORBIDDEN', 'Publishable keys cannot verify payments. Use a secret key (qp_*).', 403);
         }
 
         if (empty($paymentId)) {
@@ -296,7 +300,7 @@ class PaymentController extends ResourceController
         $isTest = $request->isTestMode ?? false;
 
         if (($request->keyType ?? 'secret') === 'publishable') {
-            return $this->respondError('FORBIDDEN', 'Publishable keys cannot create refunds. Use a secret key (sk_*).', 403);
+            return $this->respondError('FORBIDDEN', 'Publishable keys cannot create refunds. Use a secret key (qp_*).', 403);
         }
 
         $paymentId = $request->getVar('payment_id');
@@ -338,6 +342,8 @@ class PaymentController extends ResourceController
             'status' => 'succeeded',
             'test_mode' => $isTest,
         ]);
+
+        q_debug($refundId, 'REFUND_CREATED');
 
         return $this->respond([
             'id' => $refundId,
@@ -540,7 +546,8 @@ class PaymentController extends ResourceController
             'status' => $status,
             'customer_email' => $payment->customer_email ?? '',
             'transaction_id' => $payment->transaction_id ?? '',
-            'brand_name' => $brand->name ?? 'QPay',
+            'brand' => $brand,
+            'brand_name' => $brand->brand_name ?? 'QPay',
             'cancel_url' => $payment->cancel_url ?? '',
             'success_url' => $successUrl ?? '',
             'methods' => $methodList,

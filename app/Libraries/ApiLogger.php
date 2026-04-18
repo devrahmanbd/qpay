@@ -124,6 +124,14 @@ class ApiLogger
         ];
     }
 
+    public function clearLogs(int $brandId, int $merchantId): bool
+    {
+        return $this->db->table('api_logs')
+            ->where('brand_id', $brandId)
+            ->where('merchant_id', $merchantId)
+            ->delete();
+    }
+
     protected function periodToDate(string $period): string
     {
         $map = [

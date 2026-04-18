@@ -9,7 +9,7 @@ QPay is a payment gateway and orchestrator for South Asian markets (Bangladesh).
 ## Features
 
 - **Unified Checkout**: Accept bKash, Nagad, Rocket, bank transfers, and cards through one API
-- **Stripe-style API Keys**: Publishable (`pk_live_`, `pk_test_`) and secret (`sk_live_`, `sk_test_`) key pairs
+- **Stripe-style API Keys**: Publishable (`pk_live_`, `pk_test_`) and secret (`qp_live_`, `qp_test_`) key pairs
 - **Test/Sandbox Mode**: Full sandbox environment with simulated payments using test keys
 - **Webhook System**: HMAC-SHA256 signed webhooks with retry logic
 - **Merchant Dashboard**: API key management, webhook configuration, transaction logs, analytics
@@ -162,7 +162,7 @@ All API endpoints require an `API-KEY` header with a valid secret key.
 
 ```bash
 curl -X POST https://qpay.qubickle.com/api/v1/payment/create \
-  -H "API-KEY: sk_live_your_secret_key" \
+  -H "API-KEY: qp_live_your_secret_key" \
   -H "Content-Type: application/json" \
   -d '{
     "amount": 500,
@@ -177,7 +177,7 @@ curl -X POST https://qpay.qubickle.com/api/v1/payment/create \
 
 ### Test Mode
 
-Use test keys (`sk_test_*`) for sandbox testing:
+Use test keys (`qp_test_*`) for sandbox testing:
 - Amount `2.00` returns **declined**
 - Amount `3.00` returns **insufficient funds**
 - All other amounts return **processing** (success)
@@ -236,7 +236,7 @@ Location: `public/sdks/php/QPay.php`
 
 ```php
 require_once 'QPay.php';
-$qpay = new QPay('sk_live_your_key', 'https://qpay.qubickle.com');
+$qpay = new QPay('qp_live_your_key', 'https://qpay.qubickle.com');
 $payment = $qpay->createPayment([
     'amount' => 500,
     'currency' => 'BDT',
@@ -251,7 +251,7 @@ Location: `public/sdks/nodejs/qpay.js`
 
 ```javascript
 const QPay = require('./qpay');
-const qpay = new QPay({ secretKey: 'sk_live_your_key', baseUrl: 'https://qpay.qubickle.com' });
+const qpay = new QPay({ apiKey: 'qp_live_your_key', baseUrl: 'https://qpay.qubickle.com' });
 const payment = await qpay.createPayment({
     amount: 500,
     currency: 'BDT',

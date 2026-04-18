@@ -27,7 +27,7 @@
                 <span class="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded">Refunds</span>
             </div>
             <div class="space-y-3">
-                <a href="<?= base_url('sdks/wordpress/qpay-wordpress.zip') ?>" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
+                <a href="<?= base_url('sdks/wordpress/qpay-wordpressv1.1.zip') ?>" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     Download Plugin (ZIP)
                 </a>
@@ -71,6 +71,35 @@
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-start gap-4 mb-4">
+                <div class="w-12 h-12 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">WooCommerce Gateway</h3>
+                    <p class="text-sm text-gray-500">Standalone Gateway Plugin</p>
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">A dedicated, lightweight WooCommerce payment gateway. Optimized for performance and focused strictly on the WooCommerce checkout experience.</p>
+            <div class="space-y-3">
+                <a href="<?= base_url('sdks/woocommerce/qpay-woocommercev1.1.zip') ?>" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Download Gateway (ZIP)
+                </a>
+                <details class="mt-3">
+                    <summary class="text-sm font-medium text-primary-600 cursor-pointer hover:text-primary-700">Setup Instructions</summary>
+                    <ol class="mt-2 text-sm text-gray-600 space-y-1.5 list-decimal list-inside">
+                        <li>Download the Gateway ZIP</li>
+                        <li>Install via <strong>Plugins &rarr; Add New &rarr; Upload</strong></li>
+                        <li>Go to <strong>WooCommerce &rarr; Settings &rarr; Payments &rarr; QPay</strong></li>
+                        <li>Enter your API URL and Secret Keys (qp_...)</li>
+                        <li>Webhook: <code class="bg-gray-100 px-1 rounded">your-site.com/wp-json/qpay/v1/webhook</code></li>
+                    </ol>
+                </details>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-start gap-4 mb-4">
                 <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
                 </div>
@@ -91,7 +120,7 @@
 <pre class="text-sm leading-relaxed text-gray-100"><code>&lt;?php
 require_once 'QPay.php';
 
-$qpay = new QPay('sk_test_your_key', '<?= $api_base_url ?>');
+$qpay = new QPay('qp_test_your_secret_key', '<?= $api_base_url ?>');
 
 $payment = $qpay->createPayment([
     'amount' => 500,
@@ -133,7 +162,7 @@ $refund = $qpay->createRefund('pay_abc123');
                     <div class="mt-2 bg-gray-900 rounded-lg p-4 overflow-x-auto">
 <pre class="text-sm leading-relaxed text-gray-100"><code>const { QPay } = require('./qpay');
 
-const qpay = new QPay('sk_test_your_key', {
+const qpay = new QPay('qp_test_your_secret_key', {
   baseUrl: '<?= $api_base_url ?>'
 });
 

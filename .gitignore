@@ -12,3 +12,5 @@ writable/uploads/*
 !writable/uploads/.gitkeep
 /home/runner/mysql_data/
 *.log
+.DS_Store
+.history/
