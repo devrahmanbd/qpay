@@ -164,8 +164,7 @@ class ApiDashboardController extends UserController
         $events = post('events') ?: ['*'];
 
         if (!filter_var($url, FILTER_VALIDATE_URL)) {
-            ms(['status' => 'error', 'message' => 'Please enter a valid URL']);
-            return;
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Please enter a valid URL']);
         }
 
         $brand = $this->db->table('brands')
@@ -175,22 +174,22 @@ class ApiDashboardController extends UserController
             ->getRow();
 
         if (!$brand) {
-            ms(['status' => 'error', 'message' => 'Brand not found']);
-            return;
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Brand not found']);
         }
 
         try {
             $result = $this->webhookService->registerWebhook($brandId, $uid, $url, is_array($events) ? $events : [$events]);
 
-            ms([
+            return $this->response->setJSON([
                 'status' => 'success',
                 'message' => 'Webhook registered. Copy your signing secret — it will not be shown again.',
                 'data' => ['secret' => $result['secret']],
             ]);
         } catch (\InvalidArgumentException $e) {
-            ms(['status' => 'error', 'message' => $e->getMessage()]);
-        } catch (\Exception $e) {
-            ms(['status' => 'error', 'message' => 'An unexpected error occurred while saving the webhook.']);
+            return $this->response->setJSON(['status' => 'error', 'message' => $e->getMessage()]);
+        } catch (\Throwable $e) {
+            log_message('error', 'WEBHOOK_ADD_ERROR: ' . $e->getMessage());
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Unexpected error: ' . $e->getMessage()]);
         }
     }
 

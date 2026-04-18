@@ -322,7 +322,7 @@ if (!function_exists('post')) {
         if ($name !== null) {
             if ($char) {
                 $rawInput = $request->getRawInput();
-                $result = xss_clean($rawInput['message']) ?? null;
+                $result = xss_clean($rawInput['message'] ?? '') ?? null;
             } else {
                 $post = $request->getPost($name);
 
@@ -330,6 +330,8 @@ if (!function_exists('post')) {
                     $result = trim($post);
                     $result = addslashes($result);
                     $result = strip_tags($result);
+                } elseif ($post === null) {
+                    $result = null;
                 } else {
                     $result = $post;
                 }
