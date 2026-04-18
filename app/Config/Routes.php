@@ -23,4 +23,5 @@ $routes->group('/', static function ($routes) {
 	$routes->get('api', [ApiController::class, 'index']);
 	$routes->match(['get', 'post'], 'api/device-connect', [ApiController::class, 'deviceConnect']);
 	$routes->match(['get', 'post'], 'api/add-data', [ApiController::class, 'addMessage']);
+	$routes->post('api/payment/create', [ApiController::class, 'createPayment']);
 });
