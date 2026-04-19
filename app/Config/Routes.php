@@ -29,7 +29,7 @@ $routes->group('/', static function ($routes) {
 $routes->get('api/v1/payment/checkout/(:any)', [PaymentController::class, 'checkout/$1']);
 $routes->post('api/v1/payment/checkout/(:any)/process', [PaymentController::class, 'processCheckout/$1']);
 
-$routes->group('api/v1', ['filter' => 'api_auth'], static function ($routes) {
+$routes->group('api/v1', static function ($routes) {
         $routes->post('payment/create', [PaymentController::class, 'create']);
         $routes->match(['get', 'post'], 'payment/verify/(:any)', [PaymentController::class, 'verify/$1']);
         $routes->match(['get', 'post'], 'payment/verify', [PaymentController::class, 'verify']);
