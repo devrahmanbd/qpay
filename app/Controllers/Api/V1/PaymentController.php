@@ -596,8 +596,44 @@ class PaymentController extends ResourceController
             ->get()
             ->getRow();
 
+        $merchantSettings = $this->db->table('user_payment_settings')
+            ->where('brand_id', $payment->brand_id)
+            ->where('status', 1)
+            ->get()
+            ->getResult();
+
+        $configuredGateways = [];
+        foreach ($merchantSettings as $setting) {
+            $params = json_decode($setting->params ?? '{}', true);
+            $activeSubPayments = $params['active_payments'] ?? [];
+            
+            // Check if at least one sub-payment type (personal, agent, etc.) is active
+            $hasActiveSub = false;
+            foreach ($activeSubPayments as $type => $isActive) {
+                if ((int)$isActive === 1) {
+                    $hasActiveSub = true;
+                    break;
+                }
+            }
+
+            // Check if there is at least one number/ID provided
+            $hasDetails = false;
+            $fieldsToCheck = ['personal_number', 'agent_number', 'payment_number', 'merchant_id', 'merchant_code'];
+            foreach ($fieldsToCheck as $field) {
+                if (!empty($params[$field])) {
+                    $hasDetails = true;
+                    break;
+                }
+            }
+
+            if ($hasActiveSub && $hasDetails) {
+                $configuredGateways[] = $setting->g_type;
+            }
+        }
+
         $methods = $this->db->table('payments')
             ->where('status', 1)
+            ->whereIn('type', $configuredGateways ?: ['none']) // Ensure we don't crash if empty
             ->get()
             ->getResult();
 
