@@ -27,7 +27,7 @@ class WebhookService
             'url' => $url,
             'secret' => $secret,
             'events' => json_encode($events),
-            'is_active' => 1,
+            'status' => 1,
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
         ];
@@ -47,7 +47,7 @@ class WebhookService
         $webhooks = $this->db->table('webhooks')
             ->where('brand_id', $brandId)
             ->where('merchant_id', $merchantId)
-            ->where('is_active', 1)
+            ->where('status', 1)
             ->get()
             ->getResult();
 
@@ -314,6 +314,21 @@ class WebhookService
             ->where('id', $webhookId)
             ->where('merchant_id', $merchantId)
             ->update($update);
+    }
+
+    public function rotateSecret(int $webhookId, int $merchantId): string
+    {
+        $newSecret = 'whsec_' . bin2hex(random_bytes(24));
+        
+        $this->db->table('webhooks')
+            ->where('id', $webhookId)
+            ->where('merchant_id', $merchantId)
+            ->update([
+                'secret' => $newSecret,
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+            
+        return $newSecret;
     }
 
     public function clearEvents(int $webhookId, int $merchantId): bool

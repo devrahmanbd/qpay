@@ -60,7 +60,7 @@ class ApiLogger
             'total_requests' => $total,
             'error_count' => $errors,
             'error_rate' => $total > 0 ? round($errors / $total * 100, 2) : 0,
-            'avg_response_ms' => round($avgResponse->avg_ms ?? 0),
+            'avg_response_ms' => $avgResponse ? round($avgResponse->avg_ms ?? 0) : 0,
             'period' => $period,
         ];
     }

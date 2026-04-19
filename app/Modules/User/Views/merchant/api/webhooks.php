@@ -76,6 +76,27 @@ document.addEventListener('alpine:init', () => {
                 alert('Failed to delete webhook');
             }
         },
+        async rotateWebhook(id) {
+            if (!confirm('Regenerate the signing secret for this endpoint? The old secret will stop working immediately.')) return;
+            const formData = new FormData();
+            formData.append('webhook_id', id);
+            formData.append('token', token);
+            try {
+                const res = await fetch(toRelativeUrl('<?= user_url('api/rotate-webhook') ?>'), { 
+                    method: 'POST', 
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': token },
+                    body: formData 
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    this.webhookSecret = data.data.secret;
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                alert('Failed to rotate secret');
+            }
+        },
         async viewEvents(id) {
             try {
                 const res = await fetch(toRelativeUrl('<?= user_url('api/webhook-events') ?>') + '?webhook_id=' + id, {
@@ -170,8 +191,8 @@ document.addEventListener('alpine:init', () => {
                     <div class="flex items-start justify-between">
                         <div class="flex-1">
                             <div class="flex items-center gap-2">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <?= $webhook->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' ?>">
-                                    <?= $webhook->is_active ? 'Active' : 'Disabled' ?>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <?= $webhook->status ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' ?>">
+                                    <?= $webhook->status ? 'Active' : 'Disabled' ?>
                                 </span>
                                 <code class="text-sm text-gray-700"><?= esc($webhook->url) ?></code>
                             </div>
@@ -186,6 +207,7 @@ document.addEventListener('alpine:init', () => {
                         </div>
                         <div class="flex gap-2 ml-4">
                             <button @click="pingWebhook(<?= $webhook->id ?>)" class="text-xs px-3 py-1.5 border border-primary-300 rounded-lg hover:bg-primary-50 text-primary-600 font-medium">Send Ping</button>
+                            <button @click="rotateWebhook(<?= $webhook->id ?>)" class="text-xs px-3 py-1.5 border border-yellow-300 rounded-lg hover:bg-yellow-50 text-yellow-600 font-medium">Rotate Secret</button>
                             <button @click="viewEvents(<?= $webhook->id ?>)" class="text-xs px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600">Events</button>
                             <button @click="deleteWebhookAction(<?= $webhook->id ?>)" class="text-xs px-3 py-1.5 border border-red-300 rounded-lg hover:bg-red-50 text-red-600">Delete</button>
                         </div>

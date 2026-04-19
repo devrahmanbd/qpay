@@ -78,6 +78,7 @@ $routes->group('user', ['filter' => 'user_auth'], static function ($routes) {
     $routes->get('api/webhooks', [ApiDashboardController::class, 'webhooks']);
     $routes->post('api/add-webhook', [ApiDashboardController::class, 'addWebhook']);
     $routes->post('api/delete-webhook', [ApiDashboardController::class, 'deleteWebhook']);
+    $routes->post('api/rotate-webhook', [ApiDashboardController::class, 'rotateWebhook']);
     $routes->get('api/webhook-events', [ApiDashboardController::class, 'webhookEvents']);
     $routes->post('api/ping-webhook', [ApiDashboardController::class, 'pingWebhook']);
     $routes->get('api/logs', [ApiDashboardController::class, 'logs']);

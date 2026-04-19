@@ -2,7 +2,7 @@
 /**
  * Plugin Name: QPay for WordPress
  * Description: Accept payments via QPay (bKash, Nagad, Rocket, bank transfer and more) on any WordPress site. Includes payment buttons, forms, donations, and optional WooCommerce checkout integration.
- * Version: 1.1.0
+ * Version: 1.2.0
  * Author: QPay
  * Text Domain: qpay
  * Requires at least: 5.8
@@ -12,7 +12,7 @@
 
 defined('ABSPATH') || exit;
 
-define('QPAY_VERSION', '1.1.0');
+define('QPAY_VERSION', '1.2.0');
 define('QPAY_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('QPAY_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('QPAY_PLUGIN_BASE', plugin_basename(__FILE__));
@@ -104,6 +104,11 @@ final class QPay_Plugin
     public function init(): void
     {
         load_plugin_textdomain('qpay', false, dirname(QPAY_PLUGIN_BASE) . '/languages');
+
+        // Ensure tables exist on every load for resilience
+        if (get_option('qpay_db_version') !== QPAY_VERSION) {
+            QPay_DB::create_tables();
+        }
     }
 
     public function load_woocommerce(): void
@@ -113,6 +118,12 @@ final class QPay_Plugin
             add_filter('woocommerce_payment_gateways', function ($gateways) {
                 $gateways[] = 'QPay_WC_Gateway';
                 return $gateways;
+            });
+
+            // Add support for WooCommerce Checkout Blocks
+            add_action('woocommerce_blocks_payment_method_type_registration', function ($payment_method_registry) {
+                require_once QPAY_PLUGIN_DIR . 'includes/woocommerce/class-qpay-blocks-support.php';
+                $payment_method_registry->register(new QPay_Blocks_Support());
             });
         }
     }

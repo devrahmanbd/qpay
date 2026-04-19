@@ -9,11 +9,11 @@ class QPay_WC_Gateway extends WC_Payment_Gateway
     public function __construct()
     {
         $this->id = 'qpay';
-        $this->icon = '';
+        $this->icon = QPAY_PLUGIN_URL . 'assets/images/qpay-logo.png';
         $this->has_fields = false;
         $this->method_title = 'QPay';
         $this->method_description = 'Accept payments via QPay (bKash, Nagad, Rocket, bank transfer and more).';
-        $this->supports = ['products', 'refunds'];
+        $this->supports = ['products', 'refunds', 'tokenization'];
 
         $this->init_form_fields();
         $this->init_settings();

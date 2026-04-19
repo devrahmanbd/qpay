@@ -193,6 +193,24 @@ class ApiDashboardController extends UserController
         }
     }
 
+    public function rotateWebhook()
+    {
+        _is_ajax();
+        $uid = session('uid');
+        $webhookId = (int) post('webhook_id');
+
+        try {
+            $newSecret = $this->webhookService->rotateSecret($webhookId, $uid);
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'Signing secret rotated. Copy the new secret — it will not be shown again.',
+                'data' => ['secret' => $newSecret]
+            ]);
+        } catch (\Throwable $e) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Failed to rotate secret: ' . $e->getMessage()]);
+        }
+    }
+
     public function deleteWebhook()
     {
         _is_ajax();

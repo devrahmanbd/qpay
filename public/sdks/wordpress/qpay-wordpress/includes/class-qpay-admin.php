@@ -89,8 +89,18 @@ class QPay_Admin
             echo '<div class="notice notice-success"><p>' . esc_html__('Settings saved.', 'qpay') . '</p></div>';
         }
 
-        $webhook_url = rest_url('qpay/v1/webhook');
         $woo_active = class_exists('WooCommerce');
+        if ($woo_active && get_option('qpay_enable_woocommerce', 'yes') === 'yes') {
+            $wc_settings = get_option('woocommerce_qpay_settings', []);
+            if (empty($wc_settings['enabled']) || 'yes' !== $wc_settings['enabled']) {
+                echo '<div class="notice notice-warning is-dismissible"><p><strong>' . esc_html__('Action Required:', 'qpay') . '</strong> ' . sprintf(
+                    __('QPay is enabled but the payment gateway is currently disabled in WooCommerce. Please <a href="%s">enable it here</a> to show it at checkout.', 'qpay'),
+                    admin_url('admin.php?page=wc-settings&tab=checkout&section=qpay')
+                ) . '</p></div>';
+            }
+        }
+
+        $webhook_url = rest_url('qpay/v1/webhook');
         ?>
         <div class="wrap qpay-admin">
             <h1><?php esc_html_e('QPay Settings', 'qpay'); ?></h1>

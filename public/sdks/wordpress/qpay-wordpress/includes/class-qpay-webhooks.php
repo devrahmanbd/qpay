@@ -7,10 +7,23 @@ class QPay_Webhooks
     public static function register_routes(): void
     {
         register_rest_route('qpay/v1', '/webhook', [
-            'methods' => 'POST',
-            'callback' => [__CLASS__, 'handle_webhook'],
+            'methods' => ['GET', 'POST'],
+            'callback' => [__CLASS__, 'webhook_callback'],
             'permission_callback' => '__return_true',
         ]);
+    }
+
+    public static function webhook_callback(WP_REST_Request $request): WP_REST_Response
+    {
+        if ($request->get_method() === 'GET') {
+            return new WP_REST_Response([
+                'status' => 'active',
+                'message' => 'QPay Webhook endpoint is active and ready for POST requests.',
+                'timestamp' => current_time('mysql'),
+            ], 200);
+        }
+
+        return self::handle_webhook($request);
     }
 
     public static function handle_webhook(WP_REST_Request $request): WP_REST_Response
