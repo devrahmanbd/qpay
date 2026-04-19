@@ -36,9 +36,16 @@ class ApiAuth implements FilterInterface
                 ->setJSON([
                     'status' => 'error',
                     'code' => 'MISSING_API_KEY',
-                    'message' => 'API key is required. Pass it via API-KEY header, Authorization: Bearer header, or api_key parameter.',
+                    'message' => 'API key is required.',
                 ]);
         }
+
+        // DEBUG LOGGING
+        $cleanKey = trim($apiKey);
+        $hash = hash('sha256', $cleanKey);
+        $start = substr($cleanKey, 0, 15);
+        $end = substr($cleanKey, -4);
+        log_message('error', "[AUTH_DEBUG] Key: {$start}...{$end} | Hash: {$hash}");
 
         $keyService = new ApiKeyService();
         $isNewFormat = (bool) $keyService->isSecretKey($apiKey) || $keyService->isPublishableKey($apiKey);
