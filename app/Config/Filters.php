@@ -4,7 +4,7 @@ namespace Config;
 
 use Admin\Filters\Admin_auth;
 use App\Filters\Auth;
-use App\Filters\ApiAuth;
+use App\Filters\ApiAuthV3;
 use App\Filters\IPBlocker;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Filters\CSRF;
@@ -28,7 +28,7 @@ class Filters extends BaseConfig
         'ipblocker'       => IPBlocker::class,
         'user_auth'       => User_auth::class,
         'admin_auth'      => Admin_auth::class,
-        'api_auth'        => ApiAuth::class,
+        'api_auth'        => ApiAuthV3::class,
     ];
 
     public array $globals = [

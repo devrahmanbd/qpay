@@ -4,7 +4,7 @@ Tags: payment, gateway, bkash, nagad, rocket, mobile banking, bangladesh, donati
 Requires at least: 5.8
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,6 +70,13 @@ Sign up at your QPay dashboard and generate API keys from the API Keys section.
 Yes. Enable Test Mode in QPay Settings to simulate payments.
 
 == Changelog ==
+
+= 1.3.0 =
+* Fixed CI4 compatibility issues for production environments
+* Refactored authentication to support strict HTTP request handling
+* Improved webhook delivery logging and retry logic
+* Added full support for refund aliases in the API
+* Updated WooCommerce checkout flow for premium aesthetics
 
 = 1.2.0 =
 * Fixed missing database table creation on plugin initialization

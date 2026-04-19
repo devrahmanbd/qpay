@@ -53,11 +53,6 @@ if (! defined('ENVIRONMENT')) {
     define('ENVIRONMENT', env('CI_ENVIRONMENT', 'production'));
 }
 
-if (function_exists('opcache_invalidate')) {
-    opcache_invalidate(__DIR__ . '/app/Filters/ApiAuth.php', true);
-    opcache_invalidate(__DIR__ . '/app/Controllers/Api/V1/PaymentController.php', true);
-}
-
 /*
  * ---------------------------------------------------------------
  * LAUNCH THE APPLICATION
