@@ -1,4 +1,3 @@
-
 <?php 
     $item_created  = time_ago($item['created_at']);
     $item_status   = show_item_status($controller_name, $item['id'], $item['status'], '');

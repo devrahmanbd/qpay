@@ -2,7 +2,7 @@
 
 class QPay
 {
-    const VERSION = '1.0.0';
+    const VERSION = '1.1.0';
     const API_VERSION = 'v1';
 
     protected $apiKey;
@@ -51,7 +51,7 @@ class QPay
             }
         }
 
-        return $this->request('POST', '/payment/create', $params);
+        return $this->request('POST', '/payments', $params);
     }
 
     public function verifyPayment(string $paymentId): array
@@ -60,7 +60,7 @@ class QPay
             throw new \InvalidArgumentException('Payment ID is required.');
         }
 
-        return $this->request('GET', "/payment/verify/{$paymentId}");
+        return $this->request('POST', "/payments/{$paymentId}/verify");
     }
 
     public function getPaymentStatus(string $paymentId): array
@@ -69,7 +69,7 @@ class QPay
             throw new \InvalidArgumentException('Payment ID is required.');
         }
 
-        return $this->request('GET', "/payment/status/{$paymentId}");
+        return $this->request('GET', "/payments/{$paymentId}");
     }
 
     public function listPayments(array $params = []): array
@@ -147,6 +147,7 @@ class QPay
 
         $headers = [
             'API-KEY: ' . $this->apiKey,
+            'Authorization: Bearer ' . $this->apiKey,
             'Content-Type: application/json',
             'Accept: application/json',
             'User-Agent: QPay-PHP-SDK/' . self::VERSION,

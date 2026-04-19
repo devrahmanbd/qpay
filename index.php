@@ -1,5 +1,10 @@
 <?php
 
+// Prevent "headers already sent" errors by starting output buffering early
+if (PHP_SAPI !== 'cli') {
+    ob_start();
+}
+
 /**
  * CodeIgniter Post-Installation Cleanup
  * 

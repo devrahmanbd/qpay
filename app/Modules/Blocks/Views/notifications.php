@@ -1,4 +1,4 @@
- <?php 
+<?php 
    if (!empty($notItems)) {
       foreach ($notItems as $item) {
 ?>
@@ -26,4 +26,3 @@
    echo "<hr class='dropdown-divider'>";
 }
 ?>
-

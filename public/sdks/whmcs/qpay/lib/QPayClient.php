@@ -4,7 +4,7 @@ namespace WHMCS\Module\Gateway\QPay;
 
 class QPayClient
 {
-    const VERSION = '1.0.0';
+    const VERSION = '1.1.0';
 
     protected $apiKey;
     protected $baseUrl;
@@ -25,17 +25,17 @@ class QPayClient
 
     public function createPayment(array $params): array
     {
-        return $this->request('POST', '/api/v1/payment/create', $params);
+        return $this->request('POST', '/api/v1/payments', $params);
     }
 
     public function verifyPayment(string $paymentId): array
     {
-        return $this->request('GET', "/api/v1/payment/verify/{$paymentId}");
+        return $this->request('POST', "/api/v1/payments/{$paymentId}/verify");
     }
 
     public function getPaymentStatus(string $paymentId): array
     {
-        return $this->request('GET', "/api/v1/payment/status/{$paymentId}");
+        return $this->request('GET', "/api/v1/payments/{$paymentId}");
     }
 
     public function refund(string $paymentId, string $reason = ''): array
@@ -82,6 +82,7 @@ class QPayClient
 
         $headers = [
             'API-KEY: ' . $this->apiKey,
+            'Authorization: Bearer ' . $this->apiKey,
             'Content-Type: application/json',
             'Accept: application/json',
             'X-QPay-Client: whmcs/' . self::VERSION,

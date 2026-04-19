@@ -3,7 +3,7 @@ const http = require('http');
 const { URL } = require('url');
 
 class QPay {
-  static VERSION = '1.1.0';
+  static VERSION = '1.2.0';
   static API_VERSION = 'v1';
 
   constructor(apiKey, options = {}) {
@@ -26,17 +26,17 @@ class QPay {
 
   async createPayment(params) {
     if (!params || !params.amount) throw new Error("'amount' is required.");
-    return this._request('POST', '/payment/create', params);
+    return this._request('POST', '/payments', params);
   }
 
   async verifyPayment(paymentId) {
     if (!paymentId) throw new Error('Payment ID is required.');
-    return this._request('GET', `/payment/verify/${paymentId}`);
+    return this._request('POST', `/payments/${paymentId}/verify`);
   }
 
   async getPaymentStatus(paymentId) {
     if (!paymentId) throw new Error('Payment ID is required.');
-    return this._request('GET', `/payment/status/${paymentId}`);
+    return this._request('GET', `/payments/${paymentId}`);
   }
 
   async listPayments(params = {}) {
