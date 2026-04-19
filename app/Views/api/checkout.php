@@ -96,8 +96,68 @@
                                 <p class="text-red-700 font-medium">No payment methods available.</p>
                                 <p class="text-xs text-red-600 mt-1">Merchant has not configured any wallets yet.</p>
                             </div>
+                        <?php elseif (!empty($payment_method) && !empty($selected_method)): ?>
+                            <!-- Manual Payment Instructions -->
+                            <div class="space-y-6">
+                                <div class="p-6 bg-white border border-gray-100 rounded-[2rem] shadow-sm">
+                                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Payment Instructions</h4>
+                                    
+                                    <div class="flex items-center gap-4 mb-6">
+                                        <div class="p-2 bg-primary-500/5 rounded-2xl">
+                                            <img src="<?= base_url(payment_option($payment_method)) ?>" alt="<?= esc($payment_method) ?>" class="w-12 h-12 rounded-xl object-contain">
+                                        </div>
+                                        <div>
+                                            <p class="text-lg font-bold text-gray-900"><?= esc(ucfirst($payment_method)) ?></p>
+                                            <p class="text-xs text-gray-500">Manual verification</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-4">
+                                        <?php 
+                                            $params = $selected_method->params;
+                                            $activePayments = $params['active_payments'] ?? [];
+                                            $instructionsShown = false;
+                                            
+                                            // Mapping of keys to human-readable labels
+                                            $labelMap = [
+                                                'personal_number' => 'Personal Number',
+                                                'agent_number' => 'Agent Number',
+                                                'payment_number' => 'Payment Number',
+                                                'merchant_id' => 'Merchant ID',
+                                                'merchant_code' => 'Merchant Code'
+                                            ];
+
+                                            foreach ($labelMap as $key => $label):
+                                                if (!empty($params[$key])):
+                                        ?>
+                                            <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mb-1"><?= $label ?></p>
+                                                <div class="flex items-center justify-between">
+                                                    <p class="text-lg font-mono font-bold text-primary-600"><?= esc($params[$key]) ?></p>
+                                                    <button onclick="navigator.clipboard.writeText('<?= esc($params[$key]) ?>')" class="p-2 hover:bg-white rounded-lg transition-colors text-gray-400 hover:text-primary-500" title="Copy Number">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        <?php 
+                                                endif;
+                                            endforeach; 
+                                        ?>
+                                    </div>
+
+                                    <div class="mt-6 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
+                                        <p class="text-[11px] text-indigo-700 leading-relaxed">
+                                            Please send the exact amount <strong><?= number_format($amount, 2) ?> <?= esc(strtoupper($currency)) ?></strong>. Your payment will be verified automatically via SMS once received.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <a href="<?= base_url("api/v1/payment/checkout/{$payment_id}") ?>" class="block text-center text-xs font-bold text-primary-600 hover:text-primary-700 uppercase tracking-widest transition-colors py-2">
+                                    Change Payment Method
+                                </a>
+                            </div>
                         <?php else: ?>
-                            <form method="POST" action="<?= base_url("api/v1/payment/checkout/{$payment_id}/process") ?>" id="checkoutForm">
+                            <form method="POST" action="<?= base_url("api/v1/payment/checkout/{$payment_id}") ?>" id="checkoutForm">
                                 <div class="grid gap-3 mb-8">
                                     <?php foreach ($methods as $i => $method): ?>
                                     <label class="method-card relative flex items-center p-4 bg-white/50 border border-gray-100 rounded-2xl cursor-pointer hover:border-primary-500/50 transition-all duration-300 group">

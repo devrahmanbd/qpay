@@ -649,6 +649,23 @@ class PaymentController extends ResourceController
 
         $isTestMode = !empty($payment->test_mode);
 
+        $wallets = $this->db->table('user_payment_settings')
+            ->where('brand_id', $payment->brand_id)
+            ->where('status', 1)
+            ->get()
+            ->getResult();
+
+        $selectedMethod = null;
+        if (!empty($payment->payment_method)) {
+            foreach ($wallets as $w) {
+                if ($w->g_type === $payment->payment_method) {
+                    $selectedMethod = $w;
+                    $selectedMethod->params = json_decode($w->params ?? '{}', true);
+                    break;
+                }
+            }
+        }
+
         return view('api/checkout', [
             'payment_id' => $paymentId,
             'amount' => (float) $payment->amount,
@@ -662,6 +679,8 @@ class PaymentController extends ResourceController
             'success_url' => $successUrl ?? '',
             'methods' => $methodList,
             'test_mode' => $isTestMode,
+            'payment_method' => $payment->payment_method,
+            'selected_method' => $selectedMethod,
         ]);
     }
 
@@ -670,6 +689,9 @@ class PaymentController extends ResourceController
         if (empty($paymentId)) {
             return $this->respondError('MISSING_PAYMENT_ID', 'Payment ID is required.', 400);
         }
+
+        // Defensive: stripe /process if it exists due to form action mismatch
+        $paymentId = str_replace('/process', '', $paymentId);
 
         $payment = $this->db->table('api_payments')
             ->where('ids', $paymentId)
@@ -681,7 +703,17 @@ class PaymentController extends ResourceController
         }
 
         $method = $this->request->getPost('payment_method');
+        if (empty($method)) {
+             return redirect()->to(base_url("api/v1/payment/checkout/{$paymentId}"));
+        }
+
         $isTestMode = !empty($payment->test_mode);
+
+        // Update selected payment method
+        $this->db->table('api_payments')->where('ids', $paymentId)->update([
+            'payment_method' => $method,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
 
         if ($isTestMode) {
             $txnId = 'test_txn_' . bin2hex(random_bytes(8));
@@ -689,7 +721,6 @@ class PaymentController extends ResourceController
                 ->where('ids', $paymentId)
                 ->update([
                     'status' => 2,
-                    'payment_method' => $method,
                     'transaction_id' => $txnId,
                     'updated_at' => date('Y-m-d H:i:s'),
                 ]);
@@ -707,7 +738,7 @@ class PaymentController extends ResourceController
                     'payment_method' => $method,
                     'transaction_id' => $txnId,
                     'customer_email' => $payment->customer_email ?? '',
-                    'test_mode' => !empty($payment->test_mode),
+                    'test_mode' => true,
                 ]
             );
 
@@ -717,6 +748,37 @@ class PaymentController extends ResourceController
                 return redirect()->to($successUrl . $separator . 'payment_id=' . $paymentId . '&status=completed');
             }
             return redirect()->to(base_url("api/v1/payment/checkout/{$paymentId}"));
+        }
+
+        // Live Mode Processing
+        try {
+            $provider = PaymentProviderFactory::create((int)$payment->merchant_id, (int)$payment->brand_id, ['payment_method' => $method]);
+            $initResult = $provider->initiatePayment((array)$payment);
+
+            if (!empty($initResult['success'])) {
+                // If the provider returned a redirect URL, go there
+                if (!empty($initResult['redirect_url'])) {
+                     $this->db->table('api_payments')
+                        ->where('ids', $paymentId)
+                        ->update([
+                            'provider_response' => json_encode($initResult),
+                            'updated_at' => date('Y-m-d H:i:s'),
+                        ]);
+                     return redirect()->to($initResult['redirect_url']);
+                }
+                
+                // If it's a manual payment (like SMS verification based), 
+                // it won't have a redirect_url. We just store the result 
+                // and redirect back to the checkout page which will now show instructions.
+                $this->db->table('api_payments')
+                    ->where('ids', $paymentId)
+                    ->update([
+                        'provider_response' => json_encode($initResult),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'Checkout processing error: ' . $e->getMessage());
         }
 
         return redirect()->to(base_url("api/v1/payment/checkout/{$paymentId}"));
