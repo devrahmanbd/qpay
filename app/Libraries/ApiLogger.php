@@ -15,54 +15,69 @@ class ApiLogger
 
     public function log(array $data): void
     {
-        $responseTime = round((microtime(true) - $this->startTime) * 1000);
+        try {
+            $responseTime = round((microtime(true) - $this->startTime) * 1000);
 
-        $this->db->table('api_logs')->insert([
-            'api_key_id' => $data['api_key_id'] ?? null,
-            'brand_id' => $data['brand_id'] ?? null,
-            'merchant_id' => $data['merchant_id'] ?? null,
-            'method' => $data['method'] ?? 'GET',
-            'endpoint' => $data['endpoint'] ?? '',
-            'status_code' => $data['status_code'] ?? 200,
-            'ip_address' => $data['ip_address'] ?? null,
-            'response_time_ms' => $responseTime,
-            'environment' => $data['environment'] ?? 'live',
-            'created_at' => date('Y-m-d H:i:s'),
-        ]);
+            $this->db->table('api_logs')->insert([
+                'api_key_id' => $data['api_key_id'] ?? null,
+                'brand_id' => $data['brand_id'] ?? null,
+                'merchant_id' => $data['merchant_id'] ?? null,
+                'method' => $data['method'] ?? 'GET',
+                'endpoint' => $data['endpoint'] ?? '',
+                'status_code' => $data['status_code'] ?? 200,
+                'ip_address' => $data['ip_address'] ?? null,
+                'response_time_ms' => $responseTime,
+                'environment' => $data['environment'] ?? 'live',
+                'created_at' => date('Y-m-d H:i:s'),
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', '[ApiLogger] Failed to insert log: ' . $e->getMessage());
+        }
     }
 
     public function getStats(int $brandId, int $merchantId, string $period = '24h'): array
     {
-        $since = $this->periodToDate($period);
+        try {
+            $since = $this->periodToDate($period);
 
-        $total = $this->db->table('api_logs')
-            ->where('brand_id', $brandId)
-            ->where('merchant_id', $merchantId)
-            ->where('created_at >=', $since)
-            ->countAllResults(false);
+            $total = $this->db->table('api_logs')
+                ->where('brand_id', $brandId)
+                ->where('merchant_id', $merchantId)
+                ->where('created_at >=', $since)
+                ->countAllResults(false);
 
-        $errors = $this->db->table('api_logs')
-            ->where('brand_id', $brandId)
-            ->where('merchant_id', $merchantId)
-            ->where('status_code >=', 400)
-            ->where('created_at >=', $since)
-            ->countAllResults(false);
+            $errors = $this->db->table('api_logs')
+                ->where('brand_id', $brandId)
+                ->where('merchant_id', $merchantId)
+                ->where('status_code >=', 400)
+                ->where('created_at >=', $since)
+                ->countAllResults(false);
 
-        $avgResponse = $this->db->table('api_logs')
-            ->selectAvg('response_time_ms', 'avg_ms')
-            ->where('brand_id', $brandId)
-            ->where('merchant_id', $merchantId)
-            ->where('created_at >=', $since)
-            ->get()
-            ->getRow();
+            $avgResponse = $this->db->table('api_logs')
+                ->selectAvg('response_time_ms', 'avg_ms')
+                ->where('brand_id', $brandId)
+                ->where('merchant_id', $merchantId)
+                ->where('created_at >=', $since)
+                ->get()
+                ->getRow();
 
-        return [
-            'total_requests' => $total,
-            'error_count' => $errors,
-            'error_rate' => $total > 0 ? round($errors / $total * 100, 2) : 0,
-            'avg_response_ms' => $avgResponse ? round($avgResponse->avg_ms ?? 0) : 0,
-            'period' => $period,
-        ];
+            return [
+                'total_requests' => $total,
+                'error_count' => $errors,
+                'error_rate' => $total > 0 ? round($errors / $total * 100, 2) : 0,
+                'avg_response_ms' => $avgResponse ? round($avgResponse->avg_ms ?? 0) : 0,
+                'period' => $period,
+            ];
+        } catch (\Throwable $e) {
+            log_message('error', '[ApiLogger] Failed to get stats: ' . $e->getMessage());
+            return [
+                'total_requests' => 0,
+                'error_count' => 0,
+                'error_rate' => 0,
+                'avg_response_ms' => 0,
+                'status' => 'error_recovering'
+            ];
+        }
     }
 
     public function getRecentLogs(int $brandId, int $merchantId, int $limit = 50): array
