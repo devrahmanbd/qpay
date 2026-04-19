@@ -25,6 +25,9 @@ $routes->group('/', static function ($routes) {
         $routes->match(['get', 'post'], 'api/add-data', [ApiController::class, 'addMessage']);
 });
 
+$routes->get('api/v1/payment/checkout/(:any)', [\App\Controllers\Api\V1\PaymentController::class, 'checkout']);
+$routes->post('api/v1/payment/checkout/(:any)', [\App\Controllers\Api\V1\PaymentController::class, 'processCheckout']);
+
 $routes->group('api/v1', ['filter' => 'api_auth'], static function ($routes) {
     $routes->post('payments', [\App\Controllers\Api\V1\PaymentController::class, 'create']);
     $routes->post('payment/create', [\App\Controllers\Api\V1\PaymentController::class, 'create']); // Legacy Alias
@@ -43,7 +46,4 @@ $routes->group('api/v1', ['filter' => 'api_auth'], static function ($routes) {
     
     $routes->get('methods', [\App\Controllers\Api\V1\PaymentController::class, 'getMethods']);
     $routes->get('payment/methods', [\App\Controllers\Api\V1\PaymentController::class, 'getMethods']); // Legacy Alias
-    
-    $routes->get('payment/checkout/(:any)', [\App\Controllers\Api\V1\PaymentController::class, 'checkout']);
-    $routes->post('payment/checkout/(:any)', [\App\Controllers\Api\V1\PaymentController::class, 'processCheckout']);
 });
