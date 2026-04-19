@@ -18,145 +18,154 @@ class PaymentController extends ResourceController
 
     public function create()
     {
-        $request = service('request');
-        $brand = $request->brand;
-        $merchant = $request->merchant;
-        $isTest = $request->isTestMode ?? false;
+        try {
+            $request = service('request');
+            $brand = $request->brand;
+            $merchant = $request->merchant;
+            $isTest = $request->isTestMode ?? false;
 
-        q_debug("Starting payment creation for Merchant: {$merchant->id}, Brand: {$brand->id}, Test: " . ($isTest ? 'Yes' : 'No'), 'PAYMENT_CREATE');
+            q_debug("Starting payment creation for Merchant: {$merchant->id}, Brand: {$brand->id}, Test: " . ($isTest ? 'Yes' : 'No'), 'PAYMENT_CREATE');
 
-        if (($request->keyType ?? 'secret') === 'publishable') {
-            return $this->respondError('FORBIDDEN', 'Publishable keys cannot create payments. Use a secret key (qp_*).', 403);
-        }
-
-        $rules = [
-            'amount' => 'required|numeric|greater_than[0]',
-            'currency' => 'permit_empty|alpha|max_length[5]',
-            'payment_method' => 'permit_empty|alpha_dash|max_length[50]',
-            'callback_url' => 'permit_empty|valid_url_strict',
-            'success_url' => 'permit_empty|valid_url_strict',
-            'cancel_url' => 'permit_empty|valid_url_strict',
-            'customer_email' => 'permit_empty|valid_email|max_length[255]',
-            'customer_name' => 'permit_empty|string|max_length[255]',
-            'metadata' => 'permit_empty',
-        ];
-
-        if (!$this->validate($rules)) {
-            return $this->respondError('VALIDATION_ERROR', 'Invalid request parameters.', 422, $this->validator->getErrors());
-        }
-
-        $idempotencyKey = $request->getHeaderLine('Idempotency-Key');
-        if (!empty($idempotencyKey)) {
-            $existing = $this->db->table('api_payments')
-                ->where('idempotency_key', $idempotencyKey)
-                ->where('merchant_id', $merchant->id)
-                ->where('brand_id', $brand->id)
-                ->where('test_mode', $isTest ? 1 : 0)
-                ->get()
-                ->getRow();
-
-            if ($existing) {
-                return $this->respond($this->formatPayment($existing), 200);
+            if (($request->keyType ?? 'secret') === 'publishable') {
+                return $this->respondError('FORBIDDEN', 'Publishable keys cannot create payments. Use a secret key (qp_*).', 403);
             }
+
+            $rules = [
+                'amount' => 'required|numeric|greater_than[0]',
+                'currency' => 'permit_empty|alpha|max_length[5]',
+                'payment_method' => 'permit_empty|alpha_dash|max_length[50]',
+                'callback_url' => 'permit_empty|valid_url_strict',
+                'success_url' => 'permit_empty|valid_url_strict',
+                'cancel_url' => 'permit_empty|valid_url_strict',
+                'customer_email' => 'permit_empty|valid_email|max_length[255]',
+                'customer_name' => 'permit_empty|string|max_length[255]',
+                'metadata' => 'permit_empty',
+            ];
+
+            if (!$this->validate($rules)) {
+                return $this->respondError('VALIDATION_ERROR', 'Invalid request parameters.', 422, $this->validator->getErrors());
+            }
+
+            $idempotencyKey = $request->getHeaderLine('Idempotency-Key');
+            if (!empty($idempotencyKey)) {
+                $existing = $this->db->table('api_payments')
+                    ->where('idempotency_key', $idempotencyKey)
+                    ->where('merchant_id', $merchant->id)
+                    ->where('brand_id', $brand->id)
+                    ->where('test_mode', $isTest ? 1 : 0)
+                    ->get()
+                    ->getRow();
+
+                if ($existing) {
+                    return $this->respond($this->formatPayment($existing), 200);
+                }
+            }
+
+            $amount = (float) $request->getVar('amount');
+            $currency = strtoupper($request->getVar('currency') ?? $brand->currency ?? 'BDT');
+            $paymentMethod = $request->getVar('payment_method');
+            $allowedMethods = $request->getVar('allowed_methods');
+            $metadata = $request->getVar('metadata');
+
+            if (empty($paymentMethod) && !empty($allowedMethods) && is_array($allowedMethods)) {
+                $paymentMethod = $allowedMethods[0];
+            }
+
+            $fees = (float) $brand->fees;
+            if ($brand->fees_type == 1) {
+                $fees = $amount * ($brand->fees / 100);
+            }
+
+            $paymentIds = $this->generatePaymentId();
+
+            $paymentData = [
+                'ids' => $paymentIds,
+                'merchant_id' => $merchant->id,
+                'brand_id' => $brand->id,
+                'idempotency_key' => !empty($idempotencyKey) ? $idempotencyKey : null,
+                'amount' => $amount,
+                'currency' => $currency,
+                'status' => 0,
+                'test_mode' => $isTest ? 1 : 0,
+                'payment_method' => $paymentMethod,
+                'callback_url' => $request->getVar('callback_url'),
+                'success_url' => $request->getVar('success_url'),
+                'cancel_url' => $request->getVar('cancel_url'),
+                'customer_email' => $request->getVar('customer_email'),
+                'customer_name' => $request->getVar('customer_name'),
+                'metadata' => (is_array($metadata) || is_object($metadata)) ? json_encode($metadata) : $metadata,
+                'ip_address' => $request->getIPAddress(),
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ];
+
+            $this->db->table('api_payments')->insert($paymentData);
+
+            if ($this->db->affectedRows() === 0) {
+                return $this->respondError('PAYMENT_CREATION_FAILED', 'Failed to create payment record.', 500);
+            }
+
+            if ($isTest) {
+                $provider = new \App\Adapters\TestPaymentAdapter($merchant->id, $brand->id);
+            } else {
+                $provider = PaymentProviderFactory::create($merchant->id, $brand->id, ['payment_method' => $paymentMethod]);
+            }
+
+            $providerResult = $provider->initiatePayment($paymentData);
+
+            if ($providerResult['success']) {
+                $this->db->table('api_payments')
+                    ->where('ids', $paymentIds)
+                    ->update([
+                        'status' => 1,
+                        'transaction_id' => $providerResult['transaction_id'] ?? null,
+                        'provider_response' => json_encode($providerResult),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+                $paymentData['status'] = 1;
+                $paymentData['transaction_id'] = $providerResult['transaction_id'] ?? null;
+            } else {
+                $this->db->table('api_payments')
+                    ->where('ids', $paymentIds)
+                    ->update([
+                        'status' => 3,
+                        'provider_response' => json_encode($providerResult),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+                $paymentData['status'] = 3;
+            }
+
+            $webhookService = new WebhookService();
+            $eventType = $providerResult['success'] ? 'payment.created' : 'payment.failed';
+            $webhookService->dispatch($brand->id, $merchant->id, $eventType, [
+                'id' => $paymentIds,
+                'object' => 'payment',
+                'amount' => $amount,
+                'currency' => $currency,
+                'status' => $providerResult['success'] ? 'processing' : 'failed',
+                'test_mode' => $isTest,
+                'error' => $providerResult['error'] ?? null,
+                'error_code' => $providerResult['error_code'] ?? null,
+            ]);
+
+            $payment = $this->db->table('api_payments')->where('ids', $paymentIds)->get()->getRow();
+
+            q_debug($providerResult, 'PROVIDER_RESPONSE');
+
+            return $this->respond($this->formatPayment($payment, [
+                'fees' => round($fees, 3),
+                'net_amount' => round($amount - $fees, 3),
+                'checkout_url' => base_url("api/v1/payment/checkout/{$paymentIds}"),
+                'redirect_url' => $providerResult['redirect_url'] ?? null,
+            ]), 201);
+        } catch (\Throwable $e) {
+            log_message('critical', $e->getMessage() . "\n" . $e->getTraceAsString());
+            // Force write to debug.log too as it's easier to read
+            $logPath = WRITEPATH . 'debug.log';
+            file_put_contents($logPath, "[" . date('Y-m-d H:i:s') . "] [ERROR] " . $e->getMessage() . "\n" . $e->getTraceAsString() . PHP_EOL, FILE_APPEND);
+            
+            return $this->respondError('INTERNAL_SERVER_ERROR', 'An unexpected error occurred: ' . $e->getMessage(), 500);
         }
-
-        $amount = (float) $request->getVar('amount');
-        $currency = strtoupper($request->getVar('currency') ?? $brand->currency ?? 'BDT');
-        $paymentMethod = $request->getVar('payment_method');
-        $allowedMethods = $request->getVar('allowed_methods');
-        $metadata = $request->getVar('metadata');
-
-        if (empty($paymentMethod) && !empty($allowedMethods) && is_array($allowedMethods)) {
-            $paymentMethod = $allowedMethods[0];
-        }
-
-        $fees = (float) $brand->fees;
-        if ($brand->fees_type == 1) {
-            $fees = $amount * ($brand->fees / 100);
-        }
-
-        $paymentIds = $this->generatePaymentId();
-
-        $paymentData = [
-            'ids' => $paymentIds,
-            'merchant_id' => $merchant->id,
-            'brand_id' => $brand->id,
-            'idempotency_key' => !empty($idempotencyKey) ? $idempotencyKey : null,
-            'amount' => $amount,
-            'currency' => $currency,
-            'status' => 0,
-            'test_mode' => $isTest ? 1 : 0,
-            'payment_method' => $paymentMethod,
-            'callback_url' => $request->getVar('callback_url'),
-            'success_url' => $request->getVar('success_url'),
-            'cancel_url' => $request->getVar('cancel_url'),
-            'customer_email' => $request->getVar('customer_email'),
-            'customer_name' => $request->getVar('customer_name'),
-            'metadata' => (is_array($metadata) || is_object($metadata)) ? json_encode($metadata) : $metadata,
-            'ip_address' => $request->getIPAddress(),
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s'),
-        ];
-
-        $this->db->table('api_payments')->insert($paymentData);
-
-        if ($this->db->affectedRows() === 0) {
-            return $this->respondError('PAYMENT_CREATION_FAILED', 'Failed to create payment record.', 500);
-        }
-
-        if ($isTest) {
-            $provider = new \App\Adapters\TestPaymentAdapter($merchant->id, $brand->id);
-        } else {
-            $provider = PaymentProviderFactory::create($merchant->id, $brand->id, ['payment_method' => $paymentMethod]);
-        }
-
-        $providerResult = $provider->initiatePayment($paymentData);
-
-        if ($providerResult['success']) {
-            $this->db->table('api_payments')
-                ->where('ids', $paymentIds)
-                ->update([
-                    'status' => 1,
-                    'transaction_id' => $providerResult['transaction_id'] ?? null,
-                    'provider_response' => json_encode($providerResult),
-                    'updated_at' => date('Y-m-d H:i:s'),
-                ]);
-            $paymentData['status'] = 1;
-            $paymentData['transaction_id'] = $providerResult['transaction_id'] ?? null;
-        } else {
-            $this->db->table('api_payments')
-                ->where('ids', $paymentIds)
-                ->update([
-                    'status' => 3,
-                    'provider_response' => json_encode($providerResult),
-                    'updated_at' => date('Y-m-d H:i:s'),
-                ]);
-            $paymentData['status'] = 3;
-        }
-
-        $webhookService = new WebhookService();
-        $eventType = $providerResult['success'] ? 'payment.created' : 'payment.failed';
-        $webhookService->dispatch($brand->id, $merchant->id, $eventType, [
-            'id' => $paymentIds,
-            'object' => 'payment',
-            'amount' => $amount,
-            'currency' => $currency,
-            'status' => $providerResult['success'] ? 'processing' : 'failed',
-            'test_mode' => $isTest,
-            'error' => $providerResult['error'] ?? null,
-            'error_code' => $providerResult['error_code'] ?? null,
-        ]);
-
-        $payment = $this->db->table('api_payments')->where('ids', $paymentIds)->get()->getRow();
-
-        q_debug($providerResult, 'PROVIDER_RESPONSE');
-
-        return $this->respond($this->formatPayment($payment, [
-            'fees' => round($fees, 3),
-            'net_amount' => round($amount - $fees, 3),
-            'checkout_url' => base_url("api/v1/payment/checkout/{$paymentIds}"),
-            'redirect_url' => $providerResult['redirect_url'] ?? null,
-        ]), 201);
     }
 
     public function verify($paymentId = null)
