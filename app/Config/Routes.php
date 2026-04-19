@@ -1,7 +1,6 @@
 <?php
 
 use App\Controllers\ApiController;
-use App\Controllers\Api\V1\PaymentControllerV4;
 use App\Controllers\File_manager;
 use CodeIgniter\Router\RouteCollection;
 
@@ -28,12 +27,23 @@ $routes->group('/', static function ($routes) {
 
 $routes->group('api/v1', ['filter' => 'api_auth'], static function ($routes) {
     $routes->post('payments', [\App\Controllers\Api\V1\PaymentController::class, 'create']);
+    $routes->post('payment/create', [\App\Controllers\Api\V1\PaymentController::class, 'create']); // Legacy Alias
+    
     $routes->get('payments/(:any)', [\App\Controllers\Api\V1\PaymentController::class, 'status']);
+    $routes->get('payment/status/(:any)', [\App\Controllers\Api\V1\PaymentController::class, 'status']); // Legacy Alias
+    
     $routes->get('payments', [\App\Controllers\Api\V1\PaymentController::class, 'listPayments']);
+    
     $routes->post('payments/(:any)/refund', [\App\Controllers\Api\V1\PaymentController::class, 'refund']);
+    
     $routes->post('payments/(:any)/verify', [\App\Controllers\Api\V1\PaymentController::class, 'verify']);
+    $routes->match(['get', 'post'], 'payment/verify/(:any)', [\App\Controllers\Api\V1\PaymentController::class, 'verify']); // Legacy Alias
+    
     $routes->get('balance', [\App\Controllers\Api\V1\PaymentController::class, 'balance']);
+    
     $routes->get('methods', [\App\Controllers\Api\V1\PaymentController::class, 'getMethods']);
+    $routes->get('payment/methods', [\App\Controllers\Api\V1\PaymentController::class, 'getMethods']); // Legacy Alias
+    
     $routes->get('payment/checkout/(:any)', [\App\Controllers\Api\V1\PaymentController::class, 'checkout']);
     $routes->post('payment/checkout/(:any)', [\App\Controllers\Api\V1\PaymentController::class, 'processCheckout']);
 });
