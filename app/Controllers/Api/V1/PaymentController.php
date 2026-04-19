@@ -179,8 +179,9 @@ class PaymentController extends ResourceController
         }
 
         if (empty($apiKey)) {
-            $apiKey = $request->getVar('api_key');
+            $apiKey = (string) $request->getVar('api_key');
         }
+        $apiKey = trim($apiKey);
 
         $keyRecord = $keyService->validate($apiKey);
         if (!$keyRecord) {

@@ -26,8 +26,9 @@ class ApiAuth implements FilterInterface
             }
         }
         if (empty($apiKey)) {
-            $apiKey = $request->getVar('api_key');
+            $apiKey = (string) $request->getVar('api_key');
         }
+        $apiKey = trim($apiKey);
 
         if (empty($apiKey)) {
             return service('response')

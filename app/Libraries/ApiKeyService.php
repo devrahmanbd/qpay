@@ -60,6 +60,7 @@ class ApiKeyService
 
     public function validate(string $apiKey): ?object
     {
+        $apiKey = trim($apiKey);
         $hash = hash('sha256', $apiKey);
         $prefix = $this->extractPrefix($apiKey);
 
@@ -152,6 +153,7 @@ class ApiKeyService
 
     protected function extractPrefix(string $apiKey): ?string
     {
+        $apiKey = trim($apiKey);
         if (preg_match('/^((?:pk|qp)_(?:live|test)_)/', $apiKey, $matches)) {
             return $matches[1];
         }
