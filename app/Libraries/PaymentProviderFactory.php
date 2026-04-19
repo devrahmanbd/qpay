@@ -5,6 +5,7 @@ namespace App\Libraries;
 use App\Interfaces\PaymentProviderInterface;
 use App\Adapters\SmsVerificationAdapter;
 use App\Adapters\DirectApiAdapter;
+use App\Adapters\BkashAdapter;
 use App\Adapters\TestPaymentAdapter;
 
 class PaymentProviderFactory
@@ -24,6 +25,20 @@ class PaymentProviderFactory
                 ->getRow();
 
             if ($wallet) {
+                if ($wallet->g_type === 'bkash') {
+                    $bkash = new BkashAdapter($merchantId, $brandId, $config);
+                    if ($bkash->isAvailable()) {
+                        return $bkash;
+                    }
+                }
+
+                if ($wallet->g_type === 'nagad') {
+                    $nagad = new NagadAdapter($merchantId, $brandId, $config);
+                    if ($nagad->isAvailable()) {
+                        return $nagad;
+                    }
+                }
+
                 $params = json_decode($wallet->params, true) ?: [];
                 if (!empty($params['api_url']) && !empty($params['api_key'])) {
                     $preferDirect = true;
@@ -56,6 +71,15 @@ class PaymentProviderFactory
             $providers[] = [
                 'name' => $direct->getProviderName(),
                 'type' => 'direct_api',
+                'supports_refund' => true,
+            ];
+        }
+
+        $bkash = new BkashAdapter($merchantId, $brandId);
+        if ($bkash->isAvailable()) {
+            $providers[] = [
+                'name' => 'bKash Tokenized',
+                'type' => 'bkash_tokenized',
                 'supports_refund' => true,
             ];
         }

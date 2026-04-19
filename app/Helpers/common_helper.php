@@ -615,23 +615,6 @@ if (!function_exists('now')) {
         return Time::now();
     }
 }
-if (!function_exists('trxId')) {
-    function trxId()
-    {
-        $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $randomLength = 6; // Length of the random string
-        $timeLength = 6; // Length of the time portion
-
-        $randomString = '';
-        for ($i = 0; $i < $randomLength; $i++) {
-            $randomString .= $characters[rand(0, strlen($characters) - 1)];
-        }
-
-        $timePortion = substr(time(), -$timeLength);
-
-        return $randomString . $timePortion;
-    }
-}
 
 if (!function_exists('get')) {
     function get($var)
@@ -765,4 +748,67 @@ if (!function_exists('load_404')) {
         $response->send();
         exit;
     }
+}
+if (!function_exists('get_character_map')) {
+    function get_character_map()
+    {
+        return array(
+            'a' => 'k', 'A' => 'K',
+            'b' => 'l', 'B' => 'L',
+            'c' => 'm', 'C' => 'M',
+            'd' => 'n', 'D' => 'N',
+            'e' => 'o', 'E' => 'O',
+            'f' => 'p', 'F' => 'P',
+            'g' => 'q', 'G' => 'Q',
+            'h' => 'r', 'H' => 'R',
+            'i' => 's', 'I' => 'S',
+            'j' => 't', 'J' => 'T',
+            'k' => 'u', 'K' => 'U',
+            'l' => 'v', 'L' => 'V',
+            'm' => 'w', 'M' => 'W',
+            'n' => 'x', 'N' => 'X',
+            'o' => 'y', 'O' => 'Y',
+            'p' => 'z', 'P' => 'Z',
+            'q' => 'a', 'Q' => 'A',
+            'r' => 'b', 'R' => 'B',
+            's' => 'c', 'S' => 'C',
+            't' => 'd', 'T' => 'D',
+            'u' => 'e', 'U' => 'E',
+            'v' => 'f', 'V' => 'F',
+            'w' => 'g', 'W' => 'G',
+            'x' => 'h', 'X' => 'H',
+            'y' => 'i', 'Y' => 'I',
+            'z' => 'j', 'Z' => 'J',
+        );
+    }
+}
+
+if (!function_exists('encrypt')) {
+    function encrypt($data)
+    {
+        $character_map = get_character_map();
+        return strtr((string)$data, $character_map);
+    }
+}
+
+if (!function_exists('decrypt')) {
+    function decrypt($data)
+    {
+        $character_map = get_character_map();
+        $character_map_reverse = array_flip($character_map);
+        return strtr((string)$data, $character_map_reverse);
+    }
+}
+
+if (!function_exists('amount_format')) {
+    function get_option($name, $default = '')
+    {
+        $db = db_connect();
+        $option = $db->table('options')->where('name', $name)->get()->getRow();
+        return $option ? $option->value : $default;
+    }
+}
+
+if (!function_exists('BASE_SITE')) {
+    define('BASE_SITE', base_url());
 }

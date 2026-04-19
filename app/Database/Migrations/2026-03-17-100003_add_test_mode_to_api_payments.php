@@ -8,10 +8,12 @@ class AddTestModeToApiPayments extends Migration
 {
     public function up()
     {
-        $this->forge->addColumn('api_payments', [
-            'test_mode' => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 0, 'after' => 'status'],
-            'webhook_delivered' => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 0, 'after' => 'test_mode'],
-        ]);
+        if (!$this->db->fieldExists('test_mode', 'api_payments')) {
+            $this->forge->addColumn('api_payments', [
+                'test_mode' => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 0, 'after' => 'status'],
+                'webhook_delivered' => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 0, 'after' => 'test_mode'],
+            ]);
+        }
     }
 
     public function down()

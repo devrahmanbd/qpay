@@ -25,22 +25,21 @@ class ApiController extends BaseController
         $device_ip = $request->getVar('device_ip');
 
         if ($user_email && $device_key && $device_ip) {
-            $uid = $this->model->get('id, uid, device_ip', 'devices', [
+            $device = $this->model->get('id, uid, device_ip', 'devices', [
                 'user_email' => $user_email, 
                 'device_key' => $device_key
             ]);
 
-            if ($uid) {
-                if (deviceValidation($device_key, $uid->uid)) {
-                    if (empty($uid->device_ip)) {
-                        $data['device_ip'] = $device_ip;
-                        $this->db->table('devices')->where('id', $uid->id)->update($data);
-                        return json_encode(["status" => "1", "message" => $uid->uid]);
-                    } elseif ($uid->device_ip === $device_ip) {
-                        return json_encode(["status" => "1", "message" => $uid->uid]);
-                    } else {
-                        return json_encode(["status" => "3", "message" => 'Already connected with a different device']);
-                    }
+            if ($device) {
+                if (deviceValidation($device_key, $device->uid)) {
+                    $updateData = [
+                        'device_ip' => $device_ip,
+                        'last_sync_at' => date('Y-m-d H:i:s'),
+                        'battery_level' => $request->getVar('battery_level') ?? null
+                    ];
+                    
+                    $this->db->table('devices')->where('id', $device->id)->update($updateData);
+                    return json_encode(["status" => "1", "message" => $device->uid]);
                 } else {
                     return json_encode(["status" => "2", "message" => 'Your key is expired']);
                 }

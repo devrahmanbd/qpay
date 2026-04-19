@@ -588,82 +588,20 @@ class PaymentController extends ResourceController
             return redirect()->to($redirectUrl);
         }
 
-        $statusMap = [0 => 'pending', 1 => 'processing', 2 => 'completed', 3 => 'failed', 4 => 'refunded'];
-        $status = $statusMap[(int) $payment->status] ?? 'unknown';
+        $theme = $brand->meta ? (json_decode($brand->meta, true)['theme'] ?? 'nago') : 'nago';
+        $themePath = "themes/{$theme}/";
 
-        $brand = $this->db->table('brands')
-            ->where('id', $payment->brand_id)
-            ->get()
-            ->getRow();
-
-        $merchantSettings = $this->db->table('user_payment_settings')
-            ->where('brand_id', $payment->brand_id)
-            ->where('status', 1)
-            ->get()
-            ->getResult();
-
-        $configuredGateways = [];
-        foreach ($merchantSettings as $setting) {
-            $params = json_decode($setting->params ?? '{}', true);
-            $activeSubPayments = $params['active_payments'] ?? [];
-            
-            // Check if at least one sub-payment type (personal, agent, etc.) is active
-            $hasActiveSub = false;
-            foreach ($activeSubPayments as $type => $isActive) {
-                if ((int)$isActive === 1) {
-                    $hasActiveSub = true;
-                    break;
-                }
-            }
-
-            // Check if there is at least one number/ID provided
-            $hasDetails = false;
-            $fieldsToCheck = ['personal_number', 'agent_number', 'payment_number', 'merchant_id', 'merchant_code'];
-            foreach ($fieldsToCheck as $field) {
-                if (!empty($params[$field])) {
-                    $hasDetails = true;
-                    break;
-                }
-            }
-
-            if ($hasActiveSub && $hasDetails) {
-                $configuredGateways[] = $setting->g_type;
-            }
-        }
-
-        $methods = $this->db->table('payments')
-            ->where('status', 1)
-            ->whereIn('type', $configuredGateways ?: ['none']) // Ensure we don't crash if empty
-            ->get()
-            ->getResult();
-
-        $methodList = [];
-        foreach ($methods as $m) {
-            $params = json_decode($m->params ?? '{}', true);
-            $methodList[] = [
-                'id' => $m->type,
-                'name' => $m->name,
-                'type' => $params['type'] ?? 'mobile',
-            ];
-        }
-
-        $isTestMode = !empty($payment->test_mode);
-
-        $wallets = $this->db->table('user_payment_settings')
-            ->where('brand_id', $payment->brand_id)
-            ->where('status', 1)
-            ->get()
-            ->getResult();
-
-        $selectedMethod = null;
-        if (!empty($payment->payment_method)) {
-            foreach ($wallets as $w) {
-                if ($w->g_type === $payment->payment_method) {
-                    $selectedMethod = $w;
-                    $selectedMethod->params = json_decode($w->params ?? '{}', true);
-                    break;
-                }
-            }
+        // If the theme exists, use its modular structure
+        if (is_dir(APPPATH . "Views/{$themePath}")) {
+            return view("{$themePath}execute", [
+                'payment_id' => $paymentId,
+                'payment' => $payment,
+                'brand' => $brand,
+                'all_info' => $this->prepareLegacyInfo($payment, $brand),
+                'mobile_s' => $this->getLegacyWallets($merchant->id, $brand->id, 'mobile'),
+                'bank_s' => $this->getLegacyWallets($merchant->id, $brand->id, 'bank'),
+                'int_b_s' => $this->getLegacyWallets($merchant->id, $brand->id, 'int_b'),
+            ]);
         }
 
         return view('api/checkout', [
@@ -682,6 +620,145 @@ class PaymentController extends ResourceController
             'payment_method' => $payment->payment_method,
             'selected_method' => $selectedMethod,
         ]);
+    }
+
+    /**
+     * Legacy Theme Support: Execute Payment Page
+     */
+    public function executePayment($method, $paymentId)
+    {
+        $payment = $this->db->table('api_payments')->where('ids', $paymentId)->get()->getRow();
+        if (!$payment) return redirect()->to(base_url());
+
+        $brand = $this->db->table('brands')->where('id', $payment->brand_id)->get()->getRow();
+        $theme = $brand->meta ? (json_decode($brand->meta, true)['theme'] ?? 'nago') : 'nago';
+        
+        $setting = $this->db->table('user_payment_settings')
+            ->where('uid', $payment->merchant_id)
+            ->where('brand_id', $payment->brand_id)
+            ->where('g_type', $method)
+            ->where('status', 1)
+            ->get()->getRow();
+
+        if ($setting) {
+            $setting->params = json_decode($setting->params, true);
+        }
+
+        return view("themes/{$theme}/execute_payment", [
+            'all_info' => $this->prepareLegacyInfo($payment, $brand),
+            'setting' => (array)$setting,
+            'payment' => $payment,
+        ]);
+    }
+
+    /**
+     * Legacy Theme Support: Save/Verify Payment Action
+     */
+    public function savePayment($method)
+    {
+        $paymentId = $this->request->getPost('tmp_id');
+        $transactionId = $this->request->getPost('transaction_id');
+        
+        if (empty($paymentId) || empty($transactionId)) {
+            return $this->respond(['status' => 'error', 'message' => 'Missing ID or Transaction ID'], 400);
+        }
+
+        $payment = $this->db->table('api_payments')->where('ids', $paymentId)->get()->getRow();
+        if (!$payment) return $this->respond(['status' => 'error', 'message' => 'Payment not found'], 404);
+
+        $provider = PaymentProviderFactory::create((int)$payment->merchant_id, (int)$payment->brand_id, ['payment_method' => $method]);
+        $verifyResult = $provider->verifyPayment($transactionId, [
+            'payment_id' => $paymentId,
+            'payment_method' => $method
+        ]);
+
+        // 1. Success Flow
+        if ($verifyResult['success']) {
+            $webhookService = new WebhookService();
+            $webhookService->dispatch($payment->brand_id, $payment->merchant_id, 'payment.completed', [
+                'id' => $paymentId,
+                'status' => 'completed',
+                'amount' => (float)$payment->amount,
+                'transaction_id' => $transactionId
+            ]);
+
+            $redirect = base_url("api/v1/payment/checkout/{$paymentId}?status=success");
+            if (!empty($payment->success_url)) {
+                $separator = str_contains($payment->success_url, '?') ? '&' : '?';
+                $redirect = $payment->success_url . $separator . "payment_id={$paymentId}&status=completed";
+            }
+
+            return $this->respond([
+                'status' => 'success',
+                'message' => 'Payment Verified Successfully!',
+                'redirect' => $redirect
+            ]);
+        }
+
+        // 2. Pending/Polling Flow (High Latency)
+        if (!empty($verifyResult['is_pending'])) {
+            return $this->respond([
+                'status' => 'pending',
+                'message' => $verifyResult['message'] ?? 'Waiting for payment confirmation from your phone...',
+                'poll' => true,
+                'retry_after' => 5 // Seconds
+            ], 202);
+        }
+
+        // 3. Error Flow
+        return $this->respond([
+            'status' => 'error',
+            'code' => $verifyResult['code'] ?? 'VERIFICATION_FAILED',
+            'message' => $verifyResult['message'] ?? 'Verification failed. Please check your transaction ID.'
+        ], 200);
+    }
+
+    /**
+     * Prepare data structure expected by legacy qpay-sub views
+     */
+    protected function prepareLegacyInfo($payment, $brand): array
+    {
+        return [
+            'brand_id' => $brand->id,
+            'brand_logo' => $brand->brand_logo,
+            'brand_name' => $brand->brand_name,
+            'support_mail' => get_value($brand->meta, 'support_mail'),
+            'mobile_number' => get_value($brand->meta, 'mobile_number'),
+            'whatsapp_number' => get_value($brand->meta, 'whatsapp_number'),
+            'amount' => (float)$payment->amount,
+            'total_amount' => (float)$payment->amount, 
+            'transaction_id' => $payment->ids,
+            'tmp_ids' => $payment->ids,
+            'currency' => $payment->currency ?? 'BDT',
+            'fees_amount' => 0, // Simplified for now
+            'fees_type' => '',
+        ];
+    }
+
+    protected function getLegacyWallets($uid, $brandId, $type): array
+    {
+        $wallets = $this->db->table('user_payment_settings')
+            ->where('uid', $uid)
+            ->where('brand_id', $brandId)
+            ->where('t_type', $type)
+            ->where('status', 1)
+            ->get()
+            ->getResult();
+
+        $processed = [];
+        foreach ($wallets as $wallet) {
+            $params = json_decode($wallet->params, true) ?: [];
+            $activePayments = $params['active_payments'] ?? [];
+
+            foreach ($activePayments as $p_type => $active) {
+                if ((int)$active === 1) {
+                    $newItem = clone $wallet;
+                    $newItem->active_payment = $p_type;
+                    $processed[] = $newItem;
+                }
+            }
+        }
+        return $processed;
     }
 
     public function processCheckout($paymentId = null)

@@ -29,10 +29,12 @@ class Filters extends BaseConfig
         'user_auth'       => User_auth::class,
         'admin_auth'      => Admin_auth::class,
         'api_auth'        => \App\Filters\ApiAuth::class,
+        'domain_filter'   => \App\Filters\DomainFilter::class,
     ];
 
     public array $globals = [
         'before' => [
+            'domain_filter',
             'honeypot',
             'csrf' => [
                 'except' => [
