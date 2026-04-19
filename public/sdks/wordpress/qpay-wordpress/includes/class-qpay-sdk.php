@@ -107,11 +107,18 @@ class QPay_SDK
 
         $response = wp_remote_request($url, $args);
 
+        // DEBUG LOGGING
+        $masked_key = substr($this->apiKey, 0, 10) . '...' . substr($this->apiKey, -4);
+        error_log(sprintf('[QPAY_DEBUG] Request: %s %s | Key: %s (Len: %d)', $method, $url, $masked_key, strlen($this->apiKey)));
+        
         if (is_wp_error($response)) {
+            error_log('[QPAY_DEBUG] Request failed: ' . $response->get_error_message());
             throw new RuntimeException('QPay API error: ' . $response->get_error_message());
         }
 
         $body_text = wp_remote_retrieve_body($response);
+        $code = wp_remote_retrieve_response_code($response);
+        error_log(sprintf('[QPAY_DEBUG] Response Code: %d | Body: %s', $code, substr($body_text, 0, 500)));
         $body = json_decode($body_text, true);
         $code = wp_remote_retrieve_response_code($response);
 
