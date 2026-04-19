@@ -12,7 +12,8 @@ class QPay_DB
         $transactions_table = $wpdb->prefix . 'qpay_transactions';
         $forms_table = $wpdb->prefix . 'qpay_forms';
 
-        $sql = "CREATE TABLE IF NOT EXISTS {$transactions_table} (
+        // Strict WordPress dbDelta formatting
+        $sql = "CREATE TABLE {$transactions_table} (
             id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             payment_id varchar(64) NOT NULL,
             source varchar(32) NOT NULL DEFAULT 'button',
@@ -31,9 +32,9 @@ class QPay_DB
             test_mode tinyint(1) NOT NULL DEFAULT 0,
             metadata text DEFAULT NULL,
             ip_address varchar(45) DEFAULT NULL,
-            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
+            created_at datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+            updated_at datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+            PRIMARY KEY  (id),
             UNIQUE KEY payment_id (payment_id),
             KEY source (source),
             KEY status (status),
@@ -41,16 +42,16 @@ class QPay_DB
             KEY created_at (created_at)
         ) {$charset};
 
-        CREATE TABLE IF NOT EXISTS {$forms_table} (
+        CREATE TABLE {$forms_table} (
             id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             title varchar(255) NOT NULL,
             type varchar(20) NOT NULL DEFAULT 'payment',
             fields text NOT NULL,
             settings text DEFAULT NULL,
             status varchar(20) NOT NULL DEFAULT 'active',
-            created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id)
+            created_at datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+            updated_at datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+            PRIMARY KEY  (id)
         ) {$charset};";
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -74,7 +75,14 @@ class QPay_DB
     public static function insert_transaction(array $data): int
     {
         global $wpdb;
-        $wpdb->insert($wpdb->prefix . 'qpay_transactions', $data);
+        $table = $wpdb->prefix . 'qpay_transactions';
+        
+        // Final fallback: If table is missing at the moment of insertion, try to create it
+        if (!self::tables_exist()) {
+            self::create_tables();
+        }
+
+        $wpdb->insert($table, $data);
         return (int) $wpdb->insert_id;
     }
 
