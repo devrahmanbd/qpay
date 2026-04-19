@@ -28,7 +28,7 @@ class Filters extends BaseConfig
         'ipblocker'       => IPBlocker::class,
         'user_auth'       => User_auth::class,
         'admin_auth'      => Admin_auth::class,
-        'api_auth'        => ApiAuthV4::class,
+        'api_auth'        => \App\Filters\ApiAuth::class,
     ];
 
     public array $globals = [

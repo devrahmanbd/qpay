@@ -26,20 +26,14 @@ $routes->group('/', static function ($routes) {
         $routes->match(['get', 'post'], 'api/add-data', [ApiController::class, 'addMessage']);
 });
 
-$routes->get('api/v1/payment/checkout/(:any)', [PaymentControllerV4::class, 'checkout/$1']);
-$routes->post('api/v1/payment/checkout/(:any)/process', [PaymentControllerV4::class, 'processCheckout/$1']);
-
 $routes->group('api/v1', ['filter' => 'api_auth'], static function ($routes) {
-        $routes->post('payment/create', [PaymentControllerV4::class, 'create']);
-        $routes->match(['get', 'post'], 'payment/verify/(:any)', [PaymentControllerV4::class, 'verify/$1']);
-        $routes->match(['get', 'post'], 'payment/verify', [PaymentControllerV4::class, 'verify']);
-        $routes->get('payment/status/(:any)', [PaymentControllerV4::class, 'status/$1']);
-        $routes->get('payment/status', [PaymentControllerV4::class, 'status']);
-        $routes->get('payments', [PaymentControllerV4::class, 'listPayments']);
-        $routes->get('payments/(:any)', [PaymentControllerV4::class, 'status/$1']);
-        $routes->post('payment/refund', [PaymentControllerV4::class, 'refund']);
-        $routes->post('refunds', [PaymentControllerV4::class, 'refund']); // SDK Compatibility
-        $routes->get('balance', [PaymentControllerV4::class, 'balance']);
-        $routes->get('methods', [PaymentControllerV4::class, 'getMethods']);
-        $routes->get('payment/methods', [PaymentControllerV4::class, 'getMethods']); // SDK Consistency
+    $routes->post('payments', [\App\Controllers\Api\V1\PaymentController::class, 'create']);
+    $routes->get('payments/(:any)', [\App\Controllers\Api\V1\PaymentController::class, 'status']);
+    $routes->get('payments', [\App\Controllers\Api\V1\PaymentController::class, 'listPayments']);
+    $routes->post('payments/(:any)/refund', [\App\Controllers\Api\V1\PaymentController::class, 'refund']);
+    $routes->post('payments/(:any)/verify', [\App\Controllers\Api\V1\PaymentController::class, 'verify']);
+    $routes->get('balance', [\App\Controllers\Api\V1\PaymentController::class, 'balance']);
+    $routes->get('methods', [\App\Controllers\Api\V1\PaymentController::class, 'getMethods']);
+    $routes->get('payment/checkout/(:any)', [\App\Controllers\Api\V1\PaymentController::class, 'checkout']);
+    $routes->post('payment/checkout/(:any)', [\App\Controllers\Api\V1\PaymentController::class, 'processCheckout']);
 });

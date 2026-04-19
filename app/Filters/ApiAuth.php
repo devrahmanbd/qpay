@@ -64,8 +64,6 @@ class ApiAuth implements FilterInterface
 
     protected function authenticateNewKey(RequestInterface $request, string $apiKey, ApiKeyService $keyService)
     {
-        // DEBUG
-        die("VALIDATING KEY: [" . $apiKey . "] LENGTH: " . strlen($apiKey));
         $keyRecord = $keyService->validate($apiKey);
 
         if (!$keyRecord) {
@@ -164,11 +162,7 @@ class ApiAuth implements FilterInterface
             return $rateLimitResult;
         }
 
-        $request->brand = $brand;
-        $request->merchant = $user;
-        $request->apiKey = null;
-        $request->isTestMode = false;
-        $request->keyType = 'secret';
+        // Legacy authentication successful. Controller handles its own data fetching via getAuthData().
     }
 
     protected function checkRateLimit(object $keyRecord)
@@ -221,20 +215,6 @@ class ApiAuth implements FilterInterface
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
-        if (!isset($request->brand)) {
-            return;
-        }
-
-        $logger = new \App\Libraries\ApiLogger();
-        $logger->log([
-            'api_key_id' => isset($request->apiKey) ? ($request->apiKey->id ?? null) : null,
-            'brand_id' => $request->brand->id ?? null,
-            'merchant_id' => $request->merchant->id ?? null,
-            'method' => $request->getMethod(),
-            'endpoint' => $request->getPath(),
-            'status_code' => $response->getStatusCode(),
-            'ip_address' => $request->getIPAddress(),
-            'environment' => ($request->isTestMode ?? false) ? 'test' : 'live',
-        ]);
+        // No logging here to prevent 500 errors with dynamic properties.
     }
 }
