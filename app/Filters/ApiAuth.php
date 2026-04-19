@@ -42,6 +42,9 @@ class ApiAuth implements FilterInterface
         $keyService = new ApiKeyService();
         $isNewFormat = (bool) $keyService->isSecretKey($apiKey) || $keyService->isPublishableKey($apiKey);
 
+        // Debug log
+        log_message('error', 'Incoming API Key Received (truncated): ' . substr($apiKey, 0, 15) . '...');
+        
         if ($isNewFormat) {
             return $this->authenticateNewKey($request, $apiKey, $keyService);
         }

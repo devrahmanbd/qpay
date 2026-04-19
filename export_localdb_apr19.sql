@@ -31,7 +31,7 @@ CREATE TABLE `activity_logs` (
   PRIMARY KEY (`id`),
   KEY `activity_logs_uid_foreign` (`uid`),
   CONSTRAINT `activity_logs_uid_foreign` FOREIGN KEY (`uid`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=104 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -40,7 +40,7 @@ CREATE TABLE `activity_logs` (
 
 LOCK TABLES `activity_logs` WRITE;
 /*!40000 ALTER TABLE `activity_logs` DISABLE KEYS */;
-INSERT INTO `activity_logs` VALUES (95,1,'::1','Signin','2026-04-18 07:06:11'),(96,1,'::1','Signin','2026-04-18 13:40:47'),(97,1,'::1','Signin','2026-04-18 16:48:50'),(98,1,'::1','Signin','2026-04-18 20:37:58'),(99,1,'::1','Signin','2026-04-18 23:09:01'),(100,1,'::1','Signin','2026-04-18 23:39:41'),(101,1,'::1','Signin','2026-04-18 23:57:42');
+INSERT INTO `activity_logs` VALUES (95,1,'::1','Signin','2026-04-18 07:06:11'),(96,1,'::1','Signin','2026-04-18 13:40:47'),(97,1,'::1','Signin','2026-04-18 16:48:50'),(98,1,'::1','Signin','2026-04-18 20:37:58'),(99,1,'::1','Signin','2026-04-18 23:09:01'),(100,1,'::1','Signin','2026-04-18 23:39:41'),(101,1,'::1','Signin','2026-04-18 23:57:42'),(102,1,'::1','Signin','2026-04-19 03:15:36'),(103,1,'::1','Signin','2026-04-19 07:58:52');
 /*!40000 ALTER TABLE `activity_logs` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -203,6 +203,55 @@ CREATE TABLE `api_logs` (
 LOCK TABLES `api_logs` WRITE;
 /*!40000 ALTER TABLE `api_logs` DISABLE KEYS */;
 /*!40000 ALTER TABLE `api_logs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `api_payments`
+--
+
+DROP TABLE IF EXISTS `api_payments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_payments` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `ids` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `merchant_id` int unsigned NOT NULL,
+  `brand_id` int unsigned DEFAULT NULL,
+  `idempotency_key` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `amount` decimal(12,3) NOT NULL DEFAULT '0.000',
+  `currency` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'BDT',
+  `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '0=pending,1=processing,2=completed,3=failed,4=refunded',
+  `test_mode` tinyint(1) DEFAULT '0',
+  `webhook_delivered` tinyint(1) DEFAULT '0',
+  `transaction_id` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `payment_method` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `callback_url` text COLLATE utf8mb4_unicode_ci,
+  `success_url` text COLLATE utf8mb4_unicode_ci,
+  `cancel_url` text COLLATE utf8mb4_unicode_ci,
+  `customer_email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `customer_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `metadata` text COLLATE utf8mb4_unicode_ci,
+  `provider_response` text COLLATE utf8mb4_unicode_ci,
+  `ip_address` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ids` (`ids`),
+  UNIQUE KEY `idx_idempotency` (`merchant_id`,`brand_id`,`idempotency_key`),
+  KEY `merchant_id` (`merchant_id`),
+  KEY `brand_id` (`brand_id`),
+  KEY `status` (`status`),
+  KEY `transaction_id` (`transaction_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `api_payments`
+--
+
+LOCK TABLES `api_payments` WRITE;
+/*!40000 ALTER TABLE `api_payments` DISABLE KEYS */;
+/*!40000 ALTER TABLE `api_payments` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1209,7 +1258,7 @@ CREATE TABLE `webhook_events` (
   PRIMARY KEY (`id`),
   KEY `idx_webhook_id` (`webhook_id`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1218,6 +1267,7 @@ CREATE TABLE `webhook_events` (
 
 LOCK TABLES `webhook_events` WRITE;
 /*!40000 ALTER TABLE `webhook_events` DISABLE KEYS */;
+INSERT INTO `webhook_events` VALUES (3,3,'payment.created','{\"data\": {\"id\": \"test_pay_1776563332\", \"amount\": 10, \"status\": \"processing\", \"currency\": \"BDT\", \"test_mode\": true}, \"event\": \"payment.created\", \"created\": 1776563332}','pending',1,'2026-04-19 07:48:54',401,'{\"error\":\"Invalid signature\"}','2026-04-19 07:49:54','2026-04-19 07:48:52');
 /*!40000 ALTER TABLE `webhook_events` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1235,7 +1285,7 @@ CREATE TABLE `webhooks` (
   `url` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `secret` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
   `events` json DEFAULT NULL,
-  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `status` tinyint(1) NOT NULL DEFAULT '1',
   `last_triggered_at` datetime DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
@@ -1264,4 +1314,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-04-19  0:46:18
+-- Dump completed on 2026-04-19  8:00:22
