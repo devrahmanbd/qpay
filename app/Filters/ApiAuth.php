@@ -64,6 +64,8 @@ class ApiAuth implements FilterInterface
 
     protected function authenticateNewKey(RequestInterface $request, string $apiKey, ApiKeyService $keyService)
     {
+        // DEBUG
+        die("VALIDATING KEY: [" . $apiKey . "] LENGTH: " . strlen($apiKey));
         $keyRecord = $keyService->validate($apiKey);
 
         if (!$keyRecord) {
