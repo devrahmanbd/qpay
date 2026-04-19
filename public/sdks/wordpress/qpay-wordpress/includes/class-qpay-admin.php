@@ -89,6 +89,11 @@ class QPay_Admin
             echo '<div class="notice notice-success"><p>' . esc_html__('Settings saved.', 'qpay') . '</p></div>';
         }
 
+        if (isset($_POST['qpay_repair_db']) && check_admin_referer('qpay_settings_nonce')) {
+            QPay_DB::create_tables();
+            echo '<div class="notice notice-success"><p>' . esc_html__('Database tables checked and repaired.', 'qpay') . '</p></div>';
+        }
+
         $woo_active = class_exists('WooCommerce');
         if ($woo_active && get_option('qpay_enable_woocommerce', 'yes') === 'yes') {
             $wc_settings = get_option('woocommerce_qpay_settings', []);
@@ -159,6 +164,29 @@ class QPay_Admin
                                 <td>
                                     <input type="password" id="qpay_webhook_secret" name="qpay_webhook_secret" value="<?php echo esc_attr(get_option('qpay_webhook_secret')); ?>" class="regular-text" placeholder="whsec_...">
                                     <p class="description"><?php esc_html_e('Webhook URL:', 'qpay'); ?> <code><?php echo esc_html($webhook_url); ?></code></p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="qpay-card">
+                        <h2><?php esc_html_e('Database Status', 'qpay'); ?></h2>
+                        <table class="form-table">
+                            <tr>
+                                <th><?php esc_html_e('Tables Status', 'qpay'); ?></th>
+                                <td>
+                                    <?php if (QPay_DB::tables_exist()): ?>
+                                        <span style="color: green; font-weight: bold;">✔ <?php esc_html_e('All tables exist', 'qpay'); ?></span>
+                                    <?php else: ?>
+                                        <span style="color: red; font-weight: bold;">✘ <?php esc_html_e('Missing tables detected', 'qpay'); ?></span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><?php esc_html_e('Actions', 'qpay'); ?></th>
+                                <td>
+                                    <input type="submit" name="qpay_repair_db" class="button" value="<?php esc_attr_e('Repair Database', 'qpay'); ?>">
+                                    <p class="description"><?php esc_html_e('Click this if you see database errors during checkout.', 'qpay'); ?></p>
                                 </td>
                             </tr>
                         </table>

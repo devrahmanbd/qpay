@@ -105,8 +105,8 @@ final class QPay_Plugin
     {
         load_plugin_textdomain('qpay', false, dirname(QPAY_PLUGIN_BASE) . '/languages');
 
-        // Ensure tables exist on every load for resilience
-        if (get_option('qpay_db_version') !== QPAY_VERSION) {
+        // Ensure tables exist for resilience (e.g., after DB migration)
+        if (get_option('qpay_db_version') !== QPAY_VERSION || !QPay_DB::tables_exist()) {
             QPay_DB::create_tables();
         }
     }

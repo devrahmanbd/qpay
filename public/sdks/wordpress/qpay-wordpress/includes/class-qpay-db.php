@@ -59,6 +59,18 @@ class QPay_DB
         update_option('qpay_db_version', QPAY_VERSION);
     }
 
+    public static function tables_exist(): bool
+    {
+        global $wpdb;
+        $transactions_table = $wpdb->prefix . 'qpay_transactions';
+        $forms_table = $wpdb->prefix . 'qpay_forms';
+
+        $check_transactions = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $transactions_table));
+        $check_forms = $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $forms_table));
+
+        return !empty($check_transactions) && !empty($check_forms);
+    }
+
     public static function insert_transaction(array $data): int
     {
         global $wpdb;

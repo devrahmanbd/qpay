@@ -15,6 +15,7 @@ class ApiAuth implements FilterInterface
     ];
 
     protected bool $allowLegacyKeys = false;
+    private static array $authContext = [];
 
     public function before(RequestInterface $request, $arguments = null)
     {
@@ -120,10 +121,12 @@ class ApiAuth implements FilterInterface
                 ]);
         }
 
-        $rateLimitResult = $this->checkRateLimit($keyRecord);
-        if ($rateLimitResult !== true) {
-            return $rateLimitResult;
-        }
+        self::$authContext = [
+            'api_key_id' => $keyRecord->id ?? null,
+            'brand_id' => $brand->id,
+            'merchant_id' => $user->id,
+            'environment' => $keyRecord->environment ?? 'test'
+        ];
 
         return;
     }
@@ -169,6 +172,13 @@ class ApiAuth implements FilterInterface
         if ($rateLimitResult !== true) {
             return $rateLimitResult;
         }
+
+        self::$authContext = [
+            'api_key_id' => null,
+            'brand_id' => $brand->id,
+            'merchant_id' => $user->id,
+            'environment' => 'live'
+        ];
 
         // Legacy authentication successful. Controller handles its own data fetching via getAuthData().
     }
@@ -223,6 +233,20 @@ class ApiAuth implements FilterInterface
 
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
-        // No logging here to prevent 500 errors with dynamic properties.
+        if (empty(self::$authContext)) {
+            return;
+        }
+
+        $logger = new \App\Libraries\ApiLogger();
+        $logger->log([
+            'api_key_id' => self::$authContext['api_key_id'],
+            'brand_id' => self::$authContext['brand_id'],
+            'merchant_id' => self::$authContext['merchant_id'],
+            'method' => $request->getMethod(),
+            'endpoint' => $request->getPath(),
+            'status_code' => $response->getStatusCode(),
+            'ip_address' => $request->getIPAddress(),
+            'environment' => self::$authContext['environment'],
+        ]);
     }
 }
