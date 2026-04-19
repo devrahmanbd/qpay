@@ -117,11 +117,7 @@ class ApiAuth implements FilterInterface
             return $rateLimitResult;
         }
 
-        $request->brand = $brand;
-        $request->merchant = $user;
-        $request->apiKey = $keyRecord;
-        $request->isTestMode = ($keyRecord->environment === 'test');
-        $request->keyType = $keyRecord->key_type;
+        return;
     }
 
     protected function authenticateLegacyKey(RequestInterface $request, string $apiKey)

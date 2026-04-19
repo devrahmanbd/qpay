@@ -53,10 +53,6 @@ if (! defined('ENVIRONMENT')) {
     define('ENVIRONMENT', env('CI_ENVIRONMENT', 'production'));
 }
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 /*
  * ---------------------------------------------------------------
  * LAUNCH THE APPLICATION

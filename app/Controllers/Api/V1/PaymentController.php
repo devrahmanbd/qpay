@@ -19,17 +19,18 @@ class PaymentController extends ResourceController
     public function create()
     {
         try {
-            $request = service('request');
-            $brand = $request->brand;
-            $merchant = $request->merchant;
-            $isTest = $request->isTestMode ?? false;
+            $auth = $this->getAuthData();
+            $brand = $auth['brand'];
+            $merchant = $auth['merchant'];
+            $isTest = $auth['isTest'];
 
             q_debug("Starting payment creation for Merchant: {$merchant->id}, Brand: {$brand->id}, Test: " . ($isTest ? 'Yes' : 'No'), 'PAYMENT_CREATE');
 
-            if (($request->keyType ?? 'secret') === 'publishable') {
+            if ($auth['keyType'] === 'publishable') {
                 return $this->respondError('FORBIDDEN', 'Publishable keys cannot create payments. Use a secret key (qp_*).', 403);
             }
 
+            $request = service('request');
             $rules = [
                 'amount' => 'required|numeric|greater_than[0]',
                 'currency' => 'permit_empty|alpha|max_length[5]',
@@ -160,298 +161,361 @@ class PaymentController extends ResourceController
             ]), 201);
         } catch (\Throwable $e) {
             log_message('critical', $e->getMessage() . "\n" . $e->getTraceAsString());
-            // Force write to debug.log too as it's easier to read
-            $logPath = WRITEPATH . 'debug.log';
-            file_put_contents($logPath, "[" . date('Y-m-d H:i:s') . "] [ERROR] " . $e->getMessage() . "\n" . $e->getTraceAsString() . PHP_EOL, FILE_APPEND);
-            
             return $this->respondError('INTERNAL_SERVER_ERROR', 'An unexpected error occurred: ' . $e->getMessage(), 500);
         }
     }
 
-    public function verify($paymentId = null)
+    protected function getAuthData(): array
     {
         $request = service('request');
-        $brand = $request->brand;
-        $merchant = $request->merchant;
-        $isTest = $request->isTestMode ?? false;
-
-        if (($request->keyType ?? 'secret') === 'publishable') {
-            return $this->respondError('FORBIDDEN', 'Publishable keys cannot verify payments. Use a secret key (qp_*).', 403);
+        $keyService = new \App\Libraries\ApiKeyService();
+        
+        $apiKey = $request->getHeaderLine('API-KEY');
+        if (empty($apiKey)) {
+            $apiKey = $request->getHeaderLine('Authorization');
+            if (strpos($apiKey, 'Bearer ') === 0) {
+                $apiKey = substr($apiKey, 7);
+            }
         }
 
-        if (empty($paymentId)) {
-            $paymentId = $request->getVar('payment_id');
+        if (empty($apiKey)) {
+            $apiKey = $request->getVar('api_key');
         }
 
-        if (empty($paymentId)) {
-            return $this->respondError('MISSING_PAYMENT_ID', 'Payment ID is required.', 400);
+        $keyRecord = $keyService->validate($apiKey);
+        if (!$keyRecord) {
+            throw new \RuntimeException('Authentication failure: Key validation failed inside controller.');
         }
 
-        $payment = $this->findPayment($paymentId, $merchant->id, $brand->id, $isTest);
+        $brand = $this->db->table('brands')->where('id', $keyRecord->brand_id)->get()->getRow();
+        $merchant = $this->db->table('users')->where('id', $keyRecord->merchant_id)->get()->getRow();
 
-        if (!$payment) {
-            return $this->respondError('PAYMENT_NOT_FOUND', 'No payment found with the provided ID.', 404);
-        }
+        return [
+            'brand' => $brand,
+            'merchant' => $merchant,
+            'isTest' => ($keyRecord->environment === 'test'),
+            'keyType' => $keyRecord->key_type,
+            'apiKey' => $apiKey
+        ];
+    }
 
-        if ((int) $payment->status === 3) {
-            $formatted = $this->formatPayment($payment);
-            $formatted['verified'] = false;
-            $formatted['failure_reason'] = 'Payment has already failed and cannot be verified.';
-            return $this->respond($formatted);
-        }
+    public function verify($paymentId = null)
+    {
+        try {
+            $auth = $this->getAuthData();
+            $brand = $auth['brand'];
+            $merchant = $auth['merchant'];
+            $isTest = $auth['isTest'];
 
-        if ($isTest) {
-            $provider = new \App\Adapters\TestPaymentAdapter($merchant->id, $brand->id);
-        } else {
-            $provider = PaymentProviderFactory::create($merchant->id, $brand->id, ['payment_method' => $payment->payment_method]);
-        }
+            if ($auth['keyType'] === 'publishable') {
+                return $this->respondError('FORBIDDEN', 'Publishable keys cannot verify payments. Use a secret key (qp_*).', 403);
+            }
 
-        $verifyResult = $provider->verifyPayment($paymentId, ['payment_method' => $payment->payment_method]);
+            $request = service('request');
+            if (empty($paymentId)) {
+                $paymentId = $request->getVar('payment_id');
+            }
 
-        if ($verifyResult['success'] && ($verifyResult['verified'] ?? false) && $payment->status < 2) {
-            $this->db->table('api_payments')
-                ->where('ids', $paymentId)
-                ->update([
-                    'status' => 2,
-                    'transaction_id' => $verifyResult['transaction_id'] ?? $paymentId,
-                    'provider_response' => json_encode($verifyResult),
-                    'updated_at' => date('Y-m-d H:i:s'),
+            if (empty($paymentId)) {
+                return $this->respondError('MISSING_PAYMENT_ID', 'Payment ID is required.', 400);
+            }
+
+            $payment = $this->findPayment($paymentId, $merchant->id, $brand->id, $isTest);
+
+            if (!$payment) {
+                return $this->respondError('PAYMENT_NOT_FOUND', 'No payment found with the provided ID.', 404);
+            }
+
+            if ((int) $payment->status === 3) {
+                $formatted = $this->formatPayment($payment);
+                $formatted['verified'] = false;
+                $formatted['failure_reason'] = 'Payment has already failed and cannot be verified.';
+                return $this->respond($formatted);
+            }
+
+            if ($isTest) {
+                $provider = new \App\Adapters\TestPaymentAdapter($merchant->id, $brand->id);
+            } else {
+                $provider = PaymentProviderFactory::create($merchant->id, $brand->id, ['payment_method' => $payment->payment_method]);
+            }
+
+            $verifyResult = $provider->verifyPayment($paymentId, ['payment_method' => $payment->payment_method]);
+
+            if ($verifyResult['success'] && ($verifyResult['verified'] ?? false) && $payment->status < 2) {
+                $this->db->table('api_payments')
+                    ->where('ids', $paymentId)
+                    ->update([
+                        'status' => 2,
+                        'transaction_id' => $verifyResult['transaction_id'] ?? $paymentId,
+                        'provider_response' => json_encode($verifyResult),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+                $payment->status = 2;
+
+                $webhookService = new WebhookService();
+                $webhookService->dispatch($brand->id, $merchant->id, 'payment.completed', [
+                    'id' => $payment->ids,
+                    'object' => 'payment',
+                    'amount' => (float) $payment->amount,
+                    'currency' => $payment->currency,
+                    'status' => 'completed',
+                    'test_mode' => $isTest,
                 ]);
-            $payment->status = 2;
+            }
 
-            $webhookService = new WebhookService();
-            $webhookService->dispatch($brand->id, $merchant->id, 'payment.completed', [
-                'id' => $payment->ids,
-                'object' => 'payment',
-                'amount' => (float) $payment->amount,
-                'currency' => $payment->currency,
-                'status' => 'completed',
-                'test_mode' => $isTest,
-            ]);
+            $formatted = $this->formatPayment($payment);
+            $formatted['verified'] = $verifyResult['verified'] ?? false;
+
+            return $this->respond($formatted);
+        } catch (\Throwable $e) {
+            log_message('critical', $e->getMessage() . "\n" . $e->getTraceAsString());
+            return $this->respondError('INTERNAL_SERVER_ERROR', 'An unexpected error occurred during verification.', 500);
         }
-
-        $formatted = $this->formatPayment($payment);
-        $formatted['verified'] = $verifyResult['verified'] ?? false;
-
-        return $this->respond($formatted);
     }
 
     public function status($paymentId = null)
     {
-        $request = service('request');
-        $brand = $request->brand;
-        $merchant = $request->merchant;
-        $isTest = $request->isTestMode ?? false;
+        try {
+            $auth = $this->getAuthData();
+            $brand = $auth['brand'];
+            $merchant = $auth['merchant'];
+            $isTest = $auth['isTest'];
 
-        if (empty($paymentId)) {
-            return $this->respondError('MISSING_PAYMENT_ID', 'Payment ID is required.', 400);
+            if (empty($paymentId)) {
+                return $this->respondError('MISSING_PAYMENT_ID', 'Payment ID is required.', 400);
+            }
+
+            $payment = $this->findPayment($paymentId, $merchant->id, $brand->id, $isTest);
+
+            if (!$payment) {
+                return $this->respondError('PAYMENT_NOT_FOUND', 'No payment found with the provided ID.', 404);
+            }
+
+            return $this->respond($this->formatPayment($payment));
+        } catch (\Throwable $e) {
+            log_message('critical', $e->getMessage() . "\n" . $e->getTraceAsString());
+            return $this->respondError('INTERNAL_SERVER_ERROR', 'An unexpected error occurred while fetching status.', 500);
         }
-
-        $payment = $this->findPayment($paymentId, $merchant->id, $brand->id, $isTest);
-
-        if (!$payment) {
-            return $this->respondError('PAYMENT_NOT_FOUND', 'No payment found with the provided ID.', 404);
-        }
-
-        return $this->respond($this->formatPayment($payment));
     }
 
     public function listPayments()
     {
-        $request = service('request');
-        $brand = $request->brand;
-        $merchant = $request->merchant;
-        $isTest = $request->isTestMode ?? false;
+        try {
+            $auth = $this->getAuthData();
+            $brand = $auth['brand'];
+            $merchant = $auth['merchant'];
+            $isTest = $auth['isTest'];
 
-        $limit = min((int) ($request->getVar('limit') ?: 10), 100);
-        $offset = max((int) ($request->getVar('offset') ?: 0), 0);
-        $status = $request->getVar('status');
+            $request = service('request');
+            $limit = min((int) ($request->getVar('limit') ?: 10), 100);
+            $offset = max((int) ($request->getVar('offset') ?: 0), 0);
+            $status = $request->getVar('status');
 
-        $builder = $this->db->table('api_payments')
-            ->where('merchant_id', $merchant->id)
-            ->where('brand_id', $brand->id)
-            ->where('test_mode', $isTest ? 1 : 0);
+            $builder = $this->db->table('api_payments')
+                ->where('merchant_id', $merchant->id)
+                ->where('brand_id', $brand->id)
+                ->where('test_mode', $isTest ? 1 : 0);
 
-        if ($status !== null) {
-            $statusMap = ['pending' => 0, 'processing' => 1, 'completed' => 2, 'failed' => 3, 'refunded' => 4];
-            if (isset($statusMap[$status])) {
-                $builder->where('status', $statusMap[$status]);
+            if ($status !== null) {
+                $statusMap = ['pending' => 0, 'processing' => 1, 'completed' => 2, 'failed' => 3, 'refunded' => 4];
+                if (isset($statusMap[$status])) {
+                    $builder->where('status', $statusMap[$status]);
+                }
             }
+
+            $total = (clone $builder)->countAllResults(false);
+
+            $payments = $builder
+                ->orderBy('created_at', 'DESC')
+                ->limit($limit, $offset)
+                ->get()
+                ->getResult();
+
+            $data = [];
+            foreach ($payments as $payment) {
+                $data[] = $this->formatPayment($payment);
+            }
+
+            return $this->respond([
+                'object' => 'list',
+                'data' => $data,
+                'has_more' => ($offset + $limit) < $total,
+                'total_count' => $total,
+                'url' => '/api/v1/payments',
+            ]);
+        } catch (\Throwable $e) {
+            log_message('critical', $e->getMessage() . "\n" . $e->getTraceAsString());
+            return $this->respondError('INTERNAL_SERVER_ERROR', 'An unexpected error occurred while listing payments.', 500);
         }
-
-        $total = (clone $builder)->countAllResults(false);
-
-        $payments = $builder
-            ->orderBy('created_at', 'DESC')
-            ->limit($limit, $offset)
-            ->get()
-            ->getResult();
-
-        $data = [];
-        foreach ($payments as $payment) {
-            $data[] = $this->formatPayment($payment);
-        }
-
-        return $this->respond([
-            'object' => 'list',
-            'data' => $data,
-            'has_more' => ($offset + $limit) < $total,
-            'total_count' => $total,
-            'url' => '/api/v1/payments',
-        ]);
     }
 
     public function refund()
     {
-        $request = service('request');
-        $brand = $request->brand;
-        $merchant = $request->merchant;
-        $isTest = $request->isTestMode ?? false;
+        try {
+            $auth = $this->getAuthData();
+            $brand = $auth['brand'];
+            $merchant = $auth['merchant'];
+            $isTest = $auth['isTest'];
 
-        if (($request->keyType ?? 'secret') === 'publishable') {
-            return $this->respondError('FORBIDDEN', 'Publishable keys cannot create refunds. Use a secret key (qp_*).', 403);
-        }
+            $request = service('request');
+            if ($auth['keyType'] === 'publishable') {
+                return $this->respondError('FORBIDDEN', 'Publishable keys cannot create refunds. Use a secret key (qp_*).', 403);
+            }
 
-        $paymentId = $request->getVar('payment_id');
-        $reason = $request->getVar('reason');
+            $paymentId = $request->getVar('payment_id');
+            $reason = $request->getVar('reason');
 
-        if (empty($paymentId)) {
-            return $this->respondError('MISSING_PAYMENT_ID', 'Payment ID is required.', 400);
-        }
+            if (empty($paymentId)) {
+                return $this->respondError('MISSING_PAYMENT_ID', 'Payment ID is required.', 400);
+            }
 
-        $payment = $this->findPayment($paymentId, $merchant->id, $brand->id, $isTest);
+            $payment = $this->findPayment($paymentId, $merchant->id, $brand->id, $isTest);
 
-        if (!$payment) {
-            return $this->respondError('PAYMENT_NOT_FOUND', 'No payment found with the provided ID.', 404);
-        }
+            if (!$payment) {
+                return $this->respondError('PAYMENT_NOT_FOUND', 'No payment found with the provided ID.', 404);
+            }
 
-        if ($payment->status != 2) {
-            return $this->respondError('PAYMENT_NOT_REFUNDABLE', 'Only completed payments can be refunded.', 400);
-        }
+            if ($payment->status != 2) {
+                return $this->respondError('PAYMENT_NOT_REFUNDABLE', 'Only completed payments can be refunded.', 400);
+            }
 
-        $this->db->table('api_payments')
-            ->where('ids', $paymentId)
-            ->update([
-                'status' => 4,
-                'updated_at' => date('Y-m-d H:i:s'),
+            $this->db->table('api_payments')
+                ->where('ids', $paymentId)
+                ->update([
+                    'status' => 4,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+
+            $payment->status = 4;
+
+            $refundId = 'ref_' . bin2hex(random_bytes(12));
+
+            $webhookService = new WebhookService();
+            $webhookService->dispatch($brand->id, $merchant->id, 'refund.created', [
+                'id' => $refundId,
+                'object' => 'refund',
+                'payment' => $payment->ids,
+                'amount' => (float) $payment->amount,
+                'currency' => $payment->currency,
+                'reason' => $reason,
+                'status' => 'succeeded',
+                'test_mode' => $isTest,
             ]);
 
-        $payment->status = 4;
+            q_debug($refundId, 'REFUND_CREATED');
 
-        $refundId = 'ref_' . bin2hex(random_bytes(12));
-
-        $webhookService = new WebhookService();
-        $webhookService->dispatch($brand->id, $merchant->id, 'refund.created', [
-            'id' => $refundId,
-            'object' => 'refund',
-            'payment' => $payment->ids,
-            'amount' => (float) $payment->amount,
-            'currency' => $payment->currency,
-            'reason' => $reason,
-            'status' => 'succeeded',
-            'test_mode' => $isTest,
-        ]);
-
-        q_debug($refundId, 'REFUND_CREATED');
-
-        return $this->respond([
-            'id' => $refundId,
-            'object' => 'refund',
-            'amount' => (float) $payment->amount,
-            'currency' => strtolower($payment->currency),
-            'payment' => $payment->ids,
-            'reason' => $reason,
-            'status' => 'succeeded',
-            'test_mode' => $isTest,
-            'created' => time(),
-            'created_at' => date('Y-m-d H:i:s'),
-        ]);
+            return $this->respond([
+                'id' => $refundId,
+                'object' => 'refund',
+                'amount' => (float) $payment->amount,
+                'currency' => strtolower($payment->currency),
+                'payment' => $payment->ids,
+                'reason' => $reason,
+                'status' => 'succeeded',
+                'test_mode' => $isTest,
+                'created' => time(),
+                'created_at' => date('Y-m-d H:i:s'),
+            ]);
+        } catch (\Throwable $e) {
+            log_message('critical', $e->getMessage() . "\n" . $e->getTraceAsString());
+            return $this->respondError('INTERNAL_SERVER_ERROR', 'An unexpected error occurred during refund processing.', 500);
+        }
     }
 
     public function balance()
     {
-        $request = service('request');
-        $brand = $request->brand;
-        $merchant = $request->merchant;
-        $isTest = $request->isTestMode ?? false;
+        try {
+            $auth = $this->getAuthData();
+            $brand = $auth['brand'];
+            $merchant = $auth['merchant'];
+            $isTest = $auth['isTest'];
 
-        $completedSum = $this->db->table('api_payments')
-            ->selectSum('amount')
-            ->where('merchant_id', $merchant->id)
-            ->where('brand_id', $brand->id)
-            ->where('status', 2)
-            ->where('test_mode', $isTest ? 1 : 0)
-            ->get()
-            ->getRow();
+            $completedSum = $this->db->table('api_payments')
+                ->selectSum('amount')
+                ->where('merchant_id', $merchant->id)
+                ->where('brand_id', $brand->id)
+                ->where('status', 2)
+                ->where('test_mode', $isTest ? 1 : 0)
+                ->get()
+                ->getRow();
 
-        $pendingSum = $this->db->table('api_payments')
-            ->selectSum('amount')
-            ->where('merchant_id', $merchant->id)
-            ->where('brand_id', $brand->id)
-            ->whereIn('status', [0, 1])
-            ->where('test_mode', $isTest ? 1 : 0)
-            ->get()
-            ->getRow();
+            $pendingSum = $this->db->table('api_payments')
+                ->selectSum('amount')
+                ->where('merchant_id', $merchant->id)
+                ->where('brand_id', $brand->id)
+                ->whereIn('status', [0, 1])
+                ->where('test_mode', $isTest ? 1 : 0)
+                ->get()
+                ->getRow();
 
-        $refundedSum = $this->db->table('api_payments')
-            ->selectSum('amount')
-            ->where('merchant_id', $merchant->id)
-            ->where('brand_id', $brand->id)
-            ->where('status', 4)
-            ->where('test_mode', $isTest ? 1 : 0)
-            ->get()
-            ->getRow();
+            $refundedSum = $this->db->table('api_payments')
+                ->selectSum('amount')
+                ->where('merchant_id', $merchant->id)
+                ->where('brand_id', $brand->id)
+                ->where('status', 4)
+                ->where('test_mode', $isTest ? 1 : 0)
+                ->get()
+                ->getRow();
 
-        return $this->respond([
-            'object' => 'balance',
-            'available' => (float) ($completedSum->amount ?? 0),
-            'pending' => (float) ($pendingSum->amount ?? 0),
-            'refunded' => (float) ($refundedSum->amount ?? 0),
-            'currency' => $brand->currency ?? 'BDT',
-            'test_mode' => $isTest,
-        ]);
+            return $this->respond([
+                'object' => 'balance',
+                'available' => (float) ($completedSum->amount ?? 0),
+                'pending' => (float) ($pendingSum->amount ?? 0),
+                'refunded' => (float) ($refundedSum->amount ?? 0),
+                'currency' => $brand->currency ?? 'BDT',
+                'test_mode' => $isTest,
+            ]);
+        } catch (\Throwable $e) {
+            log_message('critical', $e->getMessage() . "\n" . $e->getTraceAsString());
+            return $this->respondError('INTERNAL_SERVER_ERROR', 'An unexpected error occurred while fetching balance.', 500);
+        }
     }
 
     public function getMethods()
     {
-        $request = service('request');
-        $brand = $request->brand;
-        $merchant = $request->merchant;
+        try {
+            $auth = $this->getAuthData();
+            $brand = $auth['brand'];
+            $merchant = $auth['merchant'];
 
-        $wallets = $this->db->table('user_payment_settings')
-            ->where('uid', $merchant->id)
-            ->where('brand_id', $brand->id)
-            ->where('status', 1)
-            ->get()
-            ->getResult();
+            $wallets = $this->db->table('user_payment_settings')
+                ->where('uid', $merchant->id)
+                ->where('brand_id', $brand->id)
+                ->where('status', 1)
+                ->get()
+                ->getResult();
 
-        $methods = [];
-        foreach ($wallets as $wallet) {
-            $params = json_decode($wallet->params, true) ?: [];
-            $methods[] = [
-                'id' => $wallet->g_type,
-                'name' => ucfirst($wallet->g_type),
-                'type' => $wallet->t_type,
-                'available' => true,
-                'has_direct_api' => !empty($params['api_url']),
-            ];
-        }
+            $methods = [];
+            foreach ($wallets as $wallet) {
+                $params = json_decode($wallet->params, true) ?: [];
+                $methods[] = [
+                    'id' => $wallet->g_type,
+                    'name' => ucfirst($wallet->g_type),
+                    'type' => $wallet->t_type,
+                    'available' => true,
+                    'has_direct_api' => !empty($params['api_url']),
+                ];
+            }
 
-        $providers = PaymentProviderFactory::getAvailableProviders($merchant->id, $brand->id);
+            $providers = PaymentProviderFactory::getAvailableProviders($merchant->id, $brand->id);
 
-        return $this->respond([
-            'object' => 'list',
-            'data' => [
-                'methods' => $methods,
-                'providers' => $providers,
-                'brand' => [
-                    'name' => $brand->brand_name,
-                    'currency' => $brand->currency ?? 'BDT',
-                    'fees' => (float) $brand->fees,
-                    'fees_type' => $brand->fees_type == 1 ? 'percentage' : 'flat',
+            return $this->respond([
+                'object' => 'list',
+                'data' => [
+                    'methods' => $methods,
+                    'providers' => $providers,
+                    'brand' => [
+                        'name' => $brand->brand_name,
+                        'currency' => $brand->currency ?? 'BDT',
+                        'fees' => (float) $brand->fees,
+                        'fees_type' => $brand->fees_type == 1 ? 'percentage' : 'flat',
+                    ],
                 ],
-            ],
-        ]);
+            ]);
+        } catch (\Throwable $e) {
+            log_message('critical', $e->getMessage() . "\n" . $e->getTraceAsString());
+            return $this->respondError('INTERNAL_SERVER_ERROR', 'An unexpected error occurred while fetching payment methods.', 500);
+        }
     }
 
     protected function findPayment(string $paymentId, int $merchantId, int $brandId, bool $isTest): ?object
