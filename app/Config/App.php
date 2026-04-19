@@ -190,8 +190,6 @@ class App extends BaseConfig
                 if ($proto === 'https' || $proto === 'http') {
                     $scheme = $proto;
                 }
-            } elseif (strpos($host, '.replit.dev') !== false || strpos($host, '.repl.co') !== false) {
-                $scheme = 'https';
             }
             $this->baseURL = $scheme . '://' . $host . '/';
         } else {

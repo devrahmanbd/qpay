@@ -26,10 +26,10 @@ class Database extends Config
      */
     public array $default = [
         'DSN'          => '',
-        'hostname'     => '/tmp/mysql.sock',
-        'username'     => 'root',
-        'password'     => 'harry71Nahid920*',
-        'database'     => 'main',
+        'hostname'     => 'localhost',
+        'username'     => '',
+        'password'     => '',
+        'database'     => '',
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',
         'pConnect'     => false,
@@ -75,12 +75,36 @@ class Database extends Config
     {
         parent::__construct();
 
+        /**
+         * Dynamic Environment Detection
+         * 
+         * Automatically sets database credentials based on the hostname 
+         * if they are not explicitly provided in the .env file.
+         */
+        if (empty($this->default['database'])) {
+            $host = $_SERVER['HTTP_HOST'] ?? '';
+            
+            if (strpos($host, 'qpay.cloudman.one') !== false) {
+                // Production Credentials
+                $this->default['database'] = 'clou_qpay1';
+                $this->default['username'] = 'clou_qpay1';
+            } else {
+                // Localhost Credentials
+                $this->default['database'] = 'main';
+                $this->default['username'] = 'root';
+            }
+        }
+
+        // Set default password if not provided in .env
+        if (empty($this->default['password'])) {
+            $this->default['password'] = 'harry71Nahid920*';
+        }
+
         // Ensure that we always set the database group to 'tests' if
         // we are currently running an automated test suite, so that
         // we don't overwrite live data on accident.
         if (ENVIRONMENT === 'testing') {
             $this->defaultGroup = 'tests';
         }
-
     }
 }
