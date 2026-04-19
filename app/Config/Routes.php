@@ -1,7 +1,7 @@
 <?php
 
 use App\Controllers\ApiController;
-use App\Controllers\Api\V1\PaymentControllerV3;
+use App\Controllers\Api\V1\PaymentControllerV4;
 use App\Controllers\File_manager;
 use CodeIgniter\Router\RouteCollection;
 
@@ -26,20 +26,20 @@ $routes->group('/', static function ($routes) {
         $routes->match(['get', 'post'], 'api/add-data', [ApiController::class, 'addMessage']);
 });
 
-$routes->get('api/v1/payment/checkout/(:any)', [PaymentControllerV3::class, 'checkout/$1']);
-$routes->post('api/v1/payment/checkout/(:any)/process', [PaymentControllerV3::class, 'processCheckout/$1']);
+$routes->get('api/v1/payment/checkout/(:any)', [PaymentControllerV4::class, 'checkout/$1']);
+$routes->post('api/v1/payment/checkout/(:any)/process', [PaymentControllerV4::class, 'processCheckout/$1']);
 
 $routes->group('api/v1', ['filter' => 'api_auth'], static function ($routes) {
-        $routes->post('payment/create', [PaymentControllerV3::class, 'create']);
-        $routes->match(['get', 'post'], 'payment/verify/(:any)', [PaymentControllerV3::class, 'verify/$1']);
-        $routes->match(['get', 'post'], 'payment/verify', [PaymentControllerV3::class, 'verify']);
-        $routes->get('payment/status/(:any)', [PaymentControllerV3::class, 'status/$1']);
-        $routes->get('payment/status', [PaymentControllerV3::class, 'status']);
-        $routes->get('payments', [PaymentControllerV3::class, 'listPayments']);
-        $routes->get('payments/(:any)', [PaymentControllerV3::class, 'status/$1']);
-        $routes->post('payment/refund', [PaymentControllerV3::class, 'refund']);
-        $routes->post('refunds', [PaymentControllerV3::class, 'refund']); // SDK Compatibility
-        $routes->get('balance', [PaymentControllerV3::class, 'balance']);
-        $routes->get('methods', [PaymentControllerV3::class, 'getMethods']);
-        $routes->get('payment/methods', [PaymentControllerV3::class, 'getMethods']); // SDK Consistency
+        $routes->post('payment/create', [PaymentControllerV4::class, 'create']);
+        $routes->match(['get', 'post'], 'payment/verify/(:any)', [PaymentControllerV4::class, 'verify/$1']);
+        $routes->match(['get', 'post'], 'payment/verify', [PaymentControllerV4::class, 'verify']);
+        $routes->get('payment/status/(:any)', [PaymentControllerV4::class, 'status/$1']);
+        $routes->get('payment/status', [PaymentControllerV4::class, 'status']);
+        $routes->get('payments', [PaymentControllerV4::class, 'listPayments']);
+        $routes->get('payments/(:any)', [PaymentControllerV4::class, 'status/$1']);
+        $routes->post('payment/refund', [PaymentControllerV4::class, 'refund']);
+        $routes->post('refunds', [PaymentControllerV4::class, 'refund']); // SDK Compatibility
+        $routes->get('balance', [PaymentControllerV4::class, 'balance']);
+        $routes->get('methods', [PaymentControllerV4::class, 'getMethods']);
+        $routes->get('payment/methods', [PaymentControllerV4::class, 'getMethods']); // SDK Consistency
 });

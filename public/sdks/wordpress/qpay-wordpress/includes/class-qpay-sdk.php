@@ -111,11 +111,16 @@ class QPay_SDK
             throw new RuntimeException('QPay API error: ' . $response->get_error_message());
         }
 
-        $body = json_decode(wp_remote_retrieve_body($response), true);
+        $body_text = wp_remote_retrieve_body($response);
+        $body = json_decode($body_text, true);
         $code = wp_remote_retrieve_response_code($response);
 
         if ($code >= 400) {
             throw new RuntimeException($body['message'] ?? "QPay API HTTP {$code} error", $code);
+        }
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new RuntimeException(__('Invalid JSON response from QPay API. Raw response: ', 'qpay') . substr($body_text, 0, 200));
         }
 
         return $body ?: [];

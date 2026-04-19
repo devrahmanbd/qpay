@@ -1,55 +1,25 @@
 <?php
-define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR);
-define('ENVIRONMENT', 'development'); // Force development
-require FCPATH . 'app/Config/Paths.php';
-$paths = new Config\Paths();
-require rtrim($paths->systemDirectory, '\\/ ') . DIRECTORY_SEPARATOR . 'bootstrap.php';
-require_once SYSTEMPATH . 'Config/DotEnv.php';
-(new CodeIgniter\Config\DotEnv(ROOTPATH))->load();
+$url = 'https://qpay.cloudman.one/api/v1/payment/create';
+$apiKey = 'qp_test_b88ca455b4529a1394d86ec858a22d80c0aac096a38a23ff';
 
-$app = Config\Services::codeigniter();
-$app->initialize();
-
-$db = \Config\Database::connect();
-$keyRecord = $db->table('api_keys')->where('environment', 'test')->get()->getRow();
-
-if (!$keyRecord) {
-    die("No test API key found in DB to test with.");
-}
-
-echo "Testing api_payments insert...\n";
-$paymentData = [
-    'ids' => 'test_pay_' . time(),
-    'merchant_id' => $keyRecord->merchant_id,
-    'brand_id' => $keyRecord->brand_id,
-    'amount' => 10.00,
+$ch = curl_init($url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'API-KEY: ' . $apiKey,
+    'Content-Type: application/json'
+]);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'amount' => 10,
     'currency' => 'BDT',
-    'status' => 0,
-    'test_mode' => 1,
-    'created_at' => date('Y-m-d H:i:s'),
-    'updated_at' => date('Y-m-d H:i:s'),
-];
+    'customer_email' => 'test@example.com'
+]));
+// Include headers in output
+curl_setopt($ch, CURLOPT_HEADER, true);
 
-try {
-    $db->table('api_payments')->insert($paymentData);
-    echo "Insert successful!\n";
-    $db->table('api_payments')->where('ids', $paymentData['ids'])->delete();
-    echo "Cleanup successful!\n";
-} catch (\Throwable $e) {
-    echo "INSERT FAILED: " . $e->getMessage() . "\n" . $e->getTraceAsString() . "\n";
-}
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
 
-echo "\nTesting WebhookService dispatch...\n";
-try {
-    $ws = new \App\Libraries\WebhookService();
-    $ws->dispatch($keyRecord->brand_id, $keyRecord->merchant_id, 'payment.created', [
-        'id' => $paymentData['ids'],
-        'amount' => 10.00,
-        'currency' => 'BDT',
-        'status' => 'processing',
-        'test_mode' => true
-    ]);
-    echo "Dispatch successful!\n";
-} catch (\Throwable $e) {
-    echo "DISPATCH FAILED: " . $e->getMessage() . "\n" . $e->getTraceAsString() . "\n";
-}
+echo "HTTP CODE: $httpCode\n";
+echo "RESPONSE:\n$response\n";

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: QPay for WordPress
  * Description: Accept payments via QPay (bKash, Nagad, Rocket, bank transfer and more) on any WordPress site. Includes payment buttons, forms, donations, and optional WooCommerce checkout integration.
- * Version: 1.3.0
+ * Version: 1.3.1
  * Author: QPay
  * Text Domain: qpay
  * Requires at least: 5.8
@@ -12,7 +12,7 @@
 
 defined('ABSPATH') || exit;
 
-define('QPAY_VERSION', '1.3.0');
+define('QPAY_VERSION', '1.3.1');
 define('QPAY_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('QPAY_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('QPAY_PLUGIN_BASE', plugin_basename(__FILE__));
