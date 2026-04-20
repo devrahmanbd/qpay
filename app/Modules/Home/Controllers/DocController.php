@@ -22,4 +22,11 @@ class DocController extends BaseController
     {
         return view('Home\Views\developers\docs');
     }
+
+    public function integrations()
+    {
+        $this->template->set_layout('general');
+        $this->template->set('title', 'Integrations & SDKs');
+        return $this->template->view('developers/integrations')->render();
+    }
 }

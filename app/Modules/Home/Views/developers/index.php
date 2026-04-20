@@ -42,7 +42,7 @@ define("PAYMENT_URL", rtrim(base_url(), '/') . '/');
             </a>
 
             <!-- SDKs & Integrations -->
-            <a href="<?= base_url('developers/docs#sdks') ?>" class="bg-white p-8 rounded-3xl shadow-[0px_4px_20px_rgba(73,62,229,0.04),0px_10px_40px_rgba(24,28,30,0.06)] group hover:ring-2 hover:ring-primary/20 transition-all duration-300">
+            <a href="<?= base_url('developers/integrations') ?>" class="bg-white p-8 rounded-3xl shadow-[0px_4px_20px_rgba(73,62,229,0.04),0px_10px_40px_rgba(24,28,30,0.06)] group hover:ring-2 hover:ring-primary/20 transition-all duration-300">
                 <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                     <span class="material-symbols-outlined text-indigo-600">extension</span>
                 </div>

@@ -62,12 +62,12 @@ QPay is a payment gateway and orchestrator for South Asian markets (Bangladesh).
    - Start MariaDB on socket `/tmp/mysql.sock`
    - Create the `main` database and seed admin user
    - Run CodeIgniter migrations
-   - Start PHP dev server on port 5000
+   - Start PHP dev server on port 8443
 
 4. Access the application:
-   - **Homepage**: `http://localhost:5000`
-   - **Admin login**: `http://localhost:5000/admin/sign-in`
-   - **User login**: `http://localhost:5000/sign-in`
+   - **Homepage**: `https://localhost:8443`
+   - **Admin login**: `https://localhost:8443/admin/sign-in`
+   - **User login**: `https://localhost:8443/sign-in`
 
 ### Default Admin Credentials
 

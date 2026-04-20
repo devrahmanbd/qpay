@@ -10,6 +10,7 @@ $routes->group('/', static function ($routes) {
     $routes->match(['get', 'post'], 'invoice/(:any)', [HomeController::class, 'invoice']);
     $routes->get('developers', [DocController::class, 'index']);
     $routes->get('developers/docs', [DocController::class, 'docs']);
+    $routes->get('developers/integrations', [DocController::class, 'integrations']);
     $routes->get('sitemap.xml', [Sitemap::class, 'index']);
     $routes->get('terms-condition', [HomeController::class, 'terms']);
     $routes->get('privacy-policy', [HomeController::class, 'privacy']);

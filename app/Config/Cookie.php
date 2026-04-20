@@ -104,4 +104,15 @@ class Cookie extends BaseConfig
      * @see https://tools.ietf.org/html/rfc2616#section-2.2
      */
     public bool $raw = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        // If on localhost, clear the cookie domain to allow browser to save cookies
+        // This fixes the 403 Forbidden error on localhost login
+        if (isset($_SERVER['HTTP_HOST']) && (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false)) {
+            $this->domain = '';
+        }
+    }
 }

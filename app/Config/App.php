@@ -16,7 +16,7 @@ class App extends BaseConfig
      *
      *    http://example.com/
      */
-    public string $baseURL = 'http://localhost:5000';
+    public string $baseURL = 'https://localhost:8443/';
 
     /**
      * Allowed Hostnames in the Site URL other than the hostname in the baseURL.
@@ -177,23 +177,4 @@ class App extends BaseConfig
      */
     public bool $CSPEnabled = false;
 
-    public function __construct()
-    {
-        parent::__construct();
-        if (!empty($_SERVER['HTTP_HOST'])) {
-            $host = $_SERVER['HTTP_HOST'];
-            $scheme = 'http';
-            if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
-                $scheme = 'https';
-            } elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-                $proto = strtolower(trim(explode(',', $_SERVER['HTTP_X_FORWARDED_PROTO'])[0]));
-                if ($proto === 'https' || $proto === 'http') {
-                    $scheme = $proto;
-                }
-            }
-            $this->baseURL = $scheme . '://' . $host . '/';
-        } else {
-            $this->baseURL = 'http://localhost:5000/';
-        }
-    }
 }
