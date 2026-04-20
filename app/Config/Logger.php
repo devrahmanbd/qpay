@@ -8,7 +8,7 @@ use CodeIgniter\Log\Handlers\FileHandler;
 class Logger extends BaseConfig
 {
   
-    public $threshold = 9;
+    public $threshold = (ENVIRONMENT === 'production') ? 4 : 9;
 
     public string $dateFormat = 'Y-m-d H:i:s';
 
