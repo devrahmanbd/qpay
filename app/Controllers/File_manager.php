@@ -36,15 +36,15 @@ class File_manager extends Controller
         }
     
         $validation = \Config\Services::validation();
-        if(post('type')=='image'){
+        if(post('type')=='image' || empty(post('type'))){
             $validation->setRules([
                 'files' => [
+                    'label' => 'Payment Proof',
                     'rules' => [
                         'uploaded[files]',
                         'is_image[files]',
-                        'mime_in[files,image/jpg,image/jpeg,image/gif,image/png,image/webp]',
-                        'max_size[files,1024]',
-                        'max_dims[files,2024,2024]',
+                        'mime_in[files,image/jpg,image/jpeg,image/gif,image/png,image/webp,application/pdf]',
+                        'max_size[files,2048]',
                     ],
                 ],
             ]);

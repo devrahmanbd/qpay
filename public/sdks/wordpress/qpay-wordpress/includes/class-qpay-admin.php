@@ -48,7 +48,7 @@ class QPay_Admin
             'qpay_test_secret_key', 'qpay_test_publishable_key',
             'qpay_live_secret_key', 'qpay_live_publishable_key',
             'qpay_webhook_secret',
-            'qpay_enable_woocommerce', 'qpay_enable_buttons',
+            'qpay_enable_buttons',
             'qpay_enable_forms', 'qpay_enable_donations',
             'qpay_success_page', 'qpay_cancel_page',
             'qpay_email_notifications', 'qpay_admin_email',
@@ -81,7 +81,7 @@ class QPay_Admin
                 }
             }
 
-            $checkboxes = ['qpay_test_mode', 'qpay_enable_woocommerce', 'qpay_enable_buttons', 'qpay_enable_forms', 'qpay_enable_donations', 'qpay_email_notifications'];
+            $checkboxes = ['qpay_test_mode', 'qpay_enable_buttons', 'qpay_enable_forms', 'qpay_enable_donations', 'qpay_email_notifications'];
             foreach ($checkboxes as $cb) {
                 update_option($cb, isset($_POST[$cb]) ? 'yes' : 'no');
             }
@@ -94,21 +94,10 @@ class QPay_Admin
             echo '<div class="notice notice-success"><p>' . esc_html__('Database tables checked and repaired.', 'qpay') . '</p></div>';
         }
 
-        $woo_active = class_exists('WooCommerce');
-        if ($woo_active && get_option('qpay_enable_woocommerce', 'yes') === 'yes') {
-            $wc_settings = get_option('woocommerce_qpay_settings', []);
-            if (empty($wc_settings['enabled']) || 'yes' !== $wc_settings['enabled']) {
-                echo '<div class="notice notice-warning is-dismissible"><p><strong>' . esc_html__('Action Required:', 'qpay') . '</strong> ' . sprintf(
-                    __('QPay is enabled but the payment gateway is currently disabled in WooCommerce. Please <a href="%s">enable it here</a> to show it at checkout.', 'qpay'),
-                    admin_url('admin.php?page=wc-settings&tab=checkout&section=qpay')
-                ) . '</p></div>';
-            }
-        }
-
         $webhook_url = rest_url('qpay/v1/webhook');
         ?>
         <div class="wrap qpay-admin">
-            <h1><?php esc_html_e('QPay Settings', 'qpay'); ?></h1>
+            <h1><?php esc_html_e('QPay Settings (v1.4.0)', 'qpay'); ?></h1>
 
             <?php if (get_option('qpay_test_mode', 'yes') === 'yes'): ?>
                 <div class="notice notice-warning"><p><strong><?php esc_html_e('Test Mode is active.', 'qpay'); ?></strong> <?php esc_html_e('No real payments will be processed.', 'qpay'); ?></p></div>
@@ -210,9 +199,9 @@ class QPay_Admin
                             <tr>
                                 <th><?php esc_html_e('WooCommerce', 'qpay'); ?></th>
                                 <td>
-                                    <label><input type="checkbox" name="qpay_enable_woocommerce" value="yes" <?php checked(get_option('qpay_enable_woocommerce', 'yes'), 'yes'); ?> <?php echo $woo_active ? '' : 'disabled'; ?>> <?php esc_html_e('Enable WooCommerce checkout integration', 'qpay'); ?></label>
-                                    <?php if (!$woo_active): ?>
-                                        <p class="description"><?php esc_html_e('WooCommerce is not installed. Install WooCommerce to enable this feature.', 'qpay'); ?></p>
+                                    <label><input type="checkbox" name="qpay_enable_woocommerce" value="yes" <?php checked(get_option('qpay_enable_woocommerce', 'yes'), 'yes'); ?>> <?php esc_html_e('Enable WooCommerce checkout integration', 'qpay'); ?></label>
+                                    <?php if (!class_exists('WooCommerce')): ?>
+                                        <p class="description" style="color: grey;"><?php esc_html_e('WooCommerce is not active. Install it to use this feature.', 'qpay'); ?></p>
                                     <?php endif; ?>
                                 </td>
                             </tr>

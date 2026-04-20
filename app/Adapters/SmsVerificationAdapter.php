@@ -86,7 +86,20 @@ class SmsVerificationAdapter implements PaymentProviderInterface
 
         $expectedAmount = (float)$payment->amount;
 
-        // 2. Double-Spending Check
+        // 2. Brute-Force / Cooldown Check
+        $cache = \Config\Services::cache();
+        $failKey = 'verify_fails_' . $paymentId;
+        $fails = $cache->get($failKey) ?: 0;
+        if ($fails >= 5) {
+            return [
+                'success' => false,
+                'code' => 'THROTTLED',
+                'message' => 'Too many failed attempts. Please try again in 5 minutes.',
+            ];
+        }
+
+        // 3. Double-Spending Check (Global Scoping)
+        // Check if this Transaction ID has been used by ANYONE to prevent recycled screenshots
         $alreadyUsed = $this->db->table('api_payments')
             ->where('transaction_id', $transactionId)
             ->where('status', 'completed')
@@ -96,21 +109,44 @@ class SmsVerificationAdapter implements PaymentProviderInterface
             return [
                 'success' => false,
                 'code' => 'ALREADY_USED',
-                'message' => 'This Transaction ID has already been used for another payment.'
+                'message' => 'This Transaction ID has already been used on our platform.'
             ];
         }
 
-        // 3. Search module_data for the un-used SMS
-        // We match by UID to ensure it landed on ONE of the merchant's devices
-        $smsRecord = $this->db->table('module_data')
+        // 4. Fetch Brand Specific Expected Number
+        // We look for the sender's account number in this brand's settings
+        $wallet = $this->db->table('user_payment_settings')
+            ->where('uid', $this->merchantId)
+            ->where('brand_id', $this->brandId)
+            ->where('g_type', ($context['payment_method'] ?? ''))
+            ->get()
+            ->getRow();
+        
+        $expectedRecipient = null;
+        if ($wallet) {
+            $params = json_decode($wallet->params, true) ?: [];
+            $expectedRecipient = $params['personal_number'] ?? $params['agent_number'] ?? $params['number'] ?? null;
+        }
+
+        // 5. Search module_data for the un-used SMS
+        $smsQuery = $this->db->table('module_data')
             ->where('uid', $this->merchantId)
             ->where('status', 0)
-            ->like('message', $transactionId)
-            ->orderBy('id', 'DESC')
+            ->like('message', $transactionId);
+        
+        // Loophole Block: Match the recipient number if we know which one this brand uses
+        if ($expectedRecipient) {
+            $smsQuery->where('recipient_number', $expectedRecipient);
+        }
+
+        $smsRecord = $smsQuery->orderBy('id', 'DESC')
             ->get()
             ->getRow();
 
         if (!$smsRecord) {
+            // Increment fail count
+            $cache->save($failKey, $fails + 1, 300); // 5 minute cooldown
+            
             // Check Heartbeat to see if phone is even online
             $device = $this->db->table('devices')
                 ->where('uid', $this->merchantId)
@@ -133,12 +169,14 @@ class SmsVerificationAdapter implements PaymentProviderInterface
 
         // 4. Strict Amount Extraction via Regex
         $message = $smsRecord->message;
-        $pattern = '/\b(?:Tk|TK|tk|Rs|RS|rs)\s*([\d,.]+)/'; // Support for multi-region if needed
+        // Refined pattern to catch "Tk 500", "Tk.500", "Received 500", "credited by Tk 500" etc.
+        $pattern = '/(?:Tk|TK|tk|Rs|RS|rs|Received|credited by Tk|Cash Out Tk)\.?\s*([\d,.]+)/i';
         
         if (preg_match($pattern, $message, $matches)) {
             $receivedAmount = (float)str_replace(',', '', $matches[1]);
             
-            if ($receivedAmount !== $expectedAmount) {
+            // Allow for minor float precision differences
+            if (abs($receivedAmount - $expectedAmount) > 0.01) {
                 return [
                     'success' => false,
                     'code' => 'AMOUNT_MISMATCH',

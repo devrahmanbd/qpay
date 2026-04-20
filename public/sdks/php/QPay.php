@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * QPay PHP SDK
+ * 
+ * A simple, powerful client for the QPay Payment Gateway API.
+ * 
+ * @version 1.1.0
+ * @author QPay
+ */
+
 class QPay
 {
     const VERSION = '1.1.0';
@@ -11,106 +20,112 @@ class QPay
     protected $lastResponse;
     protected $lastHttpCode;
 
-    public function __construct(string $apiKey, string $baseUrl = '')
+    /**
+     * Initialize the QPay Client
+     * 
+     * @param string $apiKey Your secret API key (qp_live_... or qp_test_...)
+     * @param string $baseUrl The base URL of your QPay instances (e.g. https://qpay.cloudman.one)
+     */
+    public function __construct(string $apiKey, string $baseUrl)
     {
         if (empty($apiKey)) {
             throw new \InvalidArgumentException('API key is required.');
         }
 
-        $this->apiKey = $apiKey;
-
-        if (!empty($baseUrl)) {
-            $this->baseUrl = rtrim($baseUrl, '/');
-        } else {
-            $this->baseUrl = $this->detectBaseUrl();
+        if (empty($baseUrl)) {
+            throw new \InvalidArgumentException('Base URL is required (e.g., https://qpay.cloudman.one).');
         }
+
+        $this->apiKey = $apiKey;
+        $this->baseUrl = rtrim($baseUrl, '/');
     }
 
-    protected function detectBaseUrl(): string
-    {
-        throw new QPayException("'baseUrl' is required. Pass it as the second constructor argument (e.g. 'https://pay.yourdomain.com').");
-    }
-
+    /**
+     * Set cURL timeout in seconds
+     */
     public function setTimeout(int $seconds): self
     {
         $this->timeout = $seconds;
         return $this;
     }
 
+    /**
+     * Check if using a test key
+     */
     public function isTestMode(): bool
     {
         return strpos($this->apiKey, '_test_') !== false;
     }
 
+    /**
+     * Create a new payment
+     * 
+     * @param array $params [amount, currency, customer_name, customer_email, etc.]
+     */
     public function createPayment(array $params): array
     {
-        $required = ['amount'];
-        foreach ($required as $field) {
-            if (empty($params[$field])) {
-                throw new \InvalidArgumentException("'{$field}' is required.");
-            }
+        if (empty($params['amount'])) {
+            throw new \InvalidArgumentException("'amount' is required.");
         }
 
-        return $this->request('POST', '/payments', $params);
+        return $this->request('POST', '/payment/create', $params);
     }
 
+    /**
+     * Verify a payment status with the provider
+     */
     public function verifyPayment(string $paymentId): array
     {
         if (empty($paymentId)) {
             throw new \InvalidArgumentException('Payment ID is required.');
         }
 
-        return $this->request('POST', "/payments/{$paymentId}/verify");
+        return $this->request('GET', "/payment/verify/{$paymentId}");
     }
 
+    /**
+     * Get details of a payment
+     */
     public function getPaymentStatus(string $paymentId): array
     {
         if (empty($paymentId)) {
             throw new \InvalidArgumentException('Payment ID is required.');
         }
 
-        return $this->request('GET', "/payments/{$paymentId}");
+        return $this->request('GET', "/payment/status/{$paymentId}");
     }
 
-    public function listPayments(array $params = []): array
-    {
-        return $this->request('GET', '/payments', $params);
-    }
-
-    public function createRefund(string $paymentId, string $reason = ''): array
-    {
-        if (empty($paymentId)) {
-            throw new \InvalidArgumentException('Payment ID is required.');
-        }
-
-        $data = ['payment_id' => $paymentId];
-        if (!empty($reason)) {
-            $data['reason'] = $reason;
-        }
-
-        return $this->request('POST', '/refunds', $data);
-    }
-
-    public function getBalance(): array
-    {
-        return $this->request('GET', '/balance');
-    }
-
+    /**
+     * List payment methods available for the merchant
+     */
     public function getPaymentMethods(): array
     {
         return $this->request('GET', '/payment/methods');
     }
 
-    public function getLastResponse(): ?array
+    /**
+     * Get merchant account balance
+     */
+    public function getBalance(): array
     {
-        return $this->lastResponse;
+        return $this->request('GET', '/balance');
     }
 
-    public function getLastHttpCode(): ?int
+    /**
+     * Create a refund for a successful payment
+     */
+    public function createRefund(array $params): array
     {
-        return $this->lastHttpCode;
+        if (empty($params['payment_id'])) {
+            throw new \InvalidArgumentException("'payment_id' is required.");
+        }
+
+        return $this->request('POST', '/refunds', $params);
     }
 
+    /**
+     * Verify a webhook signature
+     */
     public static function verifyWebhookSignature(string $payload, string $signatureHeader, string $secret, int $tolerance = 300): bool
     {
         $parts = [];
@@ -135,6 +150,9 @@ class QPay
         return hash_equals($expected, $parts['v1']);
     }
 
+    /**
+     * Internal request handler
+     */
     protected function request(string $method, string $endpoint, array $data = []): array
     {
         $url = $this->baseUrl . '/api/' . self::API_VERSION . $endpoint;
@@ -147,7 +165,6 @@ class QPay
 
         $headers = [
             'API-KEY: ' . $this->apiKey,
-            'Authorization: Bearer ' . $this->apiKey,
             'Content-Type: application/json',
             'Accept: application/json',
             'User-Agent: QPay-PHP-SDK/' . self::VERSION,
@@ -180,38 +197,28 @@ class QPay
 
         if ($httpCode >= 400) {
             $message = $this->lastResponse['message'] ?? "HTTP {$httpCode} error";
-            $code = $this->lastResponse['code'] ?? 'API_ERROR';
-            throw new QPayException($message, $httpCode, $code, $this->lastResponse);
+            throw new QPayException($message, $httpCode, $this->lastResponse);
         }
 
         return $this->lastResponse;
     }
+
+    public function getLastResponse(): ?array { return $this->lastResponse; }
+    public function getLastHttpCode(): ?int { return $this->lastHttpCode; }
 }
 
+/**
+ * Custom Exception for API errors
+ */
 class QPayException extends \Exception
 {
-    protected $errorCode;
-    protected $responseBody;
+    protected $response;
 
-    public function __construct(string $message, int $httpCode, string $errorCode, array $responseBody)
+    public function __construct(string $message, int $code, array $response = [])
     {
-        parent::__construct($message, $httpCode);
-        $this->errorCode = $errorCode;
-        $this->responseBody = $responseBody;
+        parent::__construct($message, $code);
+        $this->response = $response;
     }
 
-    public function getErrorCode(): string
-    {
-        return $this->errorCode;
-    }
-
-    public function getResponseBody(): array
-    {
-        return $this->responseBody;
-    }
-
-    public function getHttpCode(): int
-    {
-        return $this->getCode();
-    }
+    public function getResponse(): array { return $this->response; }
 }

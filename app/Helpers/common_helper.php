@@ -44,9 +44,13 @@ if (!function_exists('script_asset')) {
 }
 
 if (!function_exists('ms')) {
-    function ms($array)
+    function ms($array, $statusCode = 200)
     {
-        print_r(json_encode($array));
+        $response = service('response');
+        $response->setStatusCode($statusCode);
+        $response->setContentType('application/json');
+        $response->setBody(json_encode($array));
+        $response->send();
         exit(0);
     }
 }

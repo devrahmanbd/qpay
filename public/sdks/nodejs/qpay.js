@@ -1,21 +1,32 @@
+/**
+ * QPay NodeJS SDK
+ * 
+ * A lightweight, async/await client for the QPay Payment Gateway.
+ * 
+ * @version 1.2.0
+ * @author QPay
+ */
+
 const https = require('https');
 const http = require('http');
+const crypto = require('crypto');
 const { URL } = require('url');
 
 class QPay {
   static VERSION = '1.2.0';
   static API_VERSION = 'v1';
 
+  /**
+   * @param {string} apiKey - Your secret API key
+   * @param {Object} options - Configuration options
+   * @param {string} options.baseUrl - The QPay API URL (e.g. https://qpay.cloudman.one)
+   * @param {number} [options.timeout=30000] - Request timeout in ms
+   */
   constructor(apiKey, options = {}) {
-    if (typeof apiKey === 'object' && apiKey !== null) {
-      options = apiKey;
-      apiKey = options.apiKey || options.secretKey;
-    }
+    if (!apiKey) throw new Error('API key is required.');
+    if (!options.baseUrl) throw new Error('baseUrl is required (e.g. https://qpay.cloudman.one).');
 
-    if (!apiKey) throw new Error('API key is required (qp_...).');
     this.apiKey = apiKey;
-    
-    if (!options.baseUrl) throw new Error("'baseUrl' option is required (e.g. 'https://pay.yourdomain.com').");
     this.baseUrl = options.baseUrl.replace(/\/+$/, '');
     this.timeout = options.timeout || 30000;
   }
@@ -24,42 +35,58 @@ class QPay {
     return this.apiKey.includes('_test_');
   }
 
+  /**
+   * Create a new payment
+   */
   async createPayment(params) {
     if (!params || !params.amount) throw new Error("'amount' is required.");
-    return this._request('POST', '/payments', params);
+    return this._request('POST', '/payment/create', params);
   }
 
+  /**
+   * Verify a payment status with the provider
+   */
   async verifyPayment(paymentId) {
     if (!paymentId) throw new Error('Payment ID is required.');
-    return this._request('POST', `/payments/${paymentId}/verify`);
+    return this._request('GET', `/payment/verify/${paymentId}`);
   }
 
+  /**
+   * Get payment details
+   */
   async getPaymentStatus(paymentId) {
     if (!paymentId) throw new Error('Payment ID is required.');
-    return this._request('GET', `/payments/${paymentId}`);
+    return this._request('GET', `/payment/status/${paymentId}`);
   }
 
-  async listPayments(params = {}) {
-    return this._request('GET', '/payments', params);
-  }
-
-  async createRefund(paymentId, reason = '') {
-    if (!paymentId) throw new Error('Payment ID is required.');
-    const data = { payment_id: paymentId };
-    if (reason) data.reason = reason;
-    return this._request('POST', '/refunds', data);
-  }
-
-  async getBalance() {
-    return this._request('GET', '/balance');
-  }
-
+  /**
+   * List available payment methods
+   */
   async getPaymentMethods() {
     return this._request('GET', '/payment/methods');
   }
 
+  /**
+   * Get merchant account balance
+   */
+  async getBalance() {
+    return this._request('GET', '/balance');
+  }
+
+  /**
+   * Create a refund
+   */
+  async createRefund(params) {
+    if (!params || !params.payment_id) throw new Error("'payment_id' is required.");
+    return this._request('POST', '/refunds', params);
+  }
+
+  /**
+   * Verify a webhook signature
+   */
   static verifyWebhookSignature(payload, signatureHeader, secret, tolerance = 300) {
-    const crypto = require('crypto');
+    if (!payload || !signatureHeader || !secret) return false;
+
     const parts = {};
     signatureHeader.split(',').forEach(part => {
       const [key, value] = part.trim().split('=', 2);
@@ -81,13 +108,15 @@ class QPay {
     try {
       const expectedBuf = Buffer.from(expected, 'utf8');
       const receivedBuf = Buffer.from(parts.v1, 'utf8');
-      if (expectedBuf.length !== receivedBuf.length) return false;
       return crypto.timingSafeEqual(expectedBuf, receivedBuf);
     } catch {
       return false;
     }
   }
 
+  /**
+   * Internal request handler
+   */
   _request(method, endpoint, data = {}) {
     return new Promise((resolve, reject) => {
       let path = `/api/${QPay.API_VERSION}${endpoint}`;
@@ -97,18 +126,17 @@ class QPay {
         path += `?${qs}`;
       }
 
-      const parsed = new URL(this.baseUrl);
-      const isHttps = parsed.protocol === 'https:';
+      const parsedUrl = new URL(this.baseUrl);
+      const isHttps = parsedUrl.protocol === 'https:';
       const transport = isHttps ? https : http;
 
       const options = {
-        hostname: parsed.hostname,
-        port: parsed.port || (isHttps ? 443 : 80),
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || (isHttps ? 443 : 80),
         path: path,
         method: method,
         headers: {
           'API-KEY': this.apiKey,
-          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'User-Agent': `QPay-Node-SDK/${QPay.VERSION}`,
@@ -128,13 +156,10 @@ class QPay {
           }
 
           if (res.statusCode >= 400) {
-            const err = new QPayError(
-              parsed.message || `HTTP ${res.statusCode} error`,
-              res.statusCode,
-              parsed.code || 'API_ERROR',
-              parsed
-            );
-            reject(err);
+            const error = new Error(parsed.message || `HTTP ${res.statusCode} error`);
+            error.statusCode = res.statusCode;
+            error.response = parsed;
+            reject(error);
             return;
           }
 
@@ -154,15 +179,4 @@ class QPay {
   }
 }
 
-class QPayError extends Error {
-  constructor(message, httpCode, errorCode, responseBody) {
-    super(message);
-    this.name = 'QPayError';
-    this.httpCode = httpCode;
-    this.errorCode = errorCode;
-    this.responseBody = responseBody;
-  }
-}
-
-module.exports = { QPay, QPayError };
-module.exports.default = QPay;
+module.exports = { QPay };

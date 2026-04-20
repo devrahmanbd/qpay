@@ -59,9 +59,7 @@ class QPay_Webhooks
             self::handle_transaction_webhook($event, $paymentData, $transaction);
         }
 
-        if (class_exists('WooCommerce') && get_option('qpay_enable_woocommerce', 'yes') === 'yes') {
-            self::handle_woocommerce_webhook($event, $paymentData, $paymentId);
-        }
+        // WooCommerce support removed in v1.4.0
 
         return new WP_REST_Response(['success' => true], 200);
     }
@@ -107,44 +105,6 @@ class QPay_Webhooks
                     'refund_id' => $paymentData['id'] ?? null,
                 ]);
                 self::send_notification($transaction, 'refunded');
-                break;
-        }
-    }
-
-    private static function handle_woocommerce_webhook(string $event, array $paymentData, string $paymentId): void
-    {
-        $orders = wc_get_orders([
-            'meta_key' => '_qpay_payment_id',
-            'meta_value' => $paymentId,
-            'limit' => 1,
-        ]);
-
-        if (empty($orders)) {
-            return;
-        }
-
-        $order = $orders[0];
-
-        switch ($event) {
-            case 'payment.completed':
-                if (!$order->is_paid()) {
-                    $order->payment_complete($paymentData['transaction_id'] ?? $paymentId);
-                    $order->add_order_note(sprintf('QPay payment completed. Transaction ID: %s', $paymentData['transaction_id'] ?? $paymentId));
-                }
-                break;
-
-            case 'payment.failed':
-                $order->update_status('failed', sprintf('QPay payment failed. Reason: %s', $paymentData['error'] ?? 'Unknown'));
-                break;
-
-            case 'refund.created':
-                $order->update_status('refunded', sprintf('QPay refund processed. Refund ID: %s', $paymentData['id'] ?? ''));
-                break;
-
-            case 'payment.created':
-                if ($order->get_status() === 'pending') {
-                    $order->update_status('on-hold', 'QPay payment initiated, waiting for completion.');
-                }
                 break;
         }
     }

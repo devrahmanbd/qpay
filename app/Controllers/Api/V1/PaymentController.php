@@ -253,15 +253,19 @@ class PaymentController extends ResourceController
                     ]);
                 $payment->status = 2;
 
+                // Dispatch Webhook
                 $webhookService = new WebhookService();
-                $webhookService->dispatch($brand->id, $merchant->id, 'payment.completed', [
-                    'id' => $payment->ids,
-                    'object' => 'payment',
-                    'amount' => (float) $payment->amount,
+                $webhookService->dispatch($brand->id, $merchant->id, 'payment.completed', $this->formatPayment($payment));
+
+                // Send SMS/Email Alerts to Merchant if configured
+                $smsSender = new \App\Libraries\Smssender();
+                $smsParams = [
+                    'amount' => $payment->amount,
                     'currency' => $payment->currency,
-                    'status' => 'completed',
-                    'test_mode' => $isTest,
-                ]);
+                    'payment_id' => $payment->ids,
+                    'method' => $payment->payment_method
+                ];
+                $smsSender->send_sms('payment_completed', $smsParams, null, $merchant->phone, $merchant->id);
             }
 
             $formatted = $this->formatPayment($payment);

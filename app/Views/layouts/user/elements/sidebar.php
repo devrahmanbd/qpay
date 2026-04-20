@@ -58,19 +58,7 @@
             </div>
          </div>
 
-         <div x-data="{ open: <?= in_array(segment(2), ['stored-data']) ? 'true' : 'false' ?> }">
-            <button @click="open = !open" class="flex items-center justify-between w-full px-3 py-2 text-sm rounded-lg hover:bg-sidebar-hover hover:text-white transition-colors">
-               <span class="flex items-center gap-3">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-                  <span>Data</span>
-               </span>
-               <svg :class="open ? 'rotate-90' : ''" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </button>
-            <div x-show="open" x-cloak x-collapse class="ml-5 mt-1 space-y-1 border-l border-gray-700 pl-3">
-               <a href="<?= user_url('stored-data') ?>" class="block px-3 py-1.5 text-sm rounded hover:bg-sidebar-hover hover:text-white">Stored Data</a>
-               <a href="<?= user_url('transactions/add-data') ?>" class="block px-3 py-1.5 text-sm rounded hover:bg-sidebar-hover hover:text-white ajaxModal">Add Data</a>
-            </div>
-         </div>
+
 
          <div x-data="{ open: <?= in_array(segment(2), ['brands', 'devices', 'user-settings']) ? 'true' : 'false' ?> }">
             <button @click="open = !open" class="flex items-center justify-between w-full px-3 py-2 text-sm rounded-lg hover:bg-sidebar-hover hover:text-white transition-colors">

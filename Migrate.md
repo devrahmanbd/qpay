@@ -15,6 +15,8 @@ This document outlines the plan to migrate and integrate robust payment verifica
    - Implemented `BkashAdapter.php` with `v1.2.0-beta` tokenized API flow.
 - [x] **Task 2.2: Port Nagad Direct API**
    - Integrated Nagad RSA-signed direct API in `NagadAdapter.php`.
+- [x] **Task 2.3: Port Binance Pay API**
+   - Centralized Binance Pay signature logic into `BinanceAdapter.php`.
 
 ### Phase 3: Checkout System Enhancement
 - [x] **Task 3.1: Multi-Theme Support**
@@ -22,10 +24,15 @@ This document outlines the plan to migrate and integrate robust payment verifica
    - Implemented theme selection logic in `PaymentController`.
 - [x] **Task 3.2: Checkout UI Polish**
    - Added recursive polling (60s) for high-latency SMS verification across all themes.
+- [x] **Task 3.3: Manual Bank Support**
+   - Implemented `ManualBankAdapter.php` for all internal bank transfers.
 
-### Phase 4: Core Helper Porting
+### Phase 4: Core Helper & Data Porting
 - [x] **Task 4.1: Helper Synchronization**
    - Ported and cleaned up utility functions (`ms()`, `trxId()`) and fixed legacy URL constants.
+- [x] **Task 4.2: Database Unification**
+   - Migrated legacy `transactions` to modern `api_payments`.
+   - Updated `AdminModel` and `PaymentController` to use unified data.
 
 ---
 

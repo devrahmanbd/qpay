@@ -13,6 +13,15 @@ class Smssender {
         $this->db = db_connect();
     }
 
+    /**
+     * Sends an SMS using the configured SMS API
+     * 
+     * @param string $templateKey Key for the email_templates table
+     * @param array $params Variables to replace in the template
+     * @param string|null $requestMessage Direct message if no template key provided
+     * @param string $number Recipient phone number
+     * @param int|null $uid Merchant ID
+     */
     public function send_sms($templateKey, $params, $requestMessage = null, $number, $uid = null)
     {
         $permitted = false;
@@ -20,33 +29,39 @@ class Smssender {
             'type'   =>  1,
             'medium' => $number,
             'status' => 0,
-            'created_at' => now()
+            'created_at' => date('Y-m-d H:i:s')
         ];
-        $charge = (double)get_option('sms_api_cost');
+        
+        $charge = (double)get_option('sms_api_cost', 0);
 
         if (is_null($uid)) {
             $requestMessage = get_option($templateKey);
             $permitted = true;
-
         } else {
-            $templateObj = $this->CI->db->get_where('email_templates', ['uid' => $uid,'template_key'=>$templateKey])->row();
+            $templateObj = $this->db->table('email_templates')
+                ->where(['uid' => $uid, 'template_key' => $templateKey])
+                ->get()
+                ->getRow();
+
             if (empty($templateObj)) {
+                log_message('error', "SMS Template not found: $templateKey for UID: $uid");
                 return false;
             }
 
-            $user = get_current_user_data($uid);
+            $user = $this->db->table('users')->where('id', $uid)->get()->getRow();
+            if (!$user) return false;
 
-            $bal = (double)$user->balance ;
-
+            $bal = (double)$user->balance;
             $sms_data['uid'] = $uid;
-            if (get_value($user->addons,'sms') !=1) {
-                return false;
+            
+            $addons = json_decode($user->addons ?? '{}', true);
+            if (($addons['sms'] ?? 0) != 1) {
+                return false; // SMS Addon not enabled for this user
             }
 
-            if ($templateObj->sms_status!=1) {
-                return false;
+            if (($templateObj->sms_status ?? 0) != 1) {
+                return false; // SMS notification disabled for this specific template
             }
-
         }
         
         if (empty($templateObj) && $requestMessage == null) {
@@ -62,88 +77,113 @@ class Smssender {
         $sms_data['message'] = $template;
         $template = strip_tags($template);
 
-        $max = isEnglish($template);
-
+        // Basic character count for charging
+        $maxChars = 160; 
         $length = strlen($template);
-        $counter = ceil($length/$max);
-        $charge = $charge*$counter;
+        $counter = ceil($length / $maxChars);
+        $charge = $charge * $counter;
 
         $sms_data['charge'] = $charge;
 
         if (!empty($uid)) {
-            if ($bal > $charge) {
+            if ($bal >= $charge) {
                 $permitted = true;
-            }else{
+            } else {
                 $sms_data['charge'] = '0';
                 $sms_data['status'] = '3';
                 $sms_data['response'] = 'Low Balance';
+                $this->db->table('user_notifier')->insert($sms_data);
+                return false;
             }
         }
 
-
-        $this->CI->db->insert('user_notifier',$sms_data);
-        $insert_id = $this->CI->db->insert_id();
+        // Log the message entry
+        $this->db->table('user_notifier')->insert($sms_data);
+        $insert_id = $this->db->insertID();
 
         if (!$permitted) {
             return false;
         }
 
+        // Deduct balance
         if (!empty($uid)) {
-            $this->CI->db->set('balance', "balance-$charge", FALSE);
-            $this->CI->db->where('id', $uid);
-            $this->CI->db->update(USERS);
-            if ($this->CI->db->affected_rows() <= 0) {return false;}
+            $this->db->table('users')
+                ->where('id', $uid)
+                ->decrement('balance', $charge);
         }
 
-        $paramData = is_null(get_option('sms_api_params')) ? [] : json_decode(get_option('sms_api_params'), true);
-        $paramData = http_build_query($paramData);
+        // API Configuration from Global Options
         $actionUrl = get_option('sms_api_url');
-        $actionMethod = get_option('sms_api_method');
-        $formData = is_null(get_option('sms_api_formdata')) ? [] : json_decode(get_option('sms_api_formdata'), true); 
+        $actionMethod = get_option('sms_api_method', 'GET');
+        $paramData = json_decode(get_option('sms_api_params', '[]'), true);
+        $formData = json_decode(get_option('sms_api_formdata', '[]'), true);
+        $headerData = json_decode(get_option('sms_api_header_data', '[]'), true);
 
-        $headerData = is_null(get_option('sms_api_header_data')) ? [] : json_decode(get_option('sms_api_header_data'), true);
         if ($actionMethod == 'GET') {
-            $actionUrl = $actionUrl . '?' . $paramData;
+            $url = $actionUrl . '?' . http_build_query($paramData);
+        } else {
+            $url = $actionUrl;
         }
 
-        $formData = $this->recursive_array_replace("[[receiver]]", $number, $this->recursive_array_replace("[[message]]", $template, $formData));
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $actionUrl,
+        // Replace placeholders in Form Data
+        $finalFormData = $this->recursive_array_replace("[[receiver]]", $number, $this->recursive_array_replace("[[message]]", $template, $formData));
+        
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
+            CURLOPT_TIMEOUT => 30,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => $actionMethod,
-            CURLOPT_POSTFIELDS => http_build_query($formData),
+            CURLOPT_POSTFIELDS => http_build_query($finalFormData),
             CURLOPT_HTTPHEADER => $headerData,
-        ));
+        ]);
 
-        $response = curl_exec($curl);
-        curl_close($curl);
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
 
-        if (get_value($response,get_option('sms_api_success_key')) != get_option('sms_api_success_value')) {
-            $data['response'] = $response;
-            $data['status'] = 2;
-            if (!empty($uid)) {
-                $this->CI->db->set('balance', "balance+$charge", FALSE);
-                $this->CI->db->where('id', $uid);
-                $this->CI->db->update(USERS);
-                if ($this->CI->db->affected_rows() <= 0) {return false;}
+        $successKey = get_option('sms_api_success_key');
+        $successVal = get_option('sms_api_success_value');
+
+        // Verify Success
+        $isSuccess = false;
+        if (!$err) {
+            $respData = json_decode($response, true) ?: $response;
+            if (is_array($respData)) {
+                $isSuccess = ($respData[$successKey] ?? '') == $successVal;
+            } else {
+                $isSuccess = strpos($response, $successVal) !== false;
             }
-        }else{
-            $data['response'] = $response;
-            $data['status'] = 1;
-
         }
-        $this->CI->db->update('user_notifier',$data,['id'=>$insert_id]);
 
-        return $response;
+        if (!$isSuccess) {
+            $updateData = [
+                'response' => $err ?: $response,
+                'status' => 2, // Failed
+            ];
+            // Refund balance
+            if (!empty($uid)) {
+                $this->db->table('users')
+                    ->where('id', $uid)
+                    ->increment('balance', $charge);
+            }
+        } else {
+            $updateData = [
+                'response' => $response,
+                'status' => 1, // Sent
+            ];
+        }
+
+        $this->db->table('user_notifier')->where('id', $insert_id)->update($updateData);
+
+        return $isSuccess;
     }
 
-   public function recursive_array_replace($search, $replace, $array) {
+    public function recursive_array_replace($search, $replace, $array) {
         if (!is_array($array)) {
             return str_replace($search, $replace, $array);
         }

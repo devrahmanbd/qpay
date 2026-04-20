@@ -108,5 +108,5 @@ class Autoload extends AutoloadConfig
      * @phpstan-var list<string>
      */
 
-    public $helpers = ['csrf', 'form', 'url', 'common', 'cookie', 'security', 'time', 'settings', 'app', 'user', 'inflector'];
+    public $helpers = ['csrf', 'form', 'url', 'common', 'cookie', 'security', 'time', 'settings', 'app', 'user', 'inflector', 'legacy'];
 }

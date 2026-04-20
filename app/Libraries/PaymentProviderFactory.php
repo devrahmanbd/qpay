@@ -6,6 +6,9 @@ use App\Interfaces\PaymentProviderInterface;
 use App\Adapters\SmsVerificationAdapter;
 use App\Adapters\DirectApiAdapter;
 use App\Adapters\BkashAdapter;
+use App\Adapters\NagadAdapter;
+use App\Adapters\BinanceAdapter;
+use App\Adapters\ManualBankAdapter;
 use App\Adapters\TestPaymentAdapter;
 
 class PaymentProviderFactory
@@ -37,6 +40,17 @@ class PaymentProviderFactory
                     if ($nagad->isAvailable()) {
                         return $nagad;
                     }
+                }
+
+                if ($wallet->g_type === 'binance') {
+                    $binance = new BinanceAdapter($merchantId, $brandId, $config);
+                    if ($binance->isAvailable()) {
+                        return $binance;
+                    }
+                }
+
+                if ($wallet->t_type === 'bank') {
+                    return new ManualBankAdapter($merchantId, $brandId, $config);
                 }
 
                 $params = json_decode($wallet->params, true) ?: [];
