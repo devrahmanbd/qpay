@@ -27,7 +27,7 @@ class DomainFilter implements FilterInterface
 
         if ($currentHost === $paymentHost) {
             $path = $request->getUri()->getPath();
-            if (!str_starts_with($path, 'api/v1/payment/checkout')) {
+            if (!str_starts_with(ltrim($path, '/'), 'api/v1/payment/checkout')) {
                 // Redirect to main domain
                 return redirect()->to(rtrim($baseUrl, '/') . '/' . ltrim($path, '/'));
             }
@@ -36,7 +36,7 @@ class DomainFilter implements FilterInterface
         // If on main domain but accessing checkout routes
         if ($currentHost === $mainHost) {
             $path = $request->getUri()->getPath();
-            if (str_starts_with($path, 'api/v1/payment/checkout')) {
+            if (str_starts_with(ltrim($path, '/'), 'api/v1/payment/checkout')) {
                 // Redirect to checkout domain
                 return redirect()->to(rtrim($paymentUrl, '/') . '/' . ltrim($path, '/'));
             }
