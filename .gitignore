@@ -15,4 +15,6 @@ writable/uploads/*
 .DS_Store
 .history/
 .env
+app/Config/App.php
+app/Config/Database.php
 Original-Code/*
