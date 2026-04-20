@@ -8,6 +8,7 @@ class ApiController extends BaseController
     protected $tb_file_manage;
     protected $controller_name;
     protected $image;
+    protected $helpers = ['user'];
     public $model, $db;
 
     public function __construct()
@@ -24,40 +25,51 @@ class ApiController extends BaseController
         $device_key = $request->getVar('device_key');
         $device_ip = $request->getVar('device_ip');
 
-        if ($user_email && $device_key && $device_ip) {
-            $device = $this->model->get('id, uid, device_ip', 'devices', [
-                'user_email' => $user_email, 
-                'device_key' => $device_key
-            ]);
+        try {
+            if ($user_email && $device_key && $device_ip) {
+                $device = $this->db->table('devices')
+                    ->select('id, uid, device_ip')
+                    ->where('user_email', $user_email)
+                    ->where('device_key', $device_key)
+                    ->get()
+                    ->getRow();
 
-            if ($device) {
-                if (deviceValidation($device_key, $device->uid)) {
-                    $updateData = [
-                        'device_ip' => $device_ip,
-                        'last_sync_at' => date('Y-m-d H:i:s'),
-                        'battery_level' => $request->getVar('battery_level') ?? null
-                    ];
-                    
-                    $this->db->table('devices')->where('id', $device->id)->update($updateData);
-                    return json_encode(["status" => "1", "message" => $device->uid]);
+                if ($device) {
+                    if (deviceValidation($device_key, $device->uid)) {
+                        $updateData = [
+                            'device_ip' => $device_ip,
+                            'last_sync_at' => date('Y-m-d H:i:s'),
+                            'battery_level' => $request->getVar('battery_level') ?? null
+                        ];
+                        
+                        $this->db->table('devices')->where('id', $device->id)->update($updateData);
+                        return json_encode(["status" => "1", "message" => $device->uid]);
+                    } else {
+                        return json_encode(["status" => "2", "message" => 'Your key is expired']);
+                    }
                 } else {
-                    return json_encode(["status" => "2", "message" => 'Your key is expired']);
+                    return json_encode(['status' => '0', 'message' => 'Device not found with the provided user_email and device_key']);
                 }
-            } else {
-                return json_encode(['status' => '0', 'message' => 'Device not found with the provided user_email and device_key']);
             }
+
+            $missing = [];
+            if (!$user_email) $missing[] = 'user_email';
+            if (!$device_key) $missing[] = 'device_key';
+            if (!$device_ip) $missing[] = 'device_ip';
+            
+            $msg = count($missing) > 0 
+                ? 'Missing required parameters: ' . implode(', ', $missing) 
+                : 'Failed to connect with the server';
+
+            return json_encode(['status' => '0', 'message' => $msg]);
+
+        } catch (\Throwable $e) {
+            return json_encode([
+                'status' => '0', 
+                'message' => 'System error: ' . $e->getMessage(),
+                'debug_info' => 'Production fix applied'
+            ]);
         }
-
-        $missing = [];
-        if (!$user_email) $missing[] = 'user_email';
-        if (!$device_key) $missing[] = 'device_key';
-        if (!$device_ip) $missing[] = 'device_ip';
-        
-        $msg = count($missing) > 0 
-            ? 'Missing required parameters: ' . implode(', ', $missing) 
-            : 'Failed to connect with the server';
-
-        return json_encode(['status' => '0', 'message' => $msg]);
     }
     
     public function addMessage()
