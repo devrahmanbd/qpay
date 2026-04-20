@@ -66,7 +66,7 @@
 
                 </div>
             </div>
-            <button class="w-full absolute bottom-0 btn btn-bottom" id="payment_submit_done" data-tmp_id="<?= session('tmp_ids') ?>" data-href="<?= base_url('api/save_payment/' . $setting['g_type'] . '?acc_tp=' . @$_GET['acc_tp']) ?>">VERIFY</button>
+            <button class="w-full absolute bottom-0 btn btn-bottom" id="payment_submit_done" data-tmp_id="<?= $payment->ids ?>" data-href="<?= base_url('api/save_payment/' . $setting['g_type'] . '?acc_tp=' . @$_GET['acc_tp']) ?>">VERIFY</button>
         </div>
     </div>
 

@@ -42,16 +42,10 @@ class DomainFilter implements FilterInterface
             }
         }
 
-        // Logic: On main domain but accessing checkout content -> Redirect to checkout
+        // Logic: On main domain but accessing checkout content -> Redirect Home
         if ($normalizedCurrentHost === $mainHost) {
             if ($isCheckoutPath) {
-                $query = $request->getUri()->getQuery();
-                $target = rtrim($paymentUrl, '/') . '/' . $cleanPath . ($query ? '?' . $query : '');
-                
-                // Prevent self-redirection loops
-                if ($target !== (string)$request->getUri()) {
-                    return redirect()->to($target);
-                }
+                return redirect()->to($baseUrl);
             }
         }
     }
