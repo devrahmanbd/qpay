@@ -16,22 +16,7 @@ class App extends BaseConfig
      *
      *    http://example.com/
      */
-    public string $baseURL = '';
-
-    public function __construct()
-    {
-        parent::__construct();
-
-        if (empty($this->baseURL) && isset($_SERVER['HTTP_HOST'])) {
-            $protocol = 'http';
-            if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || 
-                (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
-                (isset($_SERVER['HTTP_FRONT_END_HTTPS']) && $_SERVER['HTTP_FRONT_END_HTTPS'] !== 'off')) {
-                $protocol = 'https';
-            }
-            $this->baseURL = $protocol . '://' . $_SERVER['HTTP_HOST'] . '/';
-        }
-    }
+    public string $baseURL = 'https://qpay.cloudman.one/';
 
     /**
      * Allowed Hostnames in the Site URL other than the hostname in the baseURL.
@@ -172,7 +157,7 @@ class App extends BaseConfig
      *
      * @var array<string, string>
      */
-    public array $proxyIPs = [];
+    public array $proxyIPs = ['0.0.0.0/0'];
 
     /**
      * --------------------------------------------------------------------------
