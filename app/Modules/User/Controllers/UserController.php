@@ -150,9 +150,9 @@ class UserController extends BaseController
                 $content = base_url('affiliates/'.current_user('ref_key'));
                 break;
             case 'signin':
-                $data['email']      = current_user('email');
-                $data['device_key'] = "LKJ";
-                $content = base_url('device-connect&'.http_build_query($data));
+                $data['user_email'] = current_user('email');
+                $data['device_key'] = $this->request->getVar('key') ?? "PLACEHOLDER";
+                $content = base_url('api/device-connect?' . http_build_query($data));
                 break;
             
             default:

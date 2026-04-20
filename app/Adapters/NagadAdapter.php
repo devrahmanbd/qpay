@@ -93,11 +93,21 @@ class NagadAdapter implements PaymentProviderInterface
 
     public function verifyPayment(string $transactionId, array $context = []): array
     {
-        // For Nagad Direct API, the verification actually happens in callback/nagad
-        // but this method can be used for manual verification if needed.
+        $acc_tp = $context['acc_tp'] ?? decrypt($_GET['acc_tp'] ?? '');
+
+        // If it's a merchant/direct API account, it should have been handled by callback
+        if ($acc_tp === 'merchant') {
+            return [
+                'success' => false,
+                'message' => 'Merchant payments are verified automatically. Please wait for the callback.'
+            ];
+        }
+
+        // For Personal/Agent, we approve it for now (Manual logic should check DB/SMS)
+        // In this system, we trust the manual entry or wait for admin approval
         return [
-            'success' => false,
-            'message' => 'Nagad API verification should be handled via callback.'
+            'success' => true,
+            'message' => 'Payment ID submitted for manual verification.'
         ];
     }
 

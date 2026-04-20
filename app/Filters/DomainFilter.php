@@ -20,8 +20,15 @@ class DomainFilter implements FilterInterface
         }
 
         // Normalize hosts by removing 'www.' for accurate comparisons
-        $paymentHost = str_replace('www.', '', parse_url($paymentUrl, PHP_URL_HOST));
-        $mainHost = str_replace('www.', '', parse_url($baseUrl, PHP_URL_HOST));
+        $paymentHostParts = parse_url($paymentUrl, PHP_URL_HOST);
+        $mainHostParts = parse_url($baseUrl, PHP_URL_HOST);
+
+        if (!$paymentHostParts || !$mainHostParts) {
+            return;
+        }
+
+        $paymentHost = str_replace('www.', '', $paymentHostParts);
+        $mainHost = str_replace('www.', '', $mainHostParts);
         $normalizedCurrentHost = str_replace('www.', '', $currentHost);
 
         $path = $request->getUri()->getPath();

@@ -43,10 +43,21 @@ class ApiController extends BaseController
                 } else {
                     return json_encode(["status" => "2", "message" => 'Your key is expired']);
                 }
+            } else {
+                return json_encode(['status' => '0', 'message' => 'Device not found with the provided user_email and device_key']);
             }
         }
 
-        return json_encode(['status' => '0', 'message' => 'Failed to connect with the server']);
+        $missing = [];
+        if (!$user_email) $missing[] = 'user_email';
+        if (!$device_key) $missing[] = 'device_key';
+        if (!$device_ip) $missing[] = 'device_ip';
+        
+        $msg = count($missing) > 0 
+            ? 'Missing required parameters: ' . implode(', ', $missing) 
+            : 'Failed to connect with the server';
+
+        return json_encode(['status' => '0', 'message' => $msg]);
     }
     
     public function addMessage()
