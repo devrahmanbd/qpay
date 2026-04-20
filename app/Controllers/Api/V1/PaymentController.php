@@ -592,7 +592,14 @@ class PaymentController extends ResourceController
             return redirect()->to($redirectUrl);
         }
 
-        $theme = $brand->meta ? (json_decode($brand->meta, true)['theme'] ?? 'nago') : 'nago';
+        // Fetch Brand and Merchant data
+        $brand = $this->db->table('brands')->where('id', $payment->brand_id)->get()->getRow();
+        $merchant = $this->db->table('users')->where('id', $payment->merchant_id)->get()->getRow();
+        
+        $isTestMode = (bool)($payment->test_mode ?? false);
+        $status = $this->statusLabel((int)$payment->status);
+
+        $theme = ($brand && $brand->meta) ? (json_decode($brand->meta, true)['theme'] ?? 'nago') : 'nago';
         $themePath = "themes/{$theme}/";
 
         // If the theme exists, use its modular structure
@@ -607,6 +614,24 @@ class PaymentController extends ResourceController
                 'int_b_s' => $this->getLegacyWallets($merchant->id, $brand->id, 'int_b'),
             ]);
         }
+
+        // Prepare payment methods for the view
+        $methodList = [];
+        $wallets = $this->db->table('user_payment_settings')
+            ->where('uid', $payment->merchant_id)
+            ->where('brand_id', $payment->brand_id)
+            ->where('status', 1)
+            ->get()->getResult();
+
+        foreach ($wallets as $wallet) {
+            $methodList[] = [
+                'id' => $wallet->g_type,
+                'name' => ucfirst($wallet->g_type),
+                'type' => $wallet->t_type
+            ];
+        }
+
+        $selectedMethod = $payment->payment_method ?? ($methodList[0]['id'] ?? null);
 
         return view('api/checkout', [
             'payment_id' => $paymentId,
