@@ -24,18 +24,48 @@
   <meta name="twitter:title" content="<?= !empty($title) ? $title . ' - ' . site_config('site_name', 'QPay') : site_config('site_title', 'QPay - Payment Gateway') ?>">
   <meta name="twitter:description" content="<?= site_config('site_description', 'QPay Payment Gateway') ?>">
 
-  <link rel="preconnect" href="https://cdn.tailwindcss.com">
-  <link rel="preconnect" href="https://cdn.jsdelivr.net">
-  <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
-  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            primary: { 50:'#eef2ff', 100:'#e0e7ff', 200:'#c7d2fe', 300:'#a5b4fc', 400:'#818cf8', 500:'#6366f1', 600:'#4f46e5', 700:'#4338ca', 800:'#3730a3', 900:'#312e81' }
+            primary: {
+              DEFAULT: '#635BFF',
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#635BFF',
+              800: '#3730a3',
+              900: '#312e81'
+            },
+            'on-primary': '#ffffff',
+            'primary-container': '#635bff',
+            'surface': '#f7fafd',
+            'surface-container-low': '#f1f4f7',
+            'surface-container-lowest': '#ffffff',
+            'on-surface': '#181c1e',
+            'on-surface-variant': '#464555',
+            'outline-variant': '#c7c4d8',
+            'primary-fixed': '#e2dfff',
+            'on-primary-fixed-variant': '#321ed2',
+          },
+          borderRadius: {
+            'xl': '0.5rem',
+            '2xl': '1rem',
+            '3xl': '1.5rem',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
           }
         }
       }
@@ -71,11 +101,22 @@
   <style>
     [x-cloak] { display: none !important; }
 
+    body { font-family: 'Inter', sans-serif; }
+
     .reveal-up { animation: revealUp .8s cubic-bezier(.16,1,.3,1) both; }
     @keyframes revealUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:none; } }
 
     .scroll-reveal { opacity:0; transform:translateY(24px); transition: opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1); }
     .scroll-reveal.is-visible { opacity:1; transform:none; }
+
+    .ambient-shadow { box-shadow: 0px 4px 20px rgba(73, 62, 229, 0.04), 0px 10px 40px rgba(24, 28, 30, 0.06); }
+    .hero-gradient { background: linear-gradient(135deg, #493ee5 0%, #635bff 100%); }
+    .glass { backdrop-filter: blur(24px); background-color: rgba(255, 255, 255, 0.8); }
+
+    .material-symbols-outlined { 
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
+    }
 
     @keyframes pulse-slow { 0%,100% { opacity:.3; transform:scale(1); } 50% { opacity:.5; transform:scale(1.05); } }
     .animate-pulse-slow { animation: pulse-slow 8s ease-in-out infinite; }
@@ -83,9 +124,6 @@
     .logo-marquee { display:flex; gap:3rem; animation: marquee 25s linear infinite; }
     .logo-marquee:hover { animation-play-state: paused; }
     @keyframes marquee { 0% { transform:translateX(0); } 100% { transform:translateX(-50%); } }
-
-    .fade-in { animation: fadeIn .6s ease-out both; }
-    @keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:none; } }
 
     html { scroll-behavior: smooth; }
   </style>
@@ -96,8 +134,8 @@
   <header id="header" class="header fixed top-0 inset-x-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
       <a href="<?= base_url() ?>" class="flex items-center gap-2">
-        <img src="<?= get_logo() ?>" alt="<?= site_config('site_name', 'QPay') ?>" class="h-8" width="32" height="32">
-        <span class="text-xl font-bold text-gray-900"><?= site_config('site_name', 'QPay') ?></span>
+        <span class="material-symbols-outlined text-primary text-3xl">payments</span>
+        <span class="text-2xl font-bold tracking-tighter text-primary">Qpay</span>
       </a>
       <nav class="hidden md:flex items-center gap-8">
         <a href="<?= base_url() ?>" class="text-sm font-medium <?= segment(1) == '' ? 'text-primary-600' : 'text-gray-600 hover:text-gray-900' ?> transition-colors">Home</a>
@@ -121,8 +159,14 @@
     </div>
   </header>
 
-  <main class="main pt-16">
-    <?= view($view) ?>
+  <main class="main <?= isset($is_docs) && $is_docs ? '' : 'pt-16' ?>">
+    <?php if (isset($is_docs) && $is_docs): ?>
+      <?= view($view) ?>
+    <?php else: ?>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <?= view($view) ?>
+      </div>
+    <?php endif; ?>
   </main>
 
   <footer id="footer" class="bg-gray-900 text-gray-400">

@@ -20,7 +20,6 @@ class DocController extends BaseController
     }
     public function docs()
     {
-        $this->template->set_layout('general');
-        return  $this->template->view('developers/docs')->render();
+        return view('Home\Views\developers\docs');
     }
 }
