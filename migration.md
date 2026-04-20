@@ -8,7 +8,6 @@ This document tracks and confirms the completion of logic, configurations, and f
 - **Status**: ✅ **Ported & Enhanced**
 - **Location**: `app/Adapters/SmsVerificationAdapter.php`
 - **Audit Findings**: The modern version successfully ports the `module_data` search, strict amount regex, and double-spending prevention. It includes a Heartbeat check for merchant devices and improved regex for Rocket/Cellfin.
-
 ### 2. Missing Payment Adapters
 All listed providers have been mapped to robust adapters:
 - ✅ **Binance Pay**: Ported signature logic into `BinanceAdapter.php`.
