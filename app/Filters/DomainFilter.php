@@ -10,8 +10,8 @@ class DomainFilter implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
+        // Use raw server host for reliable detection across subdomains
         $currentHost = $request->getServer('HTTP_HOST');
-        $forwardedHost = $request->getServer('HTTP_X_FORWARDED_HOST');
         $paymentUrl = getenv('PAYMENT_URL');
         $baseUrl = getenv('app.baseURL');
 
@@ -19,9 +19,7 @@ class DomainFilter implements FilterInterface
             return;
         }
 
-        log_message('critical', "[DomainFilter] Host: {$currentHost} | Forwarded: {$forwardedHost} | URL: " . (string)$request->getUri());
-
-        // Normalize hosts by removing 'www.' for comparison
+        // Normalize hosts by removing 'www.' for accurate comparisons
         $paymentHost = str_replace('www.', '', parse_url($paymentUrl, PHP_URL_HOST));
         $mainHost = str_replace('www.', '', parse_url($baseUrl, PHP_URL_HOST));
         $normalizedCurrentHost = str_replace('www.', '', $currentHost);
@@ -29,22 +27,19 @@ class DomainFilter implements FilterInterface
         $path = $request->getUri()->getPath();
         $cleanPath = ltrim($path, '/');
 
-        // If on checkout host but accessing main site content
+        // Logic: On checkout domain but accessing main site content -> Redirect to main
         if ($normalizedCurrentHost === $paymentHost) {
-            if (!str_starts_with($cleanPath, 'api/v1/payment/checkout')) {
-                // Redirect back to main domain
-                $target = rtrim($baseUrl, '/') . '/' . $cleanPath;
-                return redirect()->to($target);
+            if (!str_starts_with($cleanPath, 'api/v1/payment/checkout') && !str_starts_with($cleanPath, 'assets/') && !str_starts_with($cleanPath, 'themes/')) {
+                return redirect()->to(rtrim($baseUrl, '/') . '/' . $cleanPath);
             }
         }
 
-        // If on main host but accessing checkout content
+        // Logic: On main domain but accessing checkout content -> Redirect to checkout
         if ($normalizedCurrentHost === $mainHost) {
             if (str_starts_with($cleanPath, 'api/v1/payment/checkout')) {
-                // Redirect to checkout domain
                 $target = rtrim($paymentUrl, '/') . '/' . $cleanPath;
                 
-                // Safety check: Don't redirect to the same URL
+                // Prevent self-redirection loops
                 if ($target !== (string)$request->getUri()) {
                     return redirect()->to($target);
                 }
