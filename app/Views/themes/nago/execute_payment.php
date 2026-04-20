@@ -24,7 +24,7 @@
                     <div class="brand-logo flex items-center justify-center m-5">
                     <img src="<?= base_url() . $all_info['brand_logo'] ?>" alt="" id="company_logo" />
                 </div>
-                    <button onclick="window.location.href='<?= base_url("api/execute/" . $all_info['tmp_ids']); ?>'">
+                    <button onclick="window.location.href='/api/execute/<?= $all_info['tmp_ids'] ?>'">
                         <svg width="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M9.5 1C4.80558 1 1 4.80558 1 9.5C1 14.1944 4.80558 18 9.5 18C14.1944 18 18 14.1944 18 9.5C18 4.80558 14.1944 1 9.5 1Z" stroke="#6D7F9A" stroke-width="1.5"></path>
                             <path d="M10.7749 12.9L7.3749 9.50002L10.7749 6.10002" stroke="#94A9C7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -66,7 +66,7 @@
 
                 </div>
             </div>
-            <button class="w-full absolute bottom-0 btn btn-bottom" id="payment_submit_done" data-tmp_id="<?= $payment->ids ?>" data-href="<?= base_url('api/save_payment/' . $setting['g_type'] . '?acc_tp=' . @$_GET['acc_tp']) ?>">VERIFY</button>
+            <button class="w-full absolute bottom-0 btn btn-bottom" id="payment_submit_done" data-tmp_id="<?= $payment->ids ?>" data-href="/api/save_payment/<?= $setting['g_type'] ?>?acc_tp=<?= @$_GET['acc_tp'] ?>">VERIFY</button>
         </div>
     </div>
 
@@ -144,7 +144,7 @@
                 $(document).on('change', '#ajaxUpload', function() {
                     var property = document.getElementById('ajaxUpload').files[0];
                     var _that = $(this),
-                        _action = "<?= base_url('api/upload_files'); ?>";
+                        _action = "/api/upload_files";
 
                     var form_data = new FormData();
                     form_data.append("files[]", property);
