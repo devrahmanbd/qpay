@@ -14,3 +14,4 @@ writable/uploads/*
 *.log
 .DS_Store
 .history/
+.env

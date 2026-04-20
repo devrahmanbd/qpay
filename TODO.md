@@ -2,7 +2,7 @@
 
 ### High Priority
 
-- [ ]  sk_key, pk_key doesn't work cause in user dashboard I can't generate a new key, there’s no backend logic. Create button and backend seems to be the issue. sk_key renamed to qp_key. 
+- [x]  sk_key, pk_key doesn't work cause in user dashboard I can't generate a new key, there’s no backend logic. Create button and backend seems to be the issue. sk_key renamed to qp_key. 
 	    Step 1. Create backend logic for generating qp_key and pk_key, also sandbox key pair.
 		Step 2. Then update the API and security headers
 		Step 3. Update user dashboard to generate qp_key and pk_key, also sandbox key pair.
