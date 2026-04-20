@@ -16,7 +16,17 @@ class App extends BaseConfig
      *
      *    http://example.com/
      */
-    public string $baseURL = 'https://localhost:8443/';
+    public string $baseURL = '';
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        if (empty($this->baseURL) && isset($_SERVER['HTTP_HOST'])) {
+            $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+            $this->baseURL = $protocol . '://' . $_SERVER['HTTP_HOST'] . '/';
+        }
+    }
 
     /**
      * Allowed Hostnames in the Site URL other than the hostname in the baseURL.
