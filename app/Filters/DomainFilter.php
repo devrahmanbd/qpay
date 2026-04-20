@@ -10,7 +10,8 @@ class DomainFilter implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
-        $currentHost = $request->getUri()->getHost();
+        $currentHost = $request->getServer('HTTP_HOST');
+        $forwardedHost = $request->getServer('HTTP_X_FORWARDED_HOST');
         $paymentUrl = getenv('PAYMENT_URL');
         $baseUrl = getenv('app.baseURL');
 
@@ -18,7 +19,7 @@ class DomainFilter implements FilterInterface
             return;
         }
 
-        log_message('critical', '[DomainFilter] Current Host: ' . $currentHost . ' | Path: ' . $request->getUri()->getPath());
+        log_message('critical', "[DomainFilter] Host: {$currentHost} | Forwarded: {$forwardedHost} | URL: " . (string)$request->getUri());
 
         // Normalize hosts by removing 'www.' for comparison
         $paymentHost = str_replace('www.', '', parse_url($paymentUrl, PHP_URL_HOST));
