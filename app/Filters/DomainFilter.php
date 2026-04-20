@@ -27,19 +27,23 @@ class DomainFilter implements FilterInterface
         $path = $request->getUri()->getPath();
         $cleanPath = ltrim($path, '/');
 
+        // Identify if the request path belongs on the Checkout subdomain
+        $isCheckoutPath = str_starts_with($cleanPath, 'api/v1/payment/checkout') || 
+                          str_starts_with($cleanPath, 'api/execute') || 
+                          str_starts_with($cleanPath, 'api/save_payment');
+
         // Logic: On checkout domain but accessing main site content -> Redirect to main
         if ($normalizedCurrentHost === $paymentHost) {
-            if (!str_starts_with($cleanPath, 'api/v1/payment/checkout') && !str_starts_with($cleanPath, 'assets/') && !str_starts_with($cleanPath, 'themes/')) {
+            // Allow checkout paths, assets, and themes to stay on the checkout subdomain
+            $isPublicAsset = str_starts_with($cleanPath, 'assets/') || str_starts_with($cleanPath, 'themes/');
+            
+            if (!$isCheckoutPath && !$isPublicAsset) {
                 return redirect()->to(rtrim($baseUrl, '/') . '/' . $cleanPath);
             }
         }
 
         // Logic: On main domain but accessing checkout content -> Redirect to checkout
         if ($normalizedCurrentHost === $mainHost) {
-            $isCheckoutPath = str_starts_with($cleanPath, 'api/v1/payment/checkout') || 
-                              str_starts_with($cleanPath, 'api/execute') || 
-                              str_starts_with($cleanPath, 'api/save_payment');
-
             if ($isCheckoutPath) {
                 $target = rtrim($paymentUrl, '/') . '/' . $cleanPath;
                 
