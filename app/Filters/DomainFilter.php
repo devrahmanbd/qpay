@@ -10,7 +10,7 @@ class DomainFilter implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
-        $currentHost = $request->getServer('HTTP_HOST');
+        $currentHost = $request->getUri()->getHost();
         $paymentUrl = getenv('PAYMENT_URL');
         $baseUrl = getenv('app.baseURL');
 
@@ -18,27 +18,33 @@ class DomainFilter implements FilterInterface
             return;
         }
 
-        $paymentHost = parse_url($paymentUrl, PHP_URL_HOST);
-        $mainHost = parse_url($baseUrl, PHP_URL_HOST);
+        // Normalize hosts by removing 'www.' for comparison
+        $paymentHost = str_replace('www.', '', parse_url($paymentUrl, PHP_URL_HOST));
+        $mainHost = str_replace('www.', '', parse_url($baseUrl, PHP_URL_HOST));
+        $normalizedCurrentHost = str_replace('www.', '', $currentHost);
 
-        // Remove ports from currentHost for comparison if needed, 
-        // or just compare hostnames. CodeIgniter's getUri()->getHost() is safer.
-        $currentHost = $request->getUri()->getHost();
+        $path = $request->getUri()->getPath();
+        $cleanPath = ltrim($path, '/');
 
-        if ($currentHost === $paymentHost) {
-            $path = $request->getUri()->getPath();
-            if (!str_starts_with(ltrim($path, '/'), 'api/v1/payment/checkout')) {
-                // Redirect to main domain
-                return redirect()->to(rtrim($baseUrl, '/') . '/' . ltrim($path, '/'));
+        // If on checkout host but accessing main site content
+        if ($normalizedCurrentHost === $paymentHost) {
+            if (!str_starts_with($cleanPath, 'api/v1/payment/checkout')) {
+                // Redirect back to main domain
+                $target = rtrim($baseUrl, '/') . '/' . $cleanPath;
+                return redirect()->to($target);
             }
         }
 
-        // If on main domain but accessing checkout routes
-        if ($currentHost === $mainHost) {
-            $path = $request->getUri()->getPath();
-            if (str_starts_with(ltrim($path, '/'), 'api/v1/payment/checkout')) {
+        // If on main host but accessing checkout content
+        if ($normalizedCurrentHost === $mainHost) {
+            if (str_starts_with($cleanPath, 'api/v1/payment/checkout')) {
                 // Redirect to checkout domain
-                return redirect()->to(rtrim($paymentUrl, '/') . '/' . ltrim($path, '/'));
+                $target = rtrim($paymentUrl, '/') . '/' . $cleanPath;
+                
+                // Safety check: Don't redirect to the same URL
+                if ($target !== (string)$request->getUri()) {
+                    return redirect()->to($target);
+                }
             }
         }
     }
