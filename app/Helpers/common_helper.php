@@ -17,7 +17,7 @@ if (!function_exists('link_asset')) {
         if (preg_match('#^([a-z]+:)?//#i', $url)) {
             $link .= 'href="' . $theme . $url . '" ';
         } else {
-            $link .= 'href="' . base_url($theme . $url) . '" ';
+            $link .= 'href="/' . ltrim($theme . $url, '/') . '" ';
         }
         return $link . " rel='stylesheet'/>\n";
     }
@@ -37,7 +37,7 @@ if (!function_exists('script_asset')) {
         if (preg_match('#^([a-z]+:)?//#i', $src)) {
             $script .= 'src="' . $theme . $src . '" ';
         } else {
-            $script .= 'src="' . base_url($theme . $src) . '" ';
+            $script .= 'src="/' . ltrim($theme . $src, '/') . '" ';
         }
         return $script . "></script>\n";
     }
