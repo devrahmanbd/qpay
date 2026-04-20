@@ -36,7 +36,11 @@ class DomainFilter implements FilterInterface
 
         // Logic: On main domain but accessing checkout content -> Redirect to checkout
         if ($normalizedCurrentHost === $mainHost) {
-            if (str_starts_with($cleanPath, 'api/v1/payment/checkout')) {
+            $isCheckoutPath = str_starts_with($cleanPath, 'api/v1/payment/checkout') || 
+                              str_starts_with($cleanPath, 'api/execute') || 
+                              str_starts_with($cleanPath, 'api/save_payment');
+
+            if ($isCheckoutPath) {
                 $target = rtrim($paymentUrl, '/') . '/' . $cleanPath;
                 
                 // Prevent self-redirection loops
