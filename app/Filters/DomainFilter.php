@@ -18,6 +18,8 @@ class DomainFilter implements FilterInterface
             return;
         }
 
+        log_message('critical', '[DomainFilter] Current Host: ' . $currentHost . ' | Path: ' . $request->getUri()->getPath());
+
         // Normalize hosts by removing 'www.' for comparison
         $paymentHost = str_replace('www.', '', parse_url($paymentUrl, PHP_URL_HOST));
         $mainHost = str_replace('www.', '', parse_url($baseUrl, PHP_URL_HOST));
