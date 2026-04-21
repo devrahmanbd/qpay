@@ -1,5 +1,6 @@
 <?php
 namespace App\Controllers;
+// Cache buster: 2026-04-20 22:27:00
 
 use Blocks\Models\QueueModel;
 
@@ -8,7 +9,7 @@ class ApiController extends BaseController
     protected $tb_file_manage;
     protected $controller_name;
     protected $image;
-    protected $helpers = ['user'];
+    protected $helpers = ['user', 'common'];
     public $model, $db;
 
     public function __construct()
@@ -27,6 +28,7 @@ class ApiController extends BaseController
 
         try {
             if ($user_email && $device_key && $device_ip) {
+                // Use standard database query to ensure an object is returned reliably
                 $device = $this->db->table('devices')
                     ->select('id, uid, device_ip')
                     ->where('user_email', $user_email)
@@ -43,7 +45,30 @@ class ApiController extends BaseController
                         ];
                         
                         $this->db->table('devices')->where('id', $device->id)->update($updateData);
-                        return json_encode(["status" => "1", "message" => $device->uid]);
+
+                        // Log a connection event if it's been a while (e.g. 5 mins) or no logs exist
+                        $lastLog = $this->db->table('device_logs')
+                            ->where('device_id', $device->id)
+                            ->orderBy('id', 'DESC')
+                            ->limit(1)
+                            ->get()
+                            ->getRow();
+                        
+                        if (!$lastLog || (strtotime(date('Y-m-d H:i:s')) - strtotime($lastLog->created_at) > 300)) {
+                            $this->logDeviceEvent(
+                                $device->id, 
+                                'device_connected', 
+                                'Device connected to server successfully', 
+                                'Device IP: ' . $device_ip, 
+                                'success'
+                            );
+                        }
+
+                        return json_encode([
+                            "status" => "1", 
+                            "message" => $device->uid, 
+                            "device_id" => $device->id
+                        ]);
                     } else {
                         return json_encode(["status" => "2", "message" => 'Your key is expired']);
                     }
@@ -66,8 +91,7 @@ class ApiController extends BaseController
         } catch (\Throwable $e) {
             return json_encode([
                 'status' => '0', 
-                'message' => 'System error: ' . $e->getMessage(),
-                'debug_info' => 'Production fix applied'
+                'message' => 'System error: ' . $e->getMessage()
             ]);
         }
     }
@@ -91,24 +115,29 @@ class ApiController extends BaseController
         $address = $request->getVar('address');
         $message = $request->getVar('message');
 
-        // Validate input
-      //  if (empty($message) || !in_array($address, ['bkash', 'nagad', 'rocket'//, 'upay', 'surecash', 'Ipay', 'okwallet', 'tap', 'cellfin'])) {
-          //  ms(["status" => "0", "message" => 'Invalid message or address']);
-     //       return;
-    //    }
-
         // Check device status and insert message
         if (!empty($device->status) && $device->status == 1 && !empty($message)) {
             $data = [
                 'uid'        => $device->message,
+                'device_id'  => $device->device_id ?? null,
                 'message'    => preg_replace("/\r?\n/", " ", $message),
                 'address'    => $address,
                 'created_at' => date('Y-m-d H:i:s')
             ];
 
             $this->db->table('module_data')->insert($data);
+            $smsId = $this->db->insertID();
 
             if ($this->db->affectedRows() > 0) {
+                if (!empty($device->device_id)) {
+                    $this->logDeviceEvent(
+                        $device->device_id,
+                        'sms_received',
+                        "New SMS received from {$address}",
+                        "SMS ID: {$smsId}\nContent: " . shorten_string($message, 50),
+                        'info'
+                    );
+                }
                 ms(['status' => 1, 'message' => 'Data inserted successfully']);
             } else {
                 ms(["status" => "0", "message" => 'Failed to insert data']);
@@ -116,6 +145,40 @@ class ApiController extends BaseController
         } else {
             ms(['status' => "0", 'message' => 'Failed to connect or invalid device']);
         }
+    }
+
+    public function getLogs()
+    {
+        $request = service('request');
+        $deviceResponse = $this->deviceConnect();
+        $device = json_decode($deviceResponse);
+
+        if (empty($device->status) || $device->status != 1 || empty($device->device_id)) {
+            ms(['status' => 0, 'message' => 'Authentication failed', 'debug' => $device]);
+        }
+
+        $logs = $this->db->table('device_logs')
+            ->where('device_id', $device->device_id)
+            ->orderBy('id', 'DESC')
+            ->limit(30)
+            ->get()
+            ->getResult();
+
+        ms(['status' => 1, 'logs' => $logs]);
+    }
+
+    private function logDeviceEvent($deviceId, $event, $message, $debugData = null, $type = 'info')
+    {
+        if (!$deviceId) return;
+        
+        $this->db->table('device_logs')->insert([
+            'device_id'  => $deviceId,
+            'event'      => $event,
+            'type'       => $type,
+            'message'    => $message,
+            'debug_data' => $debugData,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
     }
 
     public function cron()

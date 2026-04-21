@@ -21,12 +21,14 @@ $routes->post('upload_files', [File_manager::class, 'upload_files']);
 $routes->post('upload_files_tiny', [File_manager::class, 'upload_files_tiny']);
 $routes->get('file-manager/view_files/(:any)', [File_manager::class, 'view_files']);
 
+$routes->match(['get', 'post'], 'api/device-connect', [ApiController::class, 'deviceConnect']);
+$routes->match(['get', 'post'], 'api/add-data', [ApiController::class, 'addMessage']);
+$routes->match(['get', 'post'], 'api/get-logs', [ApiController::class, 'getLogs']);
+
 $routes->group('', ['hostname' => $mainHost], static function ($routes) {
     $routes->group('/', static function ($routes) {
             $routes->get('cron', [ApiController::class, 'cron']);
             $routes->get('api', [ApiController::class, 'index']);
-            $routes->match(['get', 'post'], 'api/device-connect', [ApiController::class, 'deviceConnect']);
-            $routes->match(['get', 'post'], 'api/add-data', [ApiController::class, 'addMessage']);
     });
 });
 

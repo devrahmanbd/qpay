@@ -54,6 +54,21 @@ if (!function_exists('ms')) {
         exit(0);
     }
 }
+if (!function_exists('log_device_event')) {
+    function log_device_event($deviceId, $event, $message, $debugData = null, $type = 'info')
+    {
+        if (!$deviceId) return;
+        $db = db_connect();
+        $db->table('device_logs')->insert([
+            'device_id'  => $deviceId,
+            'event'      => $event,
+            'type'       => $type,
+            'message'    => $message,
+            'debug_data' => $debugData,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+    }
+}
 if (!function_exists('encrypt_encode')) {
     function encrypt_encode($text)
     {

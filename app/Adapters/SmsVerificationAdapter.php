@@ -176,7 +176,13 @@ class SmsVerificationAdapter implements PaymentProviderInterface
             $receivedAmount = (float)str_replace(',', '', $matches[1]);
             
             // Allow for minor float precision differences
-            if (abs($receivedAmount - $expectedAmount) > 0.01) {
+                log_device_event(
+                    $smsRecord->device_id ?? null,
+                    'verification_failed',
+                    "Amount mismatch for payment {$paymentId}",
+                    "Expected: {$expectedAmount}, Received: {$receivedAmount}\nSMS ID: {$smsRecord->id}\nMessage: {$message}",
+                    'warning'
+                );
                 return [
                     'success' => false,
                     'code' => 'AMOUNT_MISMATCH',
@@ -184,6 +190,13 @@ class SmsVerificationAdapter implements PaymentProviderInterface
                 ];
             }
         } else {
+            log_device_event(
+                $smsRecord->device_id ?? null,
+                'verification_failed',
+                "Amount parsing error for payment {$paymentId}",
+                "Could not extract amount from message.\nSMS ID: {$smsRecord->id}\nMessage: {$message}",
+                'error'
+            );
             return [
                 'success' => false,
                 'code' => 'PARSE_ERROR',
@@ -211,8 +224,23 @@ class SmsVerificationAdapter implements PaymentProviderInterface
         $this->db->transComplete();
 
         if ($this->db->transStatus() === false) {
+            log_device_event(
+                $smsRecord->device_id ?? null,
+                'verification_failed',
+                "Database error during verification finalize",
+                "Payment ID: {$paymentId}\nSMS ID: {$smsRecord->id}",
+                'error'
+            );
             return ['success' => false, 'message' => 'Failed to finalize transaction in database.'];
         }
+
+        log_device_event(
+            $smsRecord->device_id ?? null,
+            'payment_verified',
+            "Payment verified! Amount: {$receivedAmount}",
+            "Payment ID: {$paymentId}\nTransaction ID: {$transactionId}\nSMS ID: {$smsRecord->id}",
+            'success'
+        );
 
         return [
             'success' => true,

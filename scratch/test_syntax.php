@@ -685,37 +685,60 @@ class PaymentController extends ResourceController
      */
     public function savePayment($method)
     {
-        $paymentId = $this->request->getPost('tmp_id');
-        $transactionId = $this->request->getPost('transaction_id');
-        
-        if (empty($paymentId) || empty($transactionId)) {
-            return $this->respond(['status' => 'error', 'message' => 'Missing ID or Transaction ID'], 400);
-        }
+        try {
+            $paymentId = $this->request->getPost('tmp_id');
+            $transactionId = $this->request->getPost('transaction_id');
+            
+            if (empty($paymentId) || empty($transactionId)) {
+                return $this->respond(['status' => 'error', 'message' => 'Missing ID or Transaction ID'], 400);
+            }
 
-        $payment = $this->db->table('api_payments')->where('ids', $paymentId)->get()->getRow();
-        if (!$payment) {
-            return $this->respond(['status' => 'error', 'message' => 'Payment not found'], 404);
-        }
+            $payment = $this->db->table('api_payments')->where('ids', $paymentId)->get()->getRow();
+            if (!$payment) return $this->respond(['status' => 'error', 'message' => 'Payment not found'], 404);
 
-        $provider = PaymentProviderFactory::create((int)$payment->merchant_id, (int)$payment->brand_id, ['payment_method' => $method]);
-        $verifyResult = $provider->verifyPayment($transactionId, [
-            'payment_id' => $paymentId,
-            'payment_method' => $method
-        ]);
+            $provider = PaymentProviderFactory::create((int)$payment->merchant_id, (int)$payment->brand_id, ['payment_method' => $method]);
+            $verifyResult = $provider->verifyPayment($transactionId, [
+                'payment_id' => $paymentId,
+                'payment_method' => $method
+            ]);
 
-        // 1. Success Flow
-        if (isset($verifyResult['success']) && $verifyResult['success']) {
-            $redirect = base_url("api/v1/payment/checkout/{$paymentId}?status=success");
-            if (!empty($payment->success_url)) {
-                $separator = str_contains($payment->success_url, '?') ? '&' : '?';
-                $redirect = $payment->success_url . $separator . "payment_id={$paymentId}&status=completed";
+            // 1. Success Flow
+            if (isset($verifyResult['success']) && $verifyResult['success']) {
+                try {
+                    $webhookService = new WebhookService();
+                    $webhookService->dispatch($payment->brand_id, $payment->merchant_id, 'payment.completed', [
+                        'id' => $paymentId,
+                        'status' => 'completed',
+                        'amount' => (float)$payment->amount,
+                        'transaction_id' => $transactionId
+                    ]);
+                } catch (\Exception $e) {
+                    q_debug("Webhook failed but payment was verified: " . $e->getMessage(), 'PAYMENT_VERIFY_WARNING');
+                }
+
+                $redirect = base_url("api/v1/payment/checkout/{$paymentId}?status=success");
+                if (!empty($payment->success_url)) {
+                    $separator = str_contains($payment->success_url, '?') ? '&' : '?';
+                    $redirect = $payment->success_url . $separator . "payment_id={$paymentId}&status=completed";
+                }
+
+                return $this->respond([
+                    'status' => 'success',
+                    'message' => 'Payment Verified Successfully!',
+                    'redirect' => $redirect
+                ]);
             }
 
             return $this->respond([
-                'status' => 'success',
-                'message' => 'Payment Verified Successfully!',
-                'redirect' => $redirect
+                'status' => 'error', 
+                'message' => $verifyResult['message'] ?? 'Verification failed'
             ]);
+
+        } catch (\Exception $e) {
+            return $this->respond([
+                'status' => 'error',
+                'message' => 'Internal Error: ' . $e->getMessage()
+            ], 500);
         }
 
         // 2. Pending/Polling Flow (High Latency)
@@ -724,15 +747,16 @@ class PaymentController extends ResourceController
                 'status' => 'pending',
                 'message' => $verifyResult['message'] ?? 'Waiting for payment confirmation from your phone...',
                 'poll' => true,
-                'retry_after' => 5
+                'retry_after' => 5 // Seconds
             ], 202);
         }
 
-        // 3. Handled Error Result
+        // 3. Error Flow
         return $this->respond([
-            'status' => 'error', 
-            'message' => $verifyResult['message'] ?? 'Verification failed'
-        ]);
+            'status' => 'error',
+            'code' => $verifyResult['code'] ?? 'VERIFICATION_FAILED',
+            'message' => $verifyResult['message'] ?? 'Verification failed. Please check your transaction ID.'
+        ], 200);
     }
 
     /**
