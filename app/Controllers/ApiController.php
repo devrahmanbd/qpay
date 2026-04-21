@@ -138,11 +138,13 @@ class ApiController extends BaseController
     
     public function addMessage()
     {
+        log_message('alert', "[ApiController] addMessage CALLED");
         $request = service('request');
         $deviceResponse = $this->deviceConnect();
         $deviceData = json_decode($deviceResponse);
 
         if (!$deviceData || $deviceData->status != 1) {
+            log_message('error', "[ApiController] addMessage AUTH FAILED: " . ($deviceData->message ?? 'Unknown'));
             ms([
                 'status' => 0,
                 'message' => $deviceData->message ?? 'Authentication failed'
@@ -153,9 +155,11 @@ class ApiController extends BaseController
         $address = $request->getVar('address');
         $message = $request->getVar('message');
 
+        log_message('alert', "[ApiController] SMS Payload: From={$address}, Message=[" . substr($message, 0, 50) . "...]");
+
         if (!empty($message)) {
             $data = [
-                'uid'        => $deviceData->message,
+                'uid'        => $deviceData->message, // Note: deviceData->message contains the UID string from deviceConnect
                 'device_id'  => $deviceData->device_id ?? null,
                 'message'    => preg_replace("/\r?\n/", " ", $message),
                 'address'    => $address,
@@ -166,6 +170,7 @@ class ApiController extends BaseController
             $smsId = $this->db->insertID();
 
             if ($this->db->affectedRows() > 0) {
+                log_message('alert', "[ApiController] SMS SAVED: ID={$smsId} for UID={$deviceData->message}");
                 if (!empty($deviceData->device_id)) {
                     $this->logDeviceEvent(
                         $deviceData->device_id,
@@ -177,9 +182,11 @@ class ApiController extends BaseController
                 }
                 ms(['status' => 1, 'message' => 'Data inserted successfully']);
             } else {
+                log_message('error', "[ApiController] SMS INSERT FAILED for Address={$address}");
                 ms(["status" => 0, "message" => 'Failed to insert data']);
             }
         } else {
+            log_message('warning', "[ApiController] addMessage received EMPTY message from Address={$address}");
             ms(['status' => 0, 'message' => 'Empty message received']);
         }
     }
