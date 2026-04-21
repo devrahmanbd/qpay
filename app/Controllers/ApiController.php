@@ -13,6 +13,7 @@ class ApiController extends BaseController
 
     public function __construct()
     {
+        $this->db = db_connect();
         $this->model = new QueueModel;
     }
 
