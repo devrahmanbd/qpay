@@ -71,21 +71,26 @@ class ApiController extends BaseController
                         $this->db->table('devices')->where('id', $device->id)->update($updateData);
 
                         // Log a connection event if it's been a while (e.g. 5 mins) or no logs exist
-                        $lastLog = $this->db->table('device_logs')
-                            ->where('device_id', $device->id)
-                            ->orderBy('id', 'DESC')
-                            ->limit(1)
-                            ->get()
-                            ->getRow();
-                        
-                        if (!$lastLog || (strtotime(date('Y-m-d H:i:s')) - strtotime($lastLog->created_at) > 300)) {
-                            $this->logDeviceEvent(
-                                $device->id, 
-                                'device_connected', 
-                                'Device connected to server successfully', 
-                                'Device IP: ' . $device_ip, 
-                                'success'
-                            );
+                        try {
+                            $lastLog = $this->db->table('device_logs')
+                                ->where('device_id', $device->id)
+                                ->orderBy('id', 'DESC')
+                                ->limit(1)
+                                ->get()
+                                ->getRow();
+                            
+                            if (!$lastLog || (strtotime(date('Y-m-d H:i:s')) - strtotime($lastLog->created_at) > 300)) {
+                                $this->logDeviceEvent(
+                                    $device->id, 
+                                    'device_connected', 
+                                    'Device connected to server successfully', 
+                                    'Device IP: ' . $device_ip, 
+                                    'success'
+                                );
+                            }
+                        } catch (\Throwable $logError) {
+                            // Silently ignore if table is missing or query fails
+                            log_message('error', "[ApiController] Telemetry check failed: " . $logError->getMessage());
                         }
 
                         return json_encode([
@@ -232,7 +237,7 @@ class ApiController extends BaseController
     {
         return json_encode([
             'status' => 1,
-            'message' => 'PONG-v3', // Incremented version to verify sync
+            'message' => 'PONG-v4', // Incremented version to verify sync
             'time' => date('Y-m-d H:i:s'),
             'db_status' => (db_connect()->connect() ? 'Connected' : 'Failed')
         ]);
