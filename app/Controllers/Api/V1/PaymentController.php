@@ -156,7 +156,7 @@ class PaymentController extends ResourceController
             return $this->respond($this->formatPayment($payment, [
                 'fees' => round($fees, 3),
                 'net_amount' => round($amount - $fees, 3),
-                'checkout_url' => base_url("api/v1/payment/checkout/{$paymentIds}"),
+                'checkout_url' => payment_base_url("api/v1/payment/checkout/{$paymentIds}"),
                 'redirect_url' => $providerResult['redirect_url'] ?? null,
             ]), 201);
         } catch (\Throwable $e) {

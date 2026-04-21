@@ -49,10 +49,10 @@ class DomainFilter implements FilterInterface
             }
         }
 
-        // Logic: On main domain but accessing checkout content -> Redirect Home
+        // Logic: On main domain but accessing checkout content -> Redirect to Checkout Subdomain
         if ($normalizedCurrentHost === $mainHost) {
             if ($isCheckoutPath) {
-                return redirect()->to($baseUrl);
+                return redirect()->to(rtrim($paymentUrl, '/') . '/' . $cleanPath);
             }
         }
     }

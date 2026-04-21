@@ -836,3 +836,14 @@ if (!function_exists('amount_format')) {
 if (!function_exists('BASE_SITE')) {
     define('BASE_SITE', base_url());
 }
+
+if (!function_exists('payment_base_url')) {
+    function payment_base_url($path = '')
+    {
+        $paymentUrl = getenv('PAYMENT_URL');
+        if (empty($paymentUrl)) {
+            $paymentUrl = base_url();
+        }
+        return rtrim($paymentUrl, '/') . '/' . ltrim($path, '/');
+    }
+}
