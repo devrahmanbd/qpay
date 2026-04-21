@@ -161,11 +161,15 @@ class ApiController extends BaseController
         if (!empty($message)) {
             $data = [
                 'uid'        => $deviceData->message, // Note: deviceData->message contains the UID string from deviceConnect
-                'device_id'  => $deviceData->device_id ?? null,
                 'message'    => preg_replace("/\r?\n/", " ", $message),
                 'address'    => $address,
                 'created_at' => date('Y-m-d H:i:s')
             ];
+
+            // Safely add device_id only if the column exists in the table
+            if (!empty($deviceData->device_id) && $this->db->fieldExists('device_id', 'module_data')) {
+                $data['device_id'] = $deviceData->device_id;
+            }
 
             $this->db->table('module_data')->insert($data);
             $smsId = $this->db->insertID();
@@ -207,17 +211,48 @@ class ApiController extends BaseController
         }
 
         try {
-            $logs = $this->db->table('device_logs')
+            // 1. Fetch System Logs
+            $systemLogs = $this->db->table('device_logs')
                 ->where('device_id', $deviceData->device_id)
-                ->orderBy('id', 'DESC')
-                ->limit(30)
+                ->orderBy('created_at', 'DESC')
+                ->limit(20)
                 ->get()
-                ->getResult();
+                ->getResultArray();
 
-            ms(['status' => 1, 'logs' => $logs]);
+            // 2. Fetch Recent SMS (Last 6 Hours)
+            $sixHoursAgo = date('Y-m-d H:i:s', strtotime('-6 hours'));
+            $smsRecords = $this->db->table('module_data')
+                ->where('uid', $deviceData->message)
+                ->where('created_at >=', $sixHoursAgo)
+                ->orderBy('created_at', 'DESC')
+                ->limit(20)
+                ->get()
+                ->getResultArray();
+
+            // 3. Format SMS as virtual logs
+            $virtualLogs = [];
+            foreach ($smsRecords as $sms) {
+                $virtualLogs[] = [
+                    'event' => 'SMS_SYNCED',
+                    'message' => "From: {$sms['address']} | Content: " . substr($sms['message'], 0, 80),
+                    'type' => 'success',
+                    'created_at' => $sms['created_at'],
+                    'debug_data' => $sms['message']
+                ];
+            }
+
+            // 4. Merge and Sort
+            $merged = array_merge($systemLogs, $virtualLogs);
+            usort($merged, function($a, $b) {
+                return strtotime($b['created_at']) <=> strtotime($a['created_at']);
+            });
+
+            ms([
+                'status' => 1, 
+                'logs' => array_slice($merged, 0, 40)
+            ]);
         } catch (\Throwable $e) {
             log_message('error', "[ApiController] getLogs failed: " . $e->getMessage());
-            // Return empty logs if table is missing or query fails to prevent 500 error in app
             ms(['status' => 1, 'logs' => []]);
         }
     }
