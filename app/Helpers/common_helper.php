@@ -58,15 +58,20 @@ if (!function_exists('log_device_event')) {
     function log_device_event($deviceId, $event, $message, $debugData = null, $type = 'info')
     {
         if (!$deviceId) return;
-        $db = db_connect();
-        $db->table('device_logs')->insert([
-            'device_id'  => $deviceId,
-            'event'      => $event,
-            'type'       => $type,
-            'message'    => $message,
-            'debug_data' => $debugData,
-            'created_at' => date('Y-m-d H:i:s')
-        ]);
+        try {
+            $db = db_connect();
+            $db->table('device_logs')->insert([
+                'device_id'  => $deviceId,
+                'event'      => $event,
+                'type'       => $type,
+                'message'    => $message,
+                'debug_data' => $debugData,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+        } catch (\Throwable $e) {
+            // Silently fail if telemetry table is missing
+            log_message('error', "[Helper] Telemetry log failed: " . $e->getMessage());
+        }
     }
 }
 if (!function_exists('encrypt_encode')) {

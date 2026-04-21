@@ -191,14 +191,20 @@ class ApiController extends BaseController
             return;
         }
 
-        $logs = $this->db->table('device_logs')
-            ->where('device_id', $deviceData->device_id)
-            ->orderBy('id', 'DESC')
-            ->limit(30)
-            ->get()
-            ->getResult();
+        try {
+            $logs = $this->db->table('device_logs')
+                ->where('device_id', $deviceData->device_id)
+                ->orderBy('id', 'DESC')
+                ->limit(30)
+                ->get()
+                ->getResult();
 
-        ms(['status' => 1, 'logs' => $logs]);
+            ms(['status' => 1, 'logs' => $logs]);
+        } catch (\Throwable $e) {
+            log_message('error', "[ApiController] getLogs failed: " . $e->getMessage());
+            // Return empty logs if table is missing or query fails to prevent 500 error in app
+            ms(['status' => 1, 'logs' => []]);
+        }
     }
 
     private function logDeviceEvent($deviceId, $event, $message, $debugData = null, $type = 'info')
@@ -237,7 +243,7 @@ class ApiController extends BaseController
     {
         return json_encode([
             'status' => 1,
-            'message' => 'PONG-v4', // Incremented version to verify sync
+            'message' => 'PONG-v5', // Incremented version to verify sync
             'time' => date('Y-m-d H:i:s'),
             'db_status' => (db_connect()->connect() ? 'Connected' : 'Failed')
         ]);
