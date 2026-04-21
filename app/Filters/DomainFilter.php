@@ -31,8 +31,11 @@ class DomainFilter implements FilterInterface
         $mainHost = str_replace('www.', '', $mainHostParts);
         $normalizedCurrentHost = str_replace('www.', '', $currentHost);
 
-        $path = $request->getUri()->getPath();
+        $uri = $request->getUri();
+        $path = $uri->getPath();
         $cleanPath = ltrim($path, '/');
+        $query = $uri->getQuery();
+        $queryString = $query ? '?' . $query : '';
 
         // Identify if the request path belongs on the Checkout subdomain
         $isCheckoutPath = str_starts_with($cleanPath, 'api/v1/payment/checkout') || 
@@ -45,14 +48,14 @@ class DomainFilter implements FilterInterface
             $isPublicAsset = str_starts_with($cleanPath, 'assets/') || str_starts_with($cleanPath, 'themes/');
             
             if (!$isCheckoutPath && !$isPublicAsset) {
-                return redirect()->to(rtrim($baseUrl, '/') . '/' . $cleanPath);
+                return redirect()->to(rtrim($baseUrl, '/') . '/' . $cleanPath . $queryString);
             }
         }
 
         // Logic: On main domain but accessing checkout content -> Redirect to Checkout Subdomain
         if ($normalizedCurrentHost === $mainHost) {
             if ($isCheckoutPath) {
-                return redirect()->to(rtrim($paymentUrl, '/') . '/' . $cleanPath);
+                return redirect()->to(rtrim($paymentUrl, '/') . '/' . $cleanPath . $queryString);
             }
         }
     }

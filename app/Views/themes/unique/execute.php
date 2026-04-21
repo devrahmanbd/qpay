@@ -64,7 +64,7 @@
                 <?php 
                     foreach($mobile_s as $mb){
                 ?>
-                <div class="row" onclick="location.href='<?= base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids'] . '?acc_tp=' . encrypt($mb->active_payment)); ?>' ">
+                <div class="row" onclick="location.href='<?= payment_base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids'] . '?acc_tp=' . encrypt($mb->active_payment)); ?>' ">
                     <img src="<?=BASE_SITE.payment_option($mb->g_type)?>" alt="<?=$mb->g_type?>" />
                 </div>        
                 <?php 
@@ -79,7 +79,7 @@
                 <?php 
                     foreach($bank_s as $mb){
                 ?>
-                <div class="row" onclick="location.href='<?= base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids']); ?>' ">
+                <div class="row" onclick="location.href='<?= payment_base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids']); ?>' ">
                     <img src="<?=BASE_SITE.payment_option($mb->g_type)?>" alt="<?=$mb->g_type?>" />
                 </div>        
                 <?php 
@@ -94,7 +94,7 @@
                 <?php 
                     foreach($int_b_s as $mb){
                 ?>
-                <div class="row" onclick="location.href='<?= base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids'] . '?acc_tp=' . encrypt($mb->active_payment)); ?>' ">
+                <div class="row" onclick="location.href='<?= payment_base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids'] . '?acc_tp=' . encrypt($mb->active_payment)); ?>' ">
                     <img src="<?=BASE_SITE.payment_option($mb->g_type)?>" alt="<?=$mb->g_type?>" />
                 </div>        
                 <?php 

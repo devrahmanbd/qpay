@@ -28,7 +28,7 @@ class ApiController extends BaseController
 
         try {
             if ($user_email && $device_key && $device_ip) {
-                log_message('error', "[ApiController] Received connection request: Email={$user_email}, Key={$device_key}, IP={$device_ip}");
+                log_message('alert', "[ApiController] Received connection request: Email={$user_email}, Key={$device_key}, IP={$device_ip}");
 
                 // 1. Find User by Email
                 $user = $this->db->table('users')
@@ -38,6 +38,7 @@ class ApiController extends BaseController
                     ->getRow();
                 
                 if (!$user) {
+                    log_message('error', "[ApiController] User account not found for: {$user_email}");
                     return json_encode(['status' => 0, 'message' => 'User account not found']);
                 }
 
@@ -46,6 +47,7 @@ class ApiController extends BaseController
                 // 2. Check for Active Plan
                 $plan = get_active_plan($uid);
                 if (!$plan) {
+                    log_message('error', "[ApiController] No active plan for UID: {$uid}");
                     // Check if they HAVE a plan that is expired vs no plan at all
                     $hasAnyPlan = $this->db->table('user_plans')->where('uid', $uid)->countAllResults();
                     $msg = $hasAnyPlan > 0 ? 'Your plan has expired. Please renew.' : 'No active plan found. Please purchase a plan.';
@@ -61,6 +63,7 @@ class ApiController extends BaseController
                     ->getRow();
 
                 if ($device) {
+                    log_message('alert', "[ApiController] Device found: ID={$device->id} for UID={$uid}");
                     // 4. Validate Device Limit (uses new simplified logic)
                     if (deviceValidation($device_key, $device->uid)) {
                         $updateData = [
@@ -70,6 +73,7 @@ class ApiController extends BaseController
                         ];
                         
                         $this->db->table('devices')->where('id', $device->id)->update($updateData);
+                        log_message('alert', "[ApiController] Device ID={$device->id} synced successfully at " . $updateData['last_sync_at']);
 
                         // Log a connection event if it's been a while (e.g. 5 mins) or no logs exist
                         try {
@@ -100,9 +104,11 @@ class ApiController extends BaseController
                             "device_id" => (int)$device->id
                         ]);
                     } else {
+                        log_message('error', "[ApiController] deviceValidation FAILED for key: {$device_key}");
                         return json_encode(["status" => 0, "message" => 'Device limit reached or key unauthorized']);
                     }
                 } else {
+                    log_message('error', "[ApiController] Incorrect Device Key or Email: {$user_email} / {$device_key}");
                     return json_encode(['status' => 0, 'message' => 'Incorrect Device Key or Email']);
                 }
             }

@@ -90,15 +90,16 @@ class SmsVerificationAdapter implements PaymentProviderInterface
         $cache = \Config\Services::cache();
         $failKey = 'verify_fails_' . $paymentId;
         $fails = $cache->get($failKey) ?: 0;
-        if ($fails >= 5) {
+        if ($fails >= 20) {
             return [
                 'success' => false,
                 'code' => 'THROTTLED',
-                'message' => 'Too many failed attempts. Please try again in 5 minutes.',
+                'message' => 'Too many failed attempts. Please contact support or try again in 5 minutes.',
             ];
         }
 
         // 3. Double-Spending Check (Global Scoping)
+        // ... (lines 102-145 omitted for brevity in instruction, but I will keep them in ReplacementContent)
         // Check if this Transaction ID has been used by ANYONE to prevent recycled screenshots
         $alreadyUsed = $this->db->table('api_payments')
             ->where('transaction_id', $transactionId)
@@ -144,9 +145,6 @@ class SmsVerificationAdapter implements PaymentProviderInterface
             ->getRow();
 
         if (!$smsRecord) {
-            // Increment fail count
-            $cache->save($failKey, $fails + 1, 300); // 5 minute cooldown
-            
             // Check Heartbeat to see if phone is even online
             $device = $this->db->table('devices')
                 ->where('uid', $this->merchantId)
@@ -154,16 +152,28 @@ class SmsVerificationAdapter implements PaymentProviderInterface
                 ->get()
                 ->getRow();
             
-            $statusMsg = "Transaction ID not found yet.";
-            if ($device && (time() - strtotime($device->last_sync_at) > 300)) {
-                $statusMsg .= " Warning: Merchant phone was last seen " . floor((time() - strtotime($device->last_sync_at)) / 60) . " minutes ago.";
+            $isDeviceOnline = $device && $device->last_sync_at && (time() - strtotime($device->last_sync_at) <= 600);
+            
+            // Increment fail count ONLY if device is online (user error vs system delay)
+            if ($isDeviceOnline) {
+                $cache->save($failKey, $fails + 1, 300); // 5 minute cooldown
+            }
+            
+            $statusMsg = "Transaction ID not found yet. Please wait a moment for the SMS to arrive.";
+            
+            if (!$device || !$device->last_sync_at) {
+                $statusMsg = "Merchant phone has never synced. Please contact support.";
+            } elseif (!$isDeviceOnline) {
+                $lastSeen = floor((time() - strtotime($device->last_sync_at)) / 60);
+                $statusMsg = "Merchant phone is currently offline (last seen $lastSeen mins ago). Your payment will be processed as soon as it reconnects.";
             }
 
             return [
                 'success' => false,
                 'code' => 'NOT_FOUND',
                 'message' => $statusMsg,
-                'is_pending' => true // Hint to the UI to keep polling
+                'is_pending' => true,
+                'device_online' => $isDeviceOnline
             ];
         }
 

@@ -76,7 +76,7 @@
                             <div class="methods">
 
                                 <?php foreach ($mobile_s as $mb) : ?>
-                                    <div class="row" onclick="location.href='<?= base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids'] . '?acc_tp=' . encrypt($mb->active_payment)); ?>' ">
+                                    <div class="row" onclick="location.href='<?= payment_base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids'] . '?acc_tp=' . encrypt($mb->active_payment)); ?>' ">
                                         <img src="<?= BASE_SITE . payment_option($mb->g_type) ?>" alt="<?= $mb->g_type ?>" />
                                         <small class="ribbon"><?= strtoupper($mb->active_payment) ?></small>
                                     </div>
@@ -89,7 +89,7 @@
                         <div class="tab-content" id="banking_tab">
                             <div class="methods">
                                 <?php foreach ($bank_s as $mb) : ?>
-                                    <div class="row" onclick="location.href='<?= base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids']); ?>' ">
+                                    <div class="row" onclick="location.href='<?= payment_base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids']); ?>' ">
                                         <img src="<?= BASE_SITE . payment_option($mb->g_type) ?>" alt="<?= $mb->g_type ?>" />
                                     </div>
                                 <?php endforeach; ?>
@@ -101,7 +101,7 @@
                         <div class="tab-content" id="international_banking">
                             <div class="methods">
                                 <?php foreach ($int_b_s as $mb) : ?>
-                                    <div class="row" onclick="location.href='<?= base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids'] . '?acc_tp=' . encrypt($mb->active_payment)); ?>' ">
+                                    <div class="row" onclick="location.href='<?= payment_base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids'] . '?acc_tp=' . encrypt($mb->active_payment)); ?>' ">
                                         <img src="<?= BASE_SITE . payment_option($mb->g_type) ?>" alt="<?= $mb->g_type ?>" />
                                         <small class="ribbon"><?= strtoupper($mb->active_payment) ?></small>
                                     </div>

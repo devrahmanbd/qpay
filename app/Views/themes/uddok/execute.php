@@ -102,7 +102,7 @@
                 <div id="mobile_banking" class="up-tab tab-content">
                     <div class="grid grid-cols-2 gap-5 sm:grid-cols-4 pb-6">
                         <?php foreach ($mobile_s as $mb) : ?>
-                            <a id="clickLoad" href="javascript:void(0)" onclick="location.href='<?= base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids'] . '?acc_tp=' . encrypt($mb->active_payment)); ?>' " class="bank-img-div">
+                            <a id="clickLoad" href="javascript:void(0)" onclick="location.href='<?= payment_base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids'] . '?acc_tp=' . encrypt($mb->active_payment)); ?>' " class="bank-img-div">
                                 <div class="card-input w-full ring-1 ring-[#0057d0]/10 rounded-md flex justify-center items-center relative">
                                     <img src="<?= BASE_SITE . payment_option($mb->g_type) ?>" alt="<?= $mb->g_type ?>" class="bank-img">
                                     <small class="ribbon"><?= strtoupper($mb->active_payment) ?></small>
@@ -116,7 +116,7 @@
                 <div id="net_banking" class="up-tab tab-content">
                     <div class="grid grid-cols-2 gap-5 sm:grid-cols-4 pb-6">
                         <?php foreach ($bank_s as $mb) : ?>
-                            <a id="clickLoad" href="javascript:void(0)" onclick="location.href='<?= base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids']); ?>' " class="bank-img-div">
+                            <a id="clickLoad" href="javascript:void(0)" onclick="location.href='<?= payment_base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids']); ?>' " class="bank-img-div">
                                 <div class="card-input w-full ring-1 ring-[#0057d0]/10 rounded-md flex justify-center items-center relative">
                                     <img src="<?= BASE_SITE . payment_option($mb->g_type) ?>" alt="<?= $mb->g_type ?>" class="bank-img">
                                 </div>
@@ -129,7 +129,7 @@
                 <div id="international_banking" class="up-tab tab-content">
                     <div class="grid grid-cols-2 gap-5 sm:grid-cols-4 pb-6">
                         <?php foreach ($int_b_s as $mb) : ?>
-                            <a id="clickLoad" href="javascript:void(0)" onclick="location.href='<?= base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids'] . '?acc_tp=' . encrypt($mb->active_payment)); ?>' " class="bank-img-div">
+                            <a id="clickLoad" href="javascript:void(0)" onclick="location.href='<?= payment_base_url('api/execute_payment/' . $mb->g_type . '/' . $all_info['tmp_ids'] . '?acc_tp=' . encrypt($mb->active_payment)); ?>' " class="bank-img-div">
                                 <div class="card-input w-full ring-1 ring-[#0057d0]/10 rounded-md flex justify-center items-center relative">
                                     <img src="<?= BASE_SITE . payment_option($mb->g_type) ?>" alt="<?= $mb->g_type ?>" class="bank-img">
                                 </div>
