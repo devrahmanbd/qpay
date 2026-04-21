@@ -24,6 +24,8 @@ $routes->get('file-manager/view_files/(:any)', [File_manager::class, 'view_files
 $routes->match(['get', 'post'], 'api/device-connect', [ApiController::class, 'deviceConnect']);
 $routes->match(['get', 'post'], 'api/add-data', [ApiController::class, 'addMessage']);
 $routes->match(['get', 'post'], 'api/get-logs', [ApiController::class, 'getLogs']);
+$routes->get('api/ping', [ApiController::class, 'ping']);
+$routes->get('api/debug-logs', [ApiController::class, 'getSystemLogs']);
 
 $routes->group('', ['hostname' => $mainHost], static function ($routes) {
     $routes->group('/', static function ($routes) {

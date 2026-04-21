@@ -360,7 +360,9 @@ if (!function_exists('deviceValidation')) {
             }
         }
 
-        log_message('error', "[deviceValidation] FAILED: Device key {$device_key} not authorized for UID {$uid} within plan limit of {$plan->device}");
+        $error_msg = "[deviceValidation] FAILED: Device key {$device_key} not authorized for UID {$uid} within plan limit of {$plan->device}";
+        log_message('error', $error_msg);
+        error_log($error_msg); // Write to system error_log
         return false;
     }
 }

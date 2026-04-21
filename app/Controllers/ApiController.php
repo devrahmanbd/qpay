@@ -113,10 +113,14 @@ class ApiController extends BaseController
             return json_encode(['status' => 0, 'message' => $msg]);
 
         } catch (\Throwable $e) {
-            return json_encode([
+            $errorInfo = [
                 'status' => 0, 
-                'message' => 'Server Error [VERIFY-SYNC-A1]: ' . $e->getMessage()
-            ]);
+                'message' => 'Server Error [VERIFY-SYNC-A1]: ' . $e->getMessage(),
+                'file' => basename($e->getFile()),
+                'line' => $e->getLine()
+            ];
+            log_message('error', "[ApiController] FATAL ERROR: " . json_encode($errorInfo));
+            return json_encode($errorInfo);
         }
     }
     
@@ -218,6 +222,36 @@ class ApiController extends BaseController
 
         $webhookService = new \App\Libraries\WebhookService();
         $webhookService->retryFailed();
+    }
+
+    /**
+     * Diagnostic Ping
+     * Use this to verify if the code on the server is actually synced
+     */
+    public function ping()
+    {
+        return json_encode([
+            'status' => 1,
+            'message' => 'PONG-v3', // Incremented version to verify sync
+            'time' => date('Y-m-d H:i:s'),
+            'db_status' => (db_connect()->connect() ? 'Connected' : 'Failed')
+        ]);
+    }
+
+    /**
+     * Diagnostic Log Fetcher
+     * WARNING: Temporary diagnostic use ONLY. 
+     */
+    public function getSystemLogs()
+    {
+        $logFile = WRITEPATH . 'logs/log-' . date('Y-m-d') . '.log';
+        if (file_exists($logFile)) {
+            $content = file_get_contents($logFile);
+            $lines = explode("\n", $content);
+            $lastLines = array_slice($lines, -100);
+            return json_encode(['status' => 1, 'logs' => $lastLines]);
+        }
+        return json_encode(['status' => 0, 'message' => 'Log file not found for today: ' . $logFile]);
     }
 }
 
