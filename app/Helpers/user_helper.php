@@ -192,7 +192,9 @@ if (!function_exists('get_active_plan')) {
     function get_active_plan($uid = '')
     {
         $uid = !empty($uid) ? $uid : session('uid');
-        $userModel = new UserModel();
+        if (empty($uid)) return false;
+        
+        $userModel = new \User\Models\UserModel();
         $plan = $userModel->get("*", 'user_plans', ['uid' => $uid], 'id');
         if (!empty($plan) && !hasExpired($plan->expire)) {
             return $plan;
@@ -325,8 +327,14 @@ if (!function_exists('deviceValidation')) {
             $uid = session('uid');
         }
         
+        if (empty($uid)) {
+            log_message('error', "[deviceValidation] FAILED: UID is empty for key {$device_key}");
+            return false;
+        }
+
         $plan = get_active_plan($uid);
         if (!$plan) {
+            log_message('error', "[deviceValidation] FAILED: No active plan found for UID {$uid}");
             return false;
         }
 
@@ -335,18 +343,24 @@ if (!function_exists('deviceValidation')) {
         }
 
         $userModel = new \User\Models\UserModel();
+        // Fetch devices for this user
         $devices = $userModel->fetch('device_key', 'devices', ['uid' => $uid], 'id', 'ASC', 0, (int)$plan->device, true);
         
         if (empty($devices)) {
+            log_message('error', "[deviceValidation] FAILED: No devices registered for UID {$uid}");
             return false;
         }
 
         foreach ($devices as $row) {
-            if ($row['device_key'] === $device_key) {
+            // FIX: Accessing property as object, not array.
+            $stored_key = is_object($row) ? $row->device_key : (isset($row['device_key']) ? $row['device_key'] : '');
+            
+            if (trim($stored_key) === trim($device_key)) {
                 return true;
             }
         }
 
+        log_message('error', "[deviceValidation] FAILED: Device key {$device_key} not authorized for UID {$uid} within plan limit of {$plan->device}");
         return false;
     }
 }

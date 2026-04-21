@@ -27,6 +27,8 @@ class ApiController extends BaseController
 
         try {
             if ($user_email && $device_key && $device_ip) {
+                log_message('error', "[ApiController] Received connection request: Email={$user_email}, Key={$device_key}, IP={$device_ip}");
+
                 // 1. Find User by Email
                 $user = $this->db->table('users')
                     ->select('id')
@@ -194,14 +196,20 @@ class ApiController extends BaseController
     {
         if (!$deviceId) return;
         
-        $this->db->table('device_logs')->insert([
-            'device_id'  => $deviceId,
-            'event'      => $event,
-            'type'       => $type,
-            'message'    => $message,
-            'debug_data' => $debugData,
-            'created_at' => date('Y-m-d H:i:s')
-        ]);
+        try {
+            $this->db->table('device_logs')->insert([
+                'device_id'  => $deviceId,
+                'event'      => $event,
+                'type'       => $type,
+                'message'    => $message,
+                'debug_data' => $debugData,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+        } catch (\Throwable $e) {
+            // Log the failure to the system log so you can see it in error_log
+            log_message('error', "[ApiController] Telemetry Logging Failed: " . $e->getMessage());
+            // We do NOT throw the error further so the user can still connect
+        }
     }
 
     public function cron()
