@@ -247,9 +247,25 @@ class ApiController extends BaseController
                 return strtotime($b['created_at']) <=> strtotime($a['created_at']);
             });
 
+            // 5. Remote Configuration (OTA Behavior)
+            $uid = (int) $deviceData->message;
+            $hasRecentPending = $this->db->table('api_payments')
+                ->where('merchant_id', $uid)
+                ->where('status', 0) // Pending
+                ->where('created_at >=', date('Y-m-d H:i:s', strtotime('-15 minutes')))
+                ->countAllResults();
+
+            $remoteConfig = [
+                'sync_interval_mins'  => $hasRecentPending > 0 ? 1 : 15,
+                'lookback_hours'      => 24,
+                'high_intensity_mode' => (bool)$hasRecentPending,
+            ];
+
             ms([
                 'status' => 1, 
-                'logs' => array_slice($merged, 0, 40)
+                'logs' => array_slice($merged, 0, 40),
+                'remote_config' => $remoteConfig,
+                'device_id' => $deviceData->device_id
             ]);
         } catch (\Throwable $e) {
             log_message('error', "[ApiController] getLogs failed: " . $e->getMessage());

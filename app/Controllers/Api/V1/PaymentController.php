@@ -1,10 +1,11 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Controllers\Api\V1;
 
 use CodeIgniter\RESTful\ResourceController;
 use App\Libraries\PaymentProviderFactory;
 use App\Libraries\WebhookService;
+use CodeIgniter\HTTP\ResponseInterface;
 
 class PaymentController extends ResourceController
 {
@@ -16,7 +17,7 @@ class PaymentController extends ResourceController
         $this->db = db_connect();
     }
 
-    public function create()
+    public function create(): ResponseInterface
     {
         try {
             $auth = $this->getAuthData();
@@ -200,7 +201,7 @@ class PaymentController extends ResourceController
         ];
     }
 
-    public function verify($paymentId = null)
+    public function verify($paymentId = null): ResponseInterface
     {
         try {
             $auth = $this->getAuthData();
@@ -227,35 +228,54 @@ class PaymentController extends ResourceController
                 return $this->respondError('PAYMENT_NOT_FOUND', 'No payment found with the provided ID.', 404);
             }
 
-            if ((int) $payment->status === 3) {
-                $formatted = $this->formatPayment($payment);
-                $formatted['verified'] = false;
-                $formatted['failure_reason'] = 'Payment has already failed and cannot be verified.';
-                return $this->respond($formatted);
+            // 1. Expiry Check (30 Minute Window)
+            $createdAt = strtotime($payment->created_at);
+            if (time() - $createdAt > 1800) { // 30 minutes
+                return $this->respondError('EXPIRED', 'This payment request has expired (30 min window). Please start a new order.', 400);
             }
 
-            if ($isTest) {
-                $provider = new \App\Adapters\TestPaymentAdapter($merchant->id, $brand->id);
-            } else {
-                $provider = PaymentProviderFactory::create($merchant->id, $brand->id, ['payment_method' => $payment->payment_method]);
-            }
+            $request = service('request');
+            $currentIP = $request->getIPAddress();
+            $originalIP = $payment->ip_address;
 
-            $verifyResult = $provider->verifyPayment($paymentId, ['payment_method' => $payment->payment_method]);
+            $verifyResult = $provider->verifyPayment($paymentId, [
+                'payment_method' => $payment->payment_method,
+                'payment_id' => $paymentId
+            ]);
 
             if ($verifyResult['success'] && ($verifyResult['verified'] ?? false) && $payment->status < 2) {
+                // 2. Security Validation (IP Check)
+                $targetStatus = 2; // Default: Completed
+                $isSuspicious = false;
+
+                if (!empty($originalIP) && $originalIP !== $currentIP) {
+                    $targetStatus = 6; // Pending Manual Review
+                    $isSuspicious = true;
+                }
+
+                $updateData = [
+                    'status' => $targetStatus,
+                    'transaction_id' => $verifyResult['transaction_id'] ?? $paymentId,
+                    'provider_response' => json_encode($verifyResult),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ];
+
                 $this->db->table('api_payments')
                     ->where('ids', $paymentId)
-                    ->update([
-                        'status' => 2,
-                        'transaction_id' => $verifyResult['transaction_id'] ?? $paymentId,
-                        'provider_response' => json_encode($verifyResult),
-                        'updated_at' => date('Y-m-d H:i:s'),
-                    ]);
-                $payment->status = 2;
+                    ->update($updateData);
 
-                // Dispatch Webhook
+                $payment->status = $targetStatus;
+
+                // 3. Dispatch Webhooks
                 $webhookService = new WebhookService();
-                $webhookService->dispatch($brand->id, $merchant->id, 'payment.completed', $this->formatPayment($payment));
+                $eventType = ($targetStatus == 2) ? 'payment.completed' : 'payment.pending_review';
+                $webhookService->dispatch($brand->id, $merchant->id, $eventType, $this->formatPayment($payment));
+
+                if ($isSuspicious) {
+                    // Logic for notifying merchant of switch to manual review
+                    $smsSender = new \App\Libraries\Smssender();
+                    // (Optional SMS Log trigger here)
+                }
 
                 // Send SMS/Email Alerts to Merchant if configured
                 $smsSender = new \App\Libraries\Smssender();
@@ -265,11 +285,9 @@ class PaymentController extends ResourceController
                     'payment_id' => $payment->ids,
                     'method' => $payment->payment_method
                 ];
-                $smsSender->send_sms('payment_completed', $smsParams, null, $merchant->phone, $merchant->id);
-            }
-
             $formatted = $this->formatPayment($payment);
             $formatted['verified'] = $verifyResult['verified'] ?? false;
+            $formatted['status'] = $this->statusLabel((int)$payment->status); // Standardized label
 
             return $this->respond($formatted);
         } catch (\Throwable $e) {
@@ -278,7 +296,36 @@ class PaymentController extends ResourceController
         }
     }
 
-    public function status($paymentId = null)
+    public function cancel($paymentId = null): ResponseInterface
+    {
+        if (empty($paymentId)) {
+            return $this->respondError('MISSING_PAYMENT_ID', 'Payment ID is required.', 400);
+        }
+
+        $payment = $this->db->table('api_payments')->where('ids', $paymentId)->get()->getRow();
+        if (!$payment) {
+            return $this->respondError('PAYMENT_NOT_FOUND', 'Payment not found.', 404);
+        }
+
+        if ($payment->status < 2) {
+            $this->db->table('api_payments')
+                ->where('ids', $paymentId)
+                ->update([
+                    'status' => 5, // Canceled
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+            $payment->status = 5;
+
+            // Dispatch Canceled Webhook
+            $brand = $this->db->table('brands')->where('id', $payment->brand_id)->get()->getRow();
+            $webhookService = new WebhookService();
+            $webhookService->dispatch($payment->brand_id, $payment->merchant_id, 'payment.canceled', $this->formatPayment($payment));
+        }
+
+        return $this->respond($this->formatPayment($payment));
+    }
+
+    public function status($paymentId = null): ResponseInterface
     {
         try {
             $auth = $this->getAuthData();
@@ -884,11 +931,6 @@ class PaymentController extends ResourceController
     }
 
 
-    protected function generatePaymentId(): string
-    {
-        return 'pay_' . bin2hex(random_bytes(12));
-    }
-
     protected function statusLabel(int $status): string
     {
         $labels = [
@@ -897,6 +939,8 @@ class PaymentController extends ResourceController
             2 => 'completed',
             3 => 'failed',
             4 => 'refunded',
+            5 => 'canceled',
+            6 => 'pending_review',
         ];
         return $labels[$status] ?? 'unknown';
     }

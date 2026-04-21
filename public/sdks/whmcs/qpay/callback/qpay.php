@@ -47,8 +47,9 @@ if (empty($data)) {
 }
 
 $transactionId = $data['transaction_id'] ?? $data['transactionId'] ?? '';
-$paymentStatus = $data['status'] ?? '';
+$paymentStatus = strtoupper($data['status'] ?? '');
 $paymentAmount = $data['amount'] ?? $data['paymentAmount'] ?? 0;
+$transactionId = $data['transaction_id'] ?? $data['transactionId'] ?? $data['id'] ?? '';
 $invoiceId     = 0;
 
 if (!empty($data['metadata'])) {
@@ -59,15 +60,19 @@ if (!empty($data['metadata'])) {
 if (empty($invoiceId) && !empty($transactionId)) {
     try {
         $client   = new QPayClient($secretKey, $apiUrl);
+        // Fallback for ID if transaction_id was QPay ID
         $response = $client->getPaymentStatus($transactionId);
-        if (!empty($response['payment']['metadata'])) {
-            $meta = is_string($response['payment']['metadata'])
-                ? json_decode($response['payment']['metadata'], true)
-                : $response['payment']['metadata'];
+        $payment = $response['payment'] ?? $response; // Handle both top-level and nested payment objects
+        
+        if (!empty($payment['metadata'])) {
+            $meta = is_string($payment['metadata']) ? json_decode($payment['metadata'], true) : $payment['metadata'];
             $invoiceId = (int) ($meta['invoice_id'] ?? 0);
         }
-        $paymentAmount = $response['payment']['amount'] ?? $paymentAmount;
-        $paymentStatus = $response['payment']['status'] ?? $paymentStatus;
+        $paymentAmount = $payment['amount'] ?? $paymentAmount;
+        $paymentStatus = strtoupper($payment['status'] ?? $paymentStatus);
+        
+        // Use the actual reference if available
+        $transactionId = $payment['transaction_id'] ?? $transactionId;
     } catch (\Exception $e) {
         logTransaction($gatewayModuleName, ['error' => $e->getMessage()], 'Status Lookup Failed');
     }

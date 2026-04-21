@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Adapters;
 
@@ -6,9 +6,9 @@ use App\Interfaces\PaymentProviderInterface;
 
 class SmsVerificationAdapter implements PaymentProviderInterface
 {
-    protected $db;
-    protected $brandId;
-    protected $merchantId;
+    protected \CodeIgniter\Database\BaseConnection $db;
+    protected int $brandId;
+    protected int $merchantId;
 
     public function __construct(int $merchantId, int $brandId)
     {
@@ -128,23 +128,20 @@ class SmsVerificationAdapter implements PaymentProviderInterface
                 $bodySnippets = ['Tk', 'Amount'];
         }
 
-        // 3. Search for matching SMS
-        // We use the combined Transaction ID (Prefix + ID) to match legacy logic
-        $fullSearchId = $idPrefix . $transactionId;
-        
+        // 3. Search for matching SMS in the Global Pool
         $builder = $this->db->table('module_data')
             ->where('uid', $this->merchantId)
-            ->where('status', 0);
+            ->where('status', 0); // Only unused SMS
 
         if ($requiredAddress) {
-            $builder->where('address', $requiredAddress);
+            $builder->where('LOWER(address)', strtolower($requiredAddress));
         }
 
-        // Search for the ID in the message, handling both "TxnID:ID" and "TxnID: ID"
-        $trimmedPrefix = trim($idPrefix, ': ');
+        // Broad search for Transaction ID anywhere in the message content
+        // This handles "TrxID: 123", "TrxID 123", "123", etc.
         $builder->groupStart()
-            ->like('message', $transactionId) // Basic search for ID
-            ->where("(`message` LIKE '%{$trimmedPrefix}:{$transactionId}%' OR `message` LIKE '%{$trimmedPrefix}: {$transactionId}%')")
+            ->like('message', $transactionId) 
+            ->orLike('message', strtoupper($transactionId))
             ->groupEnd();
 
         // Additionally confirm the body looks like a payment SMS
@@ -277,6 +274,7 @@ class SmsVerificationAdapter implements PaymentProviderInterface
 
         return [
             'success' => true,
+            'verified' => true,
             'message' => 'Payment verified successfully.',
             'amount' => $receivedAmount,
             'transaction_id' => $transactionId

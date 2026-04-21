@@ -10,6 +10,13 @@
         Step 5. Currently our SDK or integration with other platform doesn't match because of keys, api call and response and also requirements. 
 		
 		Goal: Stripe key like feature
+- [ ] **Remote App Control & Behavioral Synchronization (OTA)**
+    - Step 1. Create Backend Admin UI for global settings (Splash URL, Icon URLs, Scan intervals).
+    - Step 2. Implement per-device overrides and "High Intensity Verification Mode" (e.g., fast scanning for 5 mins).
+    - Step 3. Update the App Heartbeat API to push this configuration to the device.
+    - Step 4. Update the Android App to use server-provided timings and fetch dynamic assets (Splash screen) from URLs.
+    
+    Goal: Manage app behavior and design without new APK releases.
 
 The details of our payment gateways workflow and system architecture is described in https://localhost:8443/developers/docs 
 

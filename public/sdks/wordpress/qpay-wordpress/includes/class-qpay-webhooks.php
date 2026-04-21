@@ -60,52 +60,68 @@ class QPay_Webhooks
         }
 
         // WooCommerce support removed in v1.4.0
-
         return new WP_REST_Response(['success' => true], 200);
     }
 
     private static function handle_transaction_webhook(string $event, array $paymentData, object $transaction): void
     {
-        switch ($event) {
-            case 'payment.completed':
-                if ($transaction->status === 'completed') {
-                    return;
-                }
-                QPay_DB::update_transaction($transaction->payment_id, [
-                    'status' => 'completed',
-                    'transaction_id' => $paymentData['transaction_id'] ?? null,
-                ]);
-                self::send_notification($transaction, 'completed');
-                break;
+        $status_map = [
+            'payment.completed'      => 'completed',
+            'payment.pending_review' => 'on-hold',
+            'payment.failed'         => 'failed',
+            'payment.canceled'       => 'cancelled',
+            'refund.created'         => 'refunded',
+        ];
 
-            case 'payment.failed':
-                if ($transaction->status === 'failed') {
-                    return;
-                }
-                QPay_DB::update_transaction($transaction->payment_id, [
-                    'status' => 'failed',
-                ]);
-                self::send_notification($transaction, 'failed');
-                break;
+        $new_status = $status_map[$event] ?? null;
+        if (!$new_status || $transaction->status === $new_status) {
+            return;
+        }
 
-            case 'payment.created':
-                if ($transaction->status === 'pending') {
-                    QPay_DB::update_transaction($transaction->payment_id, [
-                        'status' => 'processing',
-                    ]);
-                }
-                break;
+        // Update local transaction record
+        $update_data = ['status' => $new_status];
+        if ($event === 'payment.completed') {
+            $update_data['transaction_id'] = $paymentData['transaction_id'] ?? null;
+        }
+        
+        QPay_DB::update_transaction($transaction->payment_id, $update_data);
+        self::send_notification($transaction, $new_status);
 
-            case 'refund.created':
-                if ($transaction->status === 'refunded') {
-                    return;
-                }
-                QPay_DB::update_transaction($transaction->payment_id, [
-                    'status' => 'refunded',
-                    'refund_id' => $paymentData['id'] ?? null,
+        // Standardized WooCommerce Integration support
+        if (class_exists('WooCommerce')) {
+            $order_id = $transaction->wc_order_id;
+            if (empty($order_id)) {
+                // Fallback: Try to find order by meta if not in our table
+                $orders = wc_get_orders([
+                    'meta_key'   => '_qpay_payment_id',
+                    'meta_value' => $transaction->payment_id,
+                    'limit'      => 1,
                 ]);
-                self::send_notification($transaction, 'refunded');
-                break;
+                $order = !empty($orders) ? reset($orders) : null;
+            } else {
+                $order = wc_get_order($order_id);
+            }
+
+            if ($order) {
+                switch ($event) {
+                    case 'payment.completed':
+                        $order->payment_complete($paymentData['transaction_id'] ?? '');
+                        $order->add_order_note(sprintf(__('QPay Payment Completed. Transaction ID: %s', 'qpay'), $paymentData['transaction_id'] ?? 'N/A'));
+                        break;
+                    case 'payment.pending_review':
+                        $order->update_status('on-hold', __('QPay: Payment found but security check (IP/Session) mismatched. Flagged for Manual Review.', 'qpay'));
+                        break;
+                    case 'payment.failed':
+                        $order->update_status('failed', __('QPay Payment Failed.', 'qpay'));
+                        break;
+                    case 'payment.canceled':
+                        $order->update_status('cancelled', __('QPay Payment Canceled by user.', 'qpay'));
+                        break;
+                    case 'refund.created':
+                        $order->add_order_note(sprintf(__('QPay Refund Created. Refund ID: %s', 'qpay'), $paymentData['id'] ?? 'N/A'));
+                        break;
+                }
+            }
         }
     }
 
