@@ -272,18 +272,46 @@ class ApiController extends BaseController
     public function receiveAppLog()
     {
         $request = service('request');
+        $email = $request->getVar('email');
+        $device_key = $request->getVar('device_key');
+
+        // Handle GET requests (e.g. from browser)
+        if ($request->getMethod() === 'get') {
+            return json_encode([
+                'status' => 1, 
+                'message' => 'Diagnostic log endpoint active. Use POST to submit logs.',
+                'server_time' => date('Y-m-d H:i:s')
+            ]);
+        }
+
+        // Security check: Verify if the user/device exists
+        $isAuthorized = false;
+        if ($email && $device_key) {
+            $device = $this->db->table('devices')
+                ->where('user_email', $email)
+                ->where('device_key', $device_key)
+                ->countAllResults();
+            if ($device > 0) {
+                $isAuthorized = true;
+            }
+        }
+
         $logData = [
-            'email' => $request->getVar('email'),
-            'device_key' => $request->getVar('device_key'),
+            'email' => $email,
+            'device_key' => $device_key,
             'error' => $request->getVar('error_message'),
             'raw_response' => $request->getVar('raw_response'),
-            'version' => $request->getVar('version') ?? 'unknown'
+            'version' => $request->getVar('version') ?? 'unknown',
+            'authorized' => $isAuthorized ? 'YES' : 'NO'
         ];
-        $message = "[REMOTE_APP_LOG] " . json_encode($logData);
-        log_message('error', $message);
-        error_log($message); // Also to PHP system log
 
-        return json_encode(['status' => 1, 'message' => 'Log received and stored']);
+        $prefix = $isAuthorized ? "[REMOTE_LOG]" : "[UNAUTHORIZED_LOG]";
+        $message = $prefix . " " . json_encode($logData);
+        
+        log_message('error', $message);
+        error_log($message); 
+
+        return json_encode(['status' => 1, 'message' => 'Log processed', 'authorized' => $isAuthorized]);
     }
 }
 
