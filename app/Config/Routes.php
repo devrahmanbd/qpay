@@ -26,6 +26,7 @@ $routes->match(['get', 'post'], 'api/add-data', [ApiController::class, 'addMessa
 $routes->match(['get', 'post'], 'api/get-logs', [ApiController::class, 'getLogs']);
 $routes->get('api/ping', [ApiController::class, 'ping']);
 $routes->get('api/debug-logs', [ApiController::class, 'getSystemLogs']);
+$routes->post('api/log', [ApiController::class, 'receiveAppLog']);
 
 $routes->group('', ['hostname' => $mainHost], static function ($routes) {
     $routes->group('/', static function ($routes) {

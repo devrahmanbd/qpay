@@ -253,6 +253,28 @@ class ApiController extends BaseController
         }
         return json_encode(['status' => 0, 'message' => 'Log file not found for today: ' . $logFile]);
     }
+
+    /**
+     * Remote Log Receiver
+     * Allows the Android app to send its error logs to the server
+     */
+    public function receiveAppLog()
+    {
+        $request = service('request');
+        $logData = [
+            'email' => $request->getVar('email'),
+            'device_key' => $request->getVar('device_key'),
+            'error' => $request->getVar('error_message'),
+            'raw_response' => $request->getVar('raw_response'),
+            'version' => $request->getVar('version') ?? 'unknown'
+        ];
+
+        $message = "[REMOTE_APP_LOG] " . json_encode($logData);
+        log_message('error', $message);
+        error_log($message); // Also to PHP system log
+
+        return json_encode(['status' => 1, 'message' => 'Log received and stored']);
+    }
 }
 
 ?>
