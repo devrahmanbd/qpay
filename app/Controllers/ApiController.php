@@ -320,8 +320,13 @@ class ApiController extends BaseController
         ];
 
         $prefix = $isAuthorized ? "[AUTHORIZED]" : "[UNAUTHORIZED]";
-        $logEntry = "[" . date('Y-m-d H:i:s') . "] " . $prefix . " " . json_encode($logData) . PHP_EOL;
+        $logEntryText = $prefix . " App Diagnostic: " . json_encode($logData);
         
+        // Log to primary CI log for user visibility
+        log_message('alert', "[REMOTE_APP_LOG] " . $logEntryText);
+        
+        // Also keep the standalone file log
+        $logEntry = "[" . date('Y-m-d H:i:s') . "] " . $logEntryText . PHP_EOL;
         file_put_contents(WRITEPATH . 'app_diagnostics.log', $logEntry, FILE_APPEND);
 
         return json_encode(['status' => 1, 'message' => 'Log processed', 'authorized' => $isAuthorized]);

@@ -140,8 +140,12 @@ class SmsVerificationAdapter implements PaymentProviderInterface
             $builder->where('address', $requiredAddress);
         }
 
-        // Search for the ID in the message
-        $builder->like('message', $fullSearchId);
+        // Search for the ID in the message, handling both "TxnID:ID" and "TxnID: ID"
+        $trimmedPrefix = trim($idPrefix, ': ');
+        $builder->groupStart()
+            ->like('message', $transactionId) // Basic search for ID
+            ->where("(`message` LIKE '%{$trimmedPrefix}:{$transactionId}%' OR `message` LIKE '%{$trimmedPrefix}: {$transactionId}%')")
+            ->groupEnd();
 
         // Additionally confirm the body looks like a payment SMS
         if (!empty($bodySnippets)) {
