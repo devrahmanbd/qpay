@@ -28,7 +28,29 @@ class ApiController extends BaseController
 
         try {
             if ($user_email && $device_key && $device_ip) {
-                // Use standard database query to ensure an object is returned reliably
+                // 1. Find User by Email
+                $user = $this->db->table('users')
+                    ->select('id')
+                    ->where('email', $user_email)
+                    ->get()
+                    ->getRow();
+                
+                if (!$user) {
+                    return json_encode(['status' => 0, 'message' => 'User account not found']);
+                }
+
+                $uid = $user->id;
+
+                // 2. Check for Active Plan
+                $plan = get_active_plan($uid);
+                if (!$plan) {
+                    // Check if they HAVE a plan that is expired vs no plan at all
+                    $hasAnyPlan = $this->db->table('user_plans')->where('uid', $uid)->countAllResults();
+                    $msg = $hasAnyPlan > 0 ? 'Your plan has expired. Please renew.' : 'No active plan found. Please purchase a plan.';
+                    return json_encode(['status' => 0, 'message' => $msg]);
+                }
+
+                // 3. Find Device
                 $device = $this->db->table('devices')
                     ->select('id, uid, device_ip')
                     ->where('user_email', $user_email)
@@ -37,6 +59,7 @@ class ApiController extends BaseController
                     ->getRow();
 
                 if ($device) {
+                    // 4. Validate Device Limit (uses new simplified logic)
                     if (deviceValidation($device_key, $device->uid)) {
                         $updateData = [
                             'device_ip' => $device_ip,
@@ -65,15 +88,15 @@ class ApiController extends BaseController
                         }
 
                         return json_encode([
-                            "status" => "1", 
-                            "message" => $device->uid, 
-                            "device_id" => $device->id
+                            "status" => 1, 
+                            "message" => (string)$device->uid, 
+                            "device_id" => (int)$device->id
                         ]);
                     } else {
-                        return json_encode(["status" => "2", "message" => 'Your key is expired']);
+                        return json_encode(["status" => 0, "message" => 'Device limit reached or key unauthorized']);
                     }
                 } else {
-                    return json_encode(['status' => '0', 'message' => 'Device not found with the provided user_email and device_key']);
+                    return json_encode(['status' => 0, 'message' => 'Incorrect Device Key or Email']);
                 }
             }
 
@@ -84,14 +107,14 @@ class ApiController extends BaseController
             
             $msg = count($missing) > 0 
                 ? 'Missing required parameters: ' . implode(', ', $missing) 
-                : 'Failed to connect with the server';
+                : 'Connection failed: Data required';
 
-            return json_encode(['status' => '0', 'message' => $msg]);
+            return json_encode(['status' => 0, 'message' => $msg]);
 
         } catch (\Throwable $e) {
             return json_encode([
-                'status' => '0', 
-                'message' => 'System error: ' . $e->getMessage()
+                'status' => 0, 
+                'message' => 'Server Error [VERIFY-SYNC-A1]: ' . $e->getMessage()
             ]);
         }
     }
@@ -100,14 +123,12 @@ class ApiController extends BaseController
     {
         $request = service('request');
         $deviceResponse = $this->deviceConnect();
-        $device = json_decode($deviceResponse);
+        $deviceData = json_decode($deviceResponse);
 
-        // Handle JSON parsing errors
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        if (!$deviceData || $deviceData->status != 1) {
             ms([
                 'status' => 0,
-                'message' => 'JSON Parsing Error: ' . json_last_error_msg(),
-                'response' => $deviceResponse
+                'message' => $deviceData->message ?? 'Authentication failed'
             ]);
             return;
         }
@@ -115,11 +136,10 @@ class ApiController extends BaseController
         $address = $request->getVar('address');
         $message = $request->getVar('message');
 
-        // Check device status and insert message
-        if (!empty($device->status) && $device->status == 1 && !empty($message)) {
+        if (!empty($message)) {
             $data = [
-                'uid'        => $device->message,
-                'device_id'  => $device->device_id ?? null,
+                'uid'        => $deviceData->message,
+                'device_id'  => $deviceData->device_id ?? null,
                 'message'    => preg_replace("/\r?\n/", " ", $message),
                 'address'    => $address,
                 'created_at' => date('Y-m-d H:i:s')
@@ -129,9 +149,9 @@ class ApiController extends BaseController
             $smsId = $this->db->insertID();
 
             if ($this->db->affectedRows() > 0) {
-                if (!empty($device->device_id)) {
+                if (!empty($deviceData->device_id)) {
                     $this->logDeviceEvent(
-                        $device->device_id,
+                        $deviceData->device_id,
                         'sms_received',
                         "New SMS received from {$address}",
                         "SMS ID: {$smsId}\nContent: " . shorten_string($message, 50),
@@ -140,10 +160,10 @@ class ApiController extends BaseController
                 }
                 ms(['status' => 1, 'message' => 'Data inserted successfully']);
             } else {
-                ms(["status" => "0", "message" => 'Failed to insert data']);
+                ms(["status" => 0, "message" => 'Failed to insert data']);
             }
         } else {
-            ms(['status' => "0", 'message' => 'Failed to connect or invalid device']);
+            ms(['status' => 0, 'message' => 'Empty message received']);
         }
     }
 
@@ -151,11 +171,25 @@ class ApiController extends BaseController
     {
         $request = service('request');
         $deviceResponse = $this->deviceConnect();
-        $device = json_decode($deviceResponse);
+        $deviceData = json_decode($deviceResponse);
 
-        if (empty($device->status) || $device->status != 1 || empty($device->device_id)) {
-            ms(['status' => 0, 'message' => 'Authentication failed', 'debug' => $device]);
+        if (!$deviceData || $deviceData->status != 1 || empty($deviceData->device_id)) {
+            ms([
+                'status' => 0, 
+                'message' => $deviceData->message ?? 'Authentication failed'
+            ]);
+            return;
         }
+
+        $logs = $this->db->table('device_logs')
+            ->where('device_id', $deviceData->device_id)
+            ->orderBy('id', 'DESC')
+            ->limit(30)
+            ->get()
+            ->getResult();
+
+        ms(['status' => 1, 'logs' => $logs]);
+    }
 
         $logs = $this->db->table('device_logs')
             ->where('device_id', $device->device_id)

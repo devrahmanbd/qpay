@@ -324,33 +324,29 @@ if (!function_exists('deviceValidation')) {
         if (empty($uid)) {
             $uid = session('uid');
         }
-        if (!get_active_plan($uid)) {
+        
+        $plan = get_active_plan($uid);
+        if (!$plan) {
             return false;
         }
 
-        $userModel = new UserModel();
-        $available = 0;
-        $plan = get_active_plan($uid);
-        $devices = $userModel->fetch('*', 'devices', ['uid' => $uid], '', '', '', '', true);
-        $active_device_list = [];
-
-        $currentDate = time();
-
-        $startDate = strtotime($plan->created_at);
-        $endDate = strtotime($plan->expire);
         if ($plan->device == '-1') {
             return true;
         }
 
-        for ($i = 0; $i < $plan->device; $i++) {
-            if (!empty($devices[$i])) {
-                $active_device_list[] = $devices[$i]['device_key'];
+        $userModel = new \User\Models\UserModel();
+        $devices = $userModel->fetch('device_key', 'devices', ['uid' => $uid], 'id', 'ASC', 0, (int)$plan->device, true);
+        
+        if (empty($devices)) {
+            return false;
+        }
+
+        foreach ($devices as $row) {
+            if ($row['device_key'] === $device_key) {
+                return true;
             }
         }
-        $index = array_search($device_key, $active_device_list);
-        if ($index !== false) {
-            return true;
-        }
+
         return false;
     }
 }
