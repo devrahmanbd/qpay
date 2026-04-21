@@ -176,6 +176,7 @@ class SmsVerificationAdapter implements PaymentProviderInterface
             $receivedAmount = (float)str_replace(',', '', $matches[1]);
             
             // Allow for minor float precision differences
+            if (abs($receivedAmount - $expectedAmount) > 0.01) {
                 log_device_event(
                     $smsRecord->device_id ?? null,
                     'verification_failed',

@@ -256,14 +256,14 @@ class ApiController extends BaseController
      */
     public function getSystemLogs()
     {
-        $logFile = WRITEPATH . 'logs/log-' . date('Y-m-d') . '.log';
+        $logFile = WRITEPATH . 'app_diagnostics.log';
         if (file_exists($logFile)) {
             $content = file_get_contents($logFile);
-            $lines = explode("\n", $content);
-            $lastLines = array_slice($lines, -100);
+            $lines = array_filter(explode("\n", $content));
+            $lastLines = array_reverse(array_slice($lines, -100));
             return json_encode(['status' => 1, 'logs' => $lastLines]);
         }
-        return json_encode(['status' => 0, 'message' => 'Log file not found for today: ' . $logFile]);
+        return json_encode(['status' => 0, 'message' => 'No diagnostic entries found yet.']);
     }
 
     /**
@@ -306,11 +306,10 @@ class ApiController extends BaseController
             'authorized' => $isAuthorized ? 'YES' : 'NO'
         ];
 
-        $prefix = $isAuthorized ? "[REMOTE_LOG]" : "[UNAUTHORIZED_LOG]";
-        $message = $prefix . " " . json_encode($logData);
+        $prefix = $isAuthorized ? "[AUTHORIZED]" : "[UNAUTHORIZED]";
+        $logEntry = "[" . date('Y-m-d H:i:s') . "] " . $prefix . " " . json_encode($logData) . PHP_EOL;
         
-        log_message('error', $message);
-        error_log($message); 
+        file_put_contents(WRITEPATH . 'app_diagnostics.log', $logEntry, FILE_APPEND);
 
         return json_encode(['status' => 1, 'message' => 'Log processed', 'authorized' => $isAuthorized]);
     }
