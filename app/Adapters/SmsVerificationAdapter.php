@@ -55,7 +55,6 @@ class SmsVerificationAdapter implements PaymentProviderInterface
         ];
     }
 
-
     public function refundPayment(string $transactionId, float $amount = 0, string $reason = ''): array
     {
         return [
@@ -73,99 +72,125 @@ class SmsVerificationAdapter implements PaymentProviderInterface
             return ['success' => false, 'message' => 'Payment ID is missing in context.'];
         }
 
-        // 1. Get Payment Details
-        $payment = $this->db->table('api_payments')
-            ->where('ids', $paymentId)
-            ->where('merchant_id', $this->merchantId)
-            ->get()
-            ->getRow();
-
+        // 1. Get Payment & Brand Details
+        $payment = $this->db->table('api_payments')->where('ids', $paymentId)->get()->getRow();
         if (!$payment) {
-            return ['success' => false, 'message' => 'Invalid payment record.'];
+            return ['success' => false, 'message' => 'Payment record not found.'];
         }
 
+        $brand = $this->db->table('brands')->where('id', $this->brandId)->get()->getRow();
         $expectedAmount = (float)$payment->amount;
 
-        // 2. Brute-Force / Cooldown Check
+        // 2. Map Legacy Detection Patterns
+        $method = strtolower($payment->payment_method ?? '');
+        $idPrefix = '';
+        $bodySnippets = [];
+        $requiredAddress = '';
+
+        switch ($method) {
+            case 'bkash':
+                $requiredAddress = 'bkash';
+                $idPrefix = 'TrxID ';
+                $bodySnippets = ['You have received Tk', 'Cash Out Tk', 'received payment Tk'];
+                break;
+            case 'nagad':
+                $requiredAddress = 'nagad';
+                $idPrefix = 'TxnID: ';
+                $bodySnippets = ['Money Received', 'Cash Out Received'];
+                break;
+            case 'rocket':
+                $requiredAddress = '16216';
+                $idPrefix = 'TxnID:';
+                $bodySnippets = ['credited by Tk.', 'received', 'Amount: Tk'];
+                break;
+            case 'surecash':
+                $requiredAddress = '16495';
+                $idPrefix = 'TxnID: ';
+                $bodySnippets = ['Amount: Tk'];
+                break;
+            case 'upay':
+                $requiredAddress = 'upay';
+                $idPrefix = 'TrxID ';
+                $bodySnippets = ['credited by Tk.', 'has been received'];
+                break;
+            case 'cellfin':
+                $requiredAddress = 'Islami.Bank';
+                $idPrefix = 'TrxId: ';
+                $bodySnippets = ['Received'];
+                break;
+            case 'tap':
+                $requiredAddress = 'tap';
+                $idPrefix = 'TrxID ';
+                $bodySnippets = ['received Tk', 'Cash out of Tk'];
+                break;
+            default:
+                $idPrefix = ''; 
+                $bodySnippets = ['Tk', 'Amount'];
+        }
+
+        // 3. Search for matching SMS
+        // We use the combined Transaction ID (Prefix + ID) to match legacy logic
+        $fullSearchId = $idPrefix . $transactionId;
+        
+        $builder = $this->db->table('module_data')
+            ->where('uid', $this->merchantId)
+            ->where('status', 0);
+
+        if ($requiredAddress) {
+            $builder->where('address', $requiredAddress);
+        }
+
+        // Search for the ID in the message
+        $builder->like('message', $fullSearchId);
+
+        // Additionally confirm the body looks like a payment SMS
+        if (!empty($bodySnippets)) {
+            $builder->groupStart();
+            foreach ($bodySnippets as $snippet) {
+                $builder->orLike('message', $snippet);
+            }
+            $builder->groupEnd();
+        }
+
+        $smsRecord = $builder->get()->getRow();
+
+        // 4. Device and Throttling Awareness
+        $device = $this->db->table('devices')
+            ->where('uid', $this->merchantId)
+            ->orderBy('last_sync_at', 'DESC')
+            ->get()->getRow();
+
+        $isDeviceOnline = $device && $device->last_sync_at && (time() - strtotime($device->last_sync_at) <= 600);
         $cache = \Config\Services::cache();
-        $failKey = 'verify_fails_' . $paymentId;
-        $fails = $cache->get($failKey) ?: 0;
-        if ($fails >= 20) {
-            return [
-                'success' => false,
-                'code' => 'THROTTLED',
-                'message' => 'Too many failed attempts. Please contact support or try again in 5 minutes.',
-            ];
-        }
-
-        // 3. Double-Spending Check (Global Scoping)
-        // ... (lines 102-145 omitted for brevity in instruction, but I will keep them in ReplacementContent)
-        // Check if this Transaction ID has been used by ANYONE to prevent recycled screenshots
-        $alreadyUsed = $this->db->table('api_payments')
-            ->where('transaction_id', $transactionId)
-            ->where('status', 'completed')
-            ->countAllResults();
-
-        if ($alreadyUsed > 0) {
-            return [
-                'success' => false,
-                'code' => 'ALREADY_USED',
-                'message' => 'This Transaction ID has already been used on our platform.'
-            ];
-        }
-
-        // 4. Fetch Brand Specific Expected Number
-        // We look for the sender's account number in this brand's settings
-        $wallet = $this->db->table('user_payment_settings')
-            ->where('uid', $this->merchantId)
-            ->where('brand_id', $this->brandId)
-            ->where('g_type', ($context['payment_method'] ?? ''))
-            ->get()
-            ->getRow();
-        
-        $expectedRecipient = null;
-        if ($wallet) {
-            $params = json_decode($wallet->params, true) ?: [];
-            $expectedRecipient = $params['personal_number'] ?? $params['agent_number'] ?? $params['number'] ?? null;
-        }
-
-        // 5. Search module_data for the un-used SMS
-        $smsQuery = $this->db->table('module_data')
-            ->where('uid', $this->merchantId)
-            ->where('status', 0)
-            ->like('message', $transactionId);
-        
-        // Loophole Block: Match the recipient number if we know which one this brand uses
-        if ($expectedRecipient) {
-            $smsQuery->where('recipient_number', $expectedRecipient);
-        }
-
-        $smsRecord = $smsQuery->orderBy('id', 'DESC')
-            ->get()
-            ->getRow();
+        $failKey = "verify_fails_{$paymentId}";
+        $fails = (int)$cache->get($failKey) ?: 0;
 
         if (!$smsRecord) {
-            // Check Heartbeat to see if phone is even online
-            $device = $this->db->table('devices')
-                ->where('uid', $this->merchantId)
-                ->orderBy('last_sync_at', 'DESC')
-                ->get()
-                ->getRow();
-            
-            $isDeviceOnline = $device && $device->last_sync_at && (time() - strtotime($device->last_sync_at) <= 600);
-            
-            // Increment fail count ONLY if device is online (user error vs system delay)
+            // Only increment failure count if device is online (user error vs system delay)
             if ($isDeviceOnline) {
-                $cache->save($failKey, $fails + 1, 300); // 5 minute cooldown
+                $fails++;
+                $cache->save($failKey, $fails, 300); // 5 minute cooldown
             }
-            
-            $statusMsg = "Transaction ID not found yet. Please wait a moment for the SMS to arrive.";
-            
-            if (!$device || !$device->last_sync_at) {
+
+            if ($fails >= 20) {
+                return [
+                    'success' => false,
+                    'code' => 'TOO_MANY_ATTEMPTS',
+                    'message' => 'Too many failed attempts. Please try again in 5 minutes.',
+                    'retry_after' => 300
+                ];
+            }
+
+            $statusMsg = "Transaction ID not found yet.";
+            if ($device) {
+                if ($isDeviceOnline) {
+                    $statusMsg .= " Please wait a moment and try again.";
+                } else {
+                    $lastSeenStr = $device->last_sync_at ? floor((time() - strtotime($device->last_sync_at)) / 60) . " mins ago" : "never";
+                    $statusMsg .= " Warning: Merchant phone is currently offline (last seen {$lastSeenStr}).";
+                }
+            } else {
                 $statusMsg = "Merchant phone has never synced. Please contact support.";
-            } elseif (!$isDeviceOnline) {
-                $lastSeen = floor((time() - strtotime($device->last_sync_at)) / 60);
-                $statusMsg = "Merchant phone is currently offline (last seen $lastSeen mins ago). Your payment will be processed as soon as it reconnects.";
             }
 
             return [
@@ -177,9 +202,8 @@ class SmsVerificationAdapter implements PaymentProviderInterface
             ];
         }
 
-        // 4. Strict Amount Extraction via Regex
+        // 5. Strict Amount Extraction via Regex
         $message = $smsRecord->message;
-        // Refined pattern to catch "Tk 500", "Tk.500", "Received 500", "credited by Tk 500" etc.
         $pattern = '/(?:Tk|TK|tk|Rs|RS|rs|Received|credited by Tk|Cash Out Tk)\.?\s*([\d,.]+)/i';
         
         if (preg_match($pattern, $message, $matches)) {
@@ -215,7 +239,7 @@ class SmsVerificationAdapter implements PaymentProviderInterface
             ];
         }
 
-        // 5. Finalize Verification
+        // 6. Finalize Verification
         $this->db->transStart();
         
         // Mark SMS as used
@@ -235,13 +259,6 @@ class SmsVerificationAdapter implements PaymentProviderInterface
         $this->db->transComplete();
 
         if ($this->db->transStatus() === false) {
-            log_device_event(
-                $smsRecord->device_id ?? null,
-                'verification_failed',
-                "Database error during verification finalize",
-                "Payment ID: {$paymentId}\nSMS ID: {$smsRecord->id}",
-                'error'
-            );
             return ['success' => false, 'message' => 'Failed to finalize transaction in database.'];
         }
 
