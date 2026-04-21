@@ -1,6 +1,6 @@
 <?php
 namespace App\Controllers;
-// Cache buster: 2026-04-20 22:27:00
+// Cache buster: 2026-04-21 01:26:00
 
 use Blocks\Models\QueueModel;
 
@@ -9,7 +9,6 @@ class ApiController extends BaseController
     protected $tb_file_manage;
     protected $controller_name;
     protected $image;
-    protected $helpers = ['user', 'common'];
     public $model, $db;
 
     public function __construct()
@@ -183,16 +182,6 @@ class ApiController extends BaseController
 
         $logs = $this->db->table('device_logs')
             ->where('device_id', $deviceData->device_id)
-            ->orderBy('id', 'DESC')
-            ->limit(30)
-            ->get()
-            ->getResult();
-
-        ms(['status' => 1, 'logs' => $logs]);
-    }
-
-        $logs = $this->db->table('device_logs')
-            ->where('device_id', $device->device_id)
             ->orderBy('id', 'DESC')
             ->limit(30)
             ->get()
