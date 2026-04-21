@@ -96,7 +96,7 @@ class SmsVerificationAdapter implements PaymentProviderInterface
             case 'nagad':
                 $requiredAddress = 'nagad';
                 $idPrefix = 'TxnID: ';
-                $bodySnippets = ['Money Received', 'Cash Out Received'];
+                $bodySnippets = ['Money Received', 'Cash Out Received', 'Amount: Tk'];
                 break;
             case 'rocket':
                 $requiredAddress = '16216';
@@ -204,7 +204,8 @@ class SmsVerificationAdapter implements PaymentProviderInterface
 
         // 5. Strict Amount Extraction via Regex
         $message = $smsRecord->message;
-        $pattern = '/(?:Tk|TK|tk|Rs|RS|rs|Received|credited by Tk|Cash Out Tk)\.?\s*([\d,.]+)/i';
+        // Refined pattern to prioritize "Amount: Tk" or "Tk" followed by digits
+        $pattern = '/(?:Amount: Tk|Tk|TK|tk|Rs|RS|rs|credited by Tk|Cash Out Tk)\.?\s*([\d,]+\.?\d*)/i';
         
         if (preg_match($pattern, $message, $matches)) {
             $receivedAmount = (float)str_replace(',', '', $matches[1]);
