@@ -268,7 +268,6 @@ class ApiController extends BaseController
             'raw_response' => $request->getVar('raw_response'),
             'version' => $request->getVar('version') ?? 'unknown'
         ];
-
         $message = "[REMOTE_APP_LOG] " . json_encode($logData);
         log_message('error', $message);
         error_log($message); // Also to PHP system log
