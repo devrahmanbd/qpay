@@ -13,6 +13,7 @@ class ApiController extends BaseController
 
     public function __construct()
     {
+        helper(['user', 'api']); // Load user/api helpers to prevent 500 errors
         $this->db = db_connect();
         $this->model = new QueueModel;
     }
@@ -22,7 +23,7 @@ class ApiController extends BaseController
         $this->db = db_connect();
         $request = service('request');
 
-        $user_email = $request->getVar('user_email');
+        $user_email = $request->getVar('email') ?: $request->getVar('user_email');
         $device_key = $request->getVar('device_key');
         $device_ip = $request->getVar('device_ip');
 
