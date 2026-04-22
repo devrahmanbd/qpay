@@ -974,11 +974,23 @@ class PaymentController extends ResourceController
 
         // 3.1. Synchronize to legacy 'transactions' table for Dashboard visibility
         if ((int)$targetStatus === 2) {
+            // Normalize payment method for the legacy dashboard
+            $rawMethod = !empty($payment->payment_method) ? strtolower($payment->payment_method) : 'api';
+            $methodMap = [
+                'dutch bangla bank' => 'dbbl',
+                'dutch-bangla'      => 'dbbl',
+                'dbbl'              => 'dbbl',
+                'bkash'             => 'bkash',
+                'nagad'             => 'nagad',
+                'rocket'            => 'rocket'
+            ];
+            $normalizedMethod = $methodMap[$rawMethod] ?? $rawMethod;
+
             $this->db->table('transactions')->insert([
                 'ids'            => $payment->ids,
                 'uid'            => $payment->merchant_id,
                 'brand_id'       => $payment->brand_id,
-                'type'           => !empty($payment->payment_method) ? $payment->payment_method : 'api',
+                'type'           => $normalizedMethod,
                 'transaction_id' => !empty($payment->transaction_id) ? $payment->transaction_id : $transactionId,
                 'amount'         => $payment->amount,
                 'currency'       => !empty($payment->currency) ? $payment->currency : 'BDT',
