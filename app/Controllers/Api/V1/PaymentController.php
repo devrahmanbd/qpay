@@ -972,6 +972,20 @@ class PaymentController extends ResourceController
             ->where('ids', $payment->ids)
             ->update($updateData);
 
+        // 3.1. Synchronize to legacy 'transactions' table for Dashboard visibility
+        if ((int)$targetStatus === 2) {
+            $this->db->table('transactions')->insert([
+                'ids'            => $payment->ids,
+                'uid'            => $payment->merchant_id,
+                'type'           => $payment->payment_method, // e.g., 'nagad', 'bkash'
+                'transaction_id' => $transactionId,
+                'amount'         => $payment->amount,
+                'status'         => 2, // 2 = Completed/Success
+                'created_at'     => date('Y-m-d H:i:s'),
+                'updated_at'     => date('Y-m-d H:i:s'),
+            ]);
+        }
+
         $payment->status = $targetStatus; // Update local object for webhook
 
         // 4. Dispatch Webhooks

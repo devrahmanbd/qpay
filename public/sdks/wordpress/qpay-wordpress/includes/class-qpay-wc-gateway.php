@@ -22,6 +22,54 @@ class QPay_WC_Gateway extends WC_Payment_Gateway
         $this->enabled = ($global_enabled) ? $this->get_option('enabled', 'yes') : 'no';
 
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
+        add_action('woocommerce_thankyou_' . $this->id, [$this, 'check_payment_response']);
+    }
+
+    /**
+     * Verify payment when customer returns to site (Synchronous fallback)
+     */
+    public function check_payment_response($order_id)
+    {
+        $order = wc_get_order($order_id);
+        if (!$order) {
+            return;
+        }
+
+        // Only process if it's currently pending or failed (to allow retry)
+        if (!$order->has_status(['pending', 'failed', 'on-hold'])) {
+            return;
+        }
+
+        $payment_id = isset($_GET['payment_id']) ? sanitize_text_field($_GET['payment_id']) : '';
+        
+        if (empty($payment_id)) {
+            $payment_id = $order->get_meta('_qpay_payment_id');
+        }
+
+        if (empty($payment_id)) {
+            return;
+        }
+
+        try {
+            $sdk = QPay_Plugin::get_sdk();
+            $result = $sdk->verifyPayment($payment_id);
+
+            if (!empty($result['status']) && $result['status'] === 'COMPLETED') {
+                $order->payment_complete($result['transaction_id'] ?? '');
+                $order->add_order_note(sprintf(__('QPay Payment Verified via Return Callback. Transaction ID: %s', 'qpay'), $result['transaction_id'] ?? 'N/A'));
+                
+                // Update local DB status if not already updated by webhook
+                QPay_DB::update_transaction($payment_id, [
+                    'status' => 'completed',
+                    'transaction_id' => $result['transaction_id'] ?? null,
+                    'updated_at' => current_time('mysql')
+                ]);
+            } elseif (!empty($result['status']) && $result['status'] === 'PENDING_REVIEW') {
+                $order->update_status('on-hold', __('QPay: Payment currently under review (IP/Session mismatch).', 'qpay'));
+            }
+        } catch (Exception $e) {
+            error_log('QPay Return Verification Error: ' . $e->getMessage());
+        }
     }
 
     public function init_form_fields(): void
@@ -86,6 +134,24 @@ class QPay_WC_Gateway extends WC_Payment_Gateway
             // Store QPay Payment ID in Order Metadata
             $order->update_meta_data('_qpay_payment_id', $result['id']);
             $order->save();
+
+            // Register transaction in QPay Local Table for sync/webhooks
+            QPay_DB::insert_transaction([
+                'payment_id'     => $result['id'],
+                'source'         => 'woocommerce',
+                'wc_order_id'    => $order_id,
+                'amount'         => $order->get_total(),
+                'currency'       => $order->get_currency(),
+                'status'         => 'pending',
+                'customer_name'  => $params['customer_name'],
+                'customer_email' => $params['customer_email'],
+                'customer_phone' => $params['customer_phone'],
+                'description'    => $params['description'],
+                'test_mode'      => QPay_Plugin::is_test_mode() ? 1 : 0,
+                'ip_address'     => $params['customer_ip'] ?? '',
+                'created_at'     => current_time('mysql'),
+                'updated_at'     => current_time('mysql'),
+            ]);
 
             $redirect_url = $result['checkout_url'] ?? $result['redirect_url'] ?? '';
 
