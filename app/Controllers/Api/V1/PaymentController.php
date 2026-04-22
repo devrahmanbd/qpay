@@ -912,16 +912,21 @@ class PaymentController extends ResourceController
 
     protected function finalizePaymentProcess(object $payment, ?string $transactionId, array $verifyResult, string $currentIP): array
     {
+        // 0. Re-fetch current record to prevent stale data overwriting adapter updates
+        $fresh = $this->db->table('api_payments')->where('ids', $payment->ids)->get()->getRow();
+        if ($fresh) {
+            $payment = $fresh;
+        }
+
         $targetStatus = 2; // Default: Completed
         $reason = null;
 
-        // 1. Duplicate Transaction Check (Modern + Legacy)
+        // 1. Universal Duplicate Transaction Check (Check all active order states)
         if ($transactionId) {
-            // Check api_payments
             $exists = $this->db->table('api_payments')
                 ->where('merchant_id', $payment->merchant_id)
                 ->where('transaction_id', $transactionId)
-                ->whereIn('status', [2, 6])
+                ->whereIn('status', [0, 1, 2, 6])
                 ->where('ids !=', $payment->ids)
                 ->get()->getRow();
             
@@ -947,9 +952,9 @@ class PaymentController extends ResourceController
             $reason = "Security check failed: IP address mismatch. This transaction was initiated from a different device/network.";
         }
 
-        // 3. Update Database
+        // 3. Update Database (Cast status to integer for database persistence)
         $updateData = [
-            'status' => $targetStatus,
+            'status' => (int)$targetStatus,
             'transaction_id' => $transactionId ?? $payment->ids,
             'provider_response' => json_encode($verifyResult),
             'updated_at' => date('Y-m-d H:i:s'),

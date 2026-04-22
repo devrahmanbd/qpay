@@ -83,7 +83,7 @@ class WebhookService
             }
         }
 
-        if ($dispatched && isset($payload['id']) && in_array($eventType, ['payment.created', 'payment.completed', 'payment.failed', 'refund.created'])) {
+        if ($dispatched && isset($payload['id']) && in_array($eventType, ['payment.created', 'payment.completed', 'payment.failed', 'refund.created', 'payment.canceled', 'payment.pending_review'])) {
             $this->db->table('api_payments')
                 ->where('ids', $payload['id'])
                 ->update(['webhook_delivered' => 1]);

@@ -166,6 +166,21 @@ class SmsVerificationAdapter implements PaymentProviderInterface
         $failKey = "verify_fails_{$paymentId}";
         $fails = (int)$cache->get($failKey) ?: 0;
 
+        // Pre-verification Duplicate Check
+        $alreadyUsed = $this->db->table('api_payments')
+            ->where('transaction_id', $transactionId)
+            ->where('merchant_id', $this->merchantId)
+            ->whereIn('status', [0, 1, 2, 6])
+            ->get()->getRow();
+
+        if ($alreadyUsed) {
+            return [
+                'success' => false,
+                'code' => 'DUPLICATE_TRANSACTION',
+                'message' => 'This Transaction ID has already been used for another payment.'
+            ];
+        }
+
         if (!$smsRecord) {
             // Only increment failure count if device is online (user error vs system delay)
             if ($isDeviceOnline) {
