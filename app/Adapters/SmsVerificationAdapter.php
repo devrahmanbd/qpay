@@ -263,15 +263,6 @@ class SmsVerificationAdapter implements PaymentProviderInterface
         $this->db->table('module_data')
             ->where('id', $smsRecord->id)
             ->update(['status' => 1, 'tmp_id' => $paymentId]);
-
-        // Update Payment status
-        $this->db->table('api_payments')
-            ->where('ids', $paymentId)
-            ->update([
-                'status' => 2, // Completed
-                'transaction_id' => $transactionId,
-                'updated_at' => date('Y-m-d H:i:s')
-            ]);
             
         $this->db->transComplete();
 

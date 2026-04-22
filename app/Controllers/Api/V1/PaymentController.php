@@ -706,6 +706,12 @@ class PaymentController extends ResourceController
             return $this->respond(['status' => 'error', 'message' => 'Payment not found'], 404);
         }
 
+        // Update payment method to the one selected by the user during checkout
+        $this->db->table('api_payments')->where('ids', $paymentId)->update([
+            'payment_method' => $method,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+
         $provider = PaymentProviderFactory::create((int)$payment->merchant_id, (int)$payment->brand_id, ['payment_method' => $method]);
         $verifyResult = $provider->verifyPayment($transactionId, [
             'payment_id' => $paymentId,
