@@ -108,9 +108,9 @@ class PaymentController extends ResourceController
             }
 
             if ($isTest) {
-                $provider = new \App\Adapters\TestPaymentAdapter($merchant->id, $brand->id);
+                $provider = new \App\Adapters\TestPaymentAdapter((int)$merchant->id, (int)$brand->id);
             } else {
-                $provider = PaymentProviderFactory::create($merchant->id, $brand->id, ['payment_method' => $paymentMethod]);
+                $provider = PaymentProviderFactory::create((int)$merchant->id, (int)$brand->id, ['payment_method' => $paymentMethod]);
             }
 
             $providerResult = $provider->initiatePayment($paymentData);
