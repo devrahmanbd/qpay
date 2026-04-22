@@ -12,9 +12,9 @@
 
 // --- CONFIGURATION (Based on your .env) ---
 $host     = 'localhost';
-$db_user  = 'root';
+$db_user  = 'clou_qpay1';
 $db_pass  = 'harry71Nahid920*';
-$db_name  = 'main';
+$db_name  = 'clou_qpay1';
 
 // Set error reporting
 error_reporting(E_ALL);
