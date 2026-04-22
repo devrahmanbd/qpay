@@ -139,7 +139,7 @@ class PaymentController extends ResourceController
 
             $webhookService = new WebhookService();
             $eventType = $providerResult['success'] ? 'payment.created' : 'payment.failed';
-            $webhookService->dispatch($brand->id, $merchant->id, $eventType, [
+            $webhookService->dispatch((int)$brand->id, (int)$merchant->id, $eventType, [
                 'id' => $paymentIds,
                 'object' => 'payment',
                 'amount' => $amount,
@@ -269,7 +269,7 @@ class PaymentController extends ResourceController
                 // 3. Dispatch Webhooks
                 $webhookService = new WebhookService();
                 $eventType = ($targetStatus == 2) ? 'payment.completed' : 'payment.pending_review';
-                $webhookService->dispatch($brand->id, $merchant->id, $eventType, $this->formatPayment($payment));
+                $webhookService->dispatch((int)$brand->id, (int)$merchant->id, $eventType, $this->formatPayment($payment));
 
                 if ($isSuspicious) {
                     // Logic for notifying merchant of switch to manual review
@@ -320,7 +320,7 @@ class PaymentController extends ResourceController
             // Dispatch Canceled Webhook
             $brand = $this->db->table('brands')->where('id', $payment->brand_id)->get()->getRow();
             $webhookService = new WebhookService();
-            $webhookService->dispatch($payment->brand_id, $payment->merchant_id, 'payment.canceled', $this->formatPayment($payment));
+            $webhookService->dispatch((int)$payment->brand_id, (int)$payment->merchant_id, 'payment.canceled', $this->formatPayment($payment));
         }
 
         return $this->respond($this->formatPayment($payment));
@@ -444,7 +444,7 @@ class PaymentController extends ResourceController
             $refundId = 'ref_' . bin2hex(random_bytes(12));
 
             $webhookService = new WebhookService();
-            $webhookService->dispatch($brand->id, $merchant->id, 'refund.created', [
+            $webhookService->dispatch((int)$brand->id, (int)$merchant->id, 'refund.created', [
                 'id' => $refundId,
                 'object' => 'refund',
                 'payment' => $payment->ids,
@@ -550,7 +550,7 @@ class PaymentController extends ResourceController
                 ];
             }
 
-            $providers = PaymentProviderFactory::getAvailableProviders($merchant->id, $brand->id);
+            $providers = PaymentProviderFactory::getAvailableProviders((int)$merchant->id, (int)$brand->id);
 
             return $this->respond([
                 'object' => 'list',
@@ -657,9 +657,9 @@ class PaymentController extends ResourceController
                 'payment' => $payment,
                 'brand' => $brand,
                 'all_info' => $this->prepareLegacyInfo($payment, $brand),
-                'mobile_s' => $this->getLegacyWallets($merchant->id, $brand->id, 'mobile'),
-                'bank_s' => $this->getLegacyWallets($merchant->id, $brand->id, 'bank'),
-                'int_b_s' => $this->getLegacyWallets($merchant->id, $brand->id, 'int_b'),
+                'mobile_s' => $this->getLegacyWallets((int)$merchant->id, (int)$brand->id, 'mobile'),
+                'bank_s' => $this->getLegacyWallets((int)$merchant->id, (int)$brand->id, 'bank'),
+                'int_b_s' => $this->getLegacyWallets((int)$merchant->id, (int)$brand->id, 'int_b'),
             ]);
         }
 
@@ -805,7 +805,7 @@ class PaymentController extends ResourceController
         ];
     }
 
-    protected function getLegacyWallets($uid, $brandId, $type): array
+    protected function getLegacyWallets(int $uid, int $brandId, string $type): array
     {
         $wallets = $this->db->table('user_payment_settings')
             ->where('uid', $uid)
