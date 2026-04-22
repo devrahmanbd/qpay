@@ -977,9 +977,11 @@ class PaymentController extends ResourceController
             $this->db->table('transactions')->insert([
                 'ids'            => $payment->ids,
                 'uid'            => $payment->merchant_id,
-                'type'           => $payment->payment_method, // e.g., 'nagad', 'bkash'
-                'transaction_id' => $transactionId,
+                'brand_id'       => $payment->brand_id,
+                'type'           => !empty($payment->payment_method) ? $payment->payment_method : 'api',
+                'transaction_id' => !empty($payment->transaction_id) ? $payment->transaction_id : $transactionId,
                 'amount'         => $payment->amount,
+                'currency'       => !empty($payment->currency) ? $payment->currency : 'BDT',
                 'status'         => 2, // 2 = Completed/Success
                 'created_at'     => date('Y-m-d H:i:s'),
                 'updated_at'     => date('Y-m-d H:i:s'),
