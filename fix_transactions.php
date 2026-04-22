@@ -1,58 +1,33 @@
 <?php
 
 /**
- * Standalone Maintenance Script: fix_transactions.php
+ * Advanced Maintenance Script: fix_transactions.php
  * 
- * This script fixes transactions that are missing metadata (type, currency) 
- * required for the Merchant Dashboard counters.
- * 
- * It also normalizes payment method names (e.g., 'dutch bangla bank' -> 'dbbl').
+ * This version adds detailed debug logging to see why names are defaulting to 'Api'.
  */
 
-// --- CONFIGURATION (Updated by User) ---
+// --- CONFIGURATION ---
 $host     = 'localhost';
 $db_user  = 'clou_qpay1';
 $db_pass  = 'harry71Nahid920*';
 $db_name  = 'clou_qpay1';
 
-// Set error reporting
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-echo "--- QPay Dashboard Metadata Repair ---\n";
-
-// 1. Establish Database Connection
 $conn = new mysqli($host, $db_user, $db_pass, $db_name);
+if ($conn->connect_error) die("Connection failed: " . $conn->connect_error . "\n");
 
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error . "\n");
-}
+echo "--- QPay Dashboard Metadata Repair (Advanced) ---\n";
 
-echo "Connected to database: $db_name\n";
-
-// 2. Find transactions that need fixing
-$sql = "SELECT id, ids, type, currency FROM transactions 
-        WHERE status = 2 
-        AND (type IS NULL OR type = '' OR type = 'api' OR currency IS NULL OR currency = '')";
-
+// 1. Find transactions to process
+$sql = "SELECT id, ids, type, currency FROM transactions WHERE status = 2 AND (type = 'api' OR type IS NULL OR type = '')";
 $result = $conn->query($sql);
 
-if (!$result) {
-    die("Query error: " . $conn->error . "\n");
-}
-
-$total_found = $result->num_rows;
-echo "Found $total_found transactions to process.\n";
-
-if ($total_found === 0) {
-    echo "Nothing to fix. Your dashboard should be up to date.\n";
-    $conn->close();
+if (!$result || $result->num_rows === 0) {
+    echo "No matching transactions found requiring fix.\n";
     exit;
 }
 
-$fixed_count = 0;
+echo "Found " . $result->num_rows . " transactions to inspect.\n";
 
-// Mapping for normalization
 $methodMap = [
     'dutch bangla bank' => 'dbbl',
     'dutch-bangla'      => 'dbbl',
@@ -62,44 +37,54 @@ $methodMap = [
     'rocket'            => 'rocket'
 ];
 
-// 3. Process each transaction
 while ($trx = $result->fetch_assoc()) {
     $trx_id = $trx['id'];
     $ids = $trx['ids'];
-    
-    echo "Processing Transaction ID: $trx_id...\n";
-    
-    // Find matching API payment to recover metadata
-    $safe_ids = $conn->real_escape_string($ids);
-    $api_sql = "SELECT payment_method, currency, brand_id FROM api_payments WHERE ids = '$safe_ids' LIMIT 1";
+    echo "\nChecking Transaction ID: $trx_id (Ref: $ids)\n";
+
+    $api_sql = "SELECT payment_method, provider_response FROM api_payments WHERE ids = '$ids' LIMIT 1";
     $api_result = $conn->query($api_sql);
     
-    $updateData = [];
+    $finalMethod = 'api'; // default
     
     if ($api_result && $api_result->num_rows > 0) {
         $api_data = $api_result->fetch_assoc();
-        
-        $rawMethod = !empty($api_data['payment_method']) ? strtolower($api_data['payment_method']) : 'api';
-        $normalizedMethod = $methodMap[$rawMethod] ?? $rawMethod;
+        $rawMethod = trim($api_data['payment_method'] ?? '');
+        $providerResponse = $api_data['provider_response'] ?? '';
 
-        $updateData[] = "type = '" . $conn->real_escape_string($normalizedMethod) . "'";
-        $updateData[] = "currency = '" . $conn->real_escape_string(!empty($api_data['currency']) ? $api_data['currency'] : 'BDT') . "'";
-        $updateData[] = "brand_id = '" . $conn->real_escape_string(!empty($api_data['brand_id']) ? $api_data['brand_id'] : '0') . "'";
-    }
+        echo "  - Raw method in DB: '" . ($rawMethod ?: "[EMPTY]") . "'\n";
 
-    if (!empty($updateData)) {
-        $update_sql = "UPDATE transactions SET " . implode(", ", $updateData) . " WHERE id = $trx_id";
-        if ($conn->query($update_sql)) {
-            echo "   [SUCCESS] Updated to " . ($normalizedMethod ?? 'unknown') . "\n";
-            $fixed_count++;
+        if ($rawMethod && $rawMethod !== 'api') {
+            $finalMethod = $methodMap[strtolower($rawMethod)] ?? $rawMethod;
+            echo "  - Found method in column: $finalMethod\n";
         } else {
-            echo "   [ERROR] Failed to update: " . $conn->error . "\n";
+            // Try to guess from provider response
+            echo "  - Column is empty. Inspecting Provider Response JSON...\n";
+            if (stripos($providerResponse, 'nagad') !== false) {
+                $finalMethod = 'nagad';
+                echo "  - Guessed 'nagad' from response content.\n";
+            } elseif (stripos($providerResponse, 'bkash') !== false) {
+                $finalMethod = 'bkash';
+                echo "  - Guessed 'bkash' from response content.\n";
+            } elseif (stripos($providerResponse, 'dbbl') !== false || stripos($providerResponse, 'dutch') !== false) {
+                $finalMethod = 'dbbl';
+                echo "  - Guessed 'dbbl' from response content.\n";
+            } else {
+                echo "  - Could not guess. Defaulting to 'api'.\n";
+            }
         }
+
+        // Update the record
+        $update_sql = "UPDATE transactions SET type = '" . $conn->real_escape_string($finalMethod) . "', currency = 'BDT' WHERE id = $trx_id";
+        if ($conn->query($update_sql)) {
+            echo "  [SUCCESS] Updated to: $finalMethod\n";
+        } else {
+            echo "  [ERROR] Update failed: " . $conn->error . "\n";
+        }
+    } else {
+        echo "  [SKIP] No matching record in api_payments table.\n";
     }
 }
 
-echo "\n--- Summary ---\n";
-echo "Total Updated: $fixed_count\n";
-echo "Done. Please refresh your Merchant Dashboard.\n";
-
+echo "\nDone. Please check your dashboard.\n";
 $conn->close();
