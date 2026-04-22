@@ -96,7 +96,7 @@ class PaymentController extends ResourceController
                 'customer_email' => $request->getVar('customer_email'),
                 'customer_name' => $request->getVar('customer_name'),
                 'metadata' => (is_array($metadata) || is_object($metadata)) ? json_encode($metadata) : $metadata,
-                'ip_address' => $request->getIPAddress(),
+                'ip_address' => $request->getVar('customer_ip') ?? $request->getServer('HTTP_X_FORWARDED_FOR') ?? $request->getServer('HTTP_X_REAL_IP') ?? $request->getIPAddress(),
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
             ];

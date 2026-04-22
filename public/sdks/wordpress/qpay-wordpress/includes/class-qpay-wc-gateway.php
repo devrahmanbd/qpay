@@ -69,6 +69,7 @@ class QPay_WC_Gateway extends WC_Payment_Gateway
                 'customer_name' => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
                 'customer_email' => $order->get_billing_email(),
                 'customer_phone' => $order->get_billing_phone(),
+                'customer_ip' => $order->get_customer_ip_address(),
                 'description' => sprintf(__('Order #%s at %s', 'qpay'), $order->get_order_number(), get_bloginfo('name')),
                 'metadata' => [
                     'order_id' => $order_id,

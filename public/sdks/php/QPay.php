@@ -60,7 +60,7 @@ class QPay
     /**
      * Create a new payment
      * 
-     * @param array $params [amount, currency, customer_name, customer_email, etc.]
+     * @param array $params [amount, currency, customer_name, customer_email, customer_ip, etc.]
      */
     public function createPayment(array $params): array
     {
