@@ -222,7 +222,7 @@ class PaymentController extends ResourceController
                 return $this->respondError('MISSING_PAYMENT_ID', 'Payment ID is required.', 400);
             }
 
-            $payment = $this->findPayment($paymentId, $merchant->id, $brand->id, $isTest);
+            $payment = $this->findPayment($paymentId, (int)$merchant->id, (int)$brand->id, $isTest);
 
             if (!$payment) {
                 return $this->respondError('PAYMENT_NOT_FOUND', 'No payment found with the provided ID.', 404);
@@ -244,47 +244,8 @@ class PaymentController extends ResourceController
             ]);
 
             if ($verifyResult['success'] && ($verifyResult['verified'] ?? false) && $payment->status < 2) {
-                // 2. Security Validation (IP Check)
-                $targetStatus = 2; // Default: Completed
-                $isSuspicious = false;
-
-                if (!empty($originalIP) && $originalIP !== $currentIP) {
-                    $targetStatus = 6; // Pending Manual Review
-                    $isSuspicious = true;
-                }
-
-                $updateData = [
-                    'status' => $targetStatus,
-                    'transaction_id' => $verifyResult['transaction_id'] ?? $paymentId,
-                    'provider_response' => json_encode($verifyResult),
-                    'updated_at' => date('Y-m-d H:i:s'),
-                ];
-
-                $this->db->table('api_payments')
-                    ->where('ids', $paymentId)
-                    ->update($updateData);
-
-                $payment->status = $targetStatus;
-
-                // 3. Dispatch Webhooks
-                $webhookService = new WebhookService();
-                $eventType = ($targetStatus == 2) ? 'payment.completed' : 'payment.pending_review';
-                $webhookService->dispatch((int)$brand->id, (int)$merchant->id, $eventType, $this->formatPayment($payment));
-
-                if ($isSuspicious) {
-                    // Logic for notifying merchant of switch to manual review
-                    $smsSender = new \App\Libraries\Smssender();
-                    // (Optional SMS Log trigger here)
-                }
-
-                // Send SMS/Email Alerts to Merchant if configured
-                $smsSender = new \App\Libraries\Smssender();
-                $smsParams = [
-                    'amount' => $payment->amount,
-                    'currency' => $payment->currency,
-                    'payment_id' => $payment->ids,
-                    'method' => $payment->payment_method
-                ];
+                $finalResult = $this->finalizePaymentProcess($payment, $verifyResult['transaction_id'] ?? null, $verifyResult, $currentIP);
+                $payment->status = $finalResult['status'];
             }
             $formatted = $this->formatPayment($payment);
             $formatted['verified'] = $verifyResult['verified'] ?? false;
@@ -338,7 +299,7 @@ class PaymentController extends ResourceController
                 return $this->respondError('MISSING_PAYMENT_ID', 'Payment ID is required.', 400);
             }
 
-            $payment = $this->findPayment($paymentId, $merchant->id, $brand->id, $isTest);
+            $payment = $this->findPayment($paymentId, (int)$merchant->id, (int)$brand->id, $isTest);
 
             if (!$payment) {
                 return $this->respondError('PAYMENT_NOT_FOUND', 'No payment found with the provided ID.', 404);
@@ -422,7 +383,7 @@ class PaymentController extends ResourceController
                 return $this->respondError('MISSING_PAYMENT_ID', 'Payment ID is required.', 400);
             }
 
-            $payment = $this->findPayment($paymentId, $merchant->id, $brand->id, $isTest);
+            $payment = $this->findPayment($paymentId, (int)$merchant->id, (int)$brand->id, $isTest);
 
             if (!$payment) {
                 return $this->respondError('PAYMENT_NOT_FOUND', 'No payment found with the provided ID.', 404);
@@ -753,12 +714,30 @@ class PaymentController extends ResourceController
 
         // 1. Success Flow
         if (isset($verifyResult['success']) && $verifyResult['success']) {
+            $currentIP = $this->request->getIPAddress();
+            $finalizeResult = $this->finalizePaymentProcess($payment, $transactionId, $verifyResult, $currentIP);
+ 
+            // If the payment was canceled during finalization (e.g. duplicate), redirect to cancel/error
+            if ($finalizeResult['status'] != 2) {
+                $redirectUrl = !empty($payment->cancel_url) ? $payment->cancel_url : base_url("api/v1/payment/checkout/{$paymentId}?status=error&reason=" . urlencode($finalizeResult['reason']));
+                if (!empty($payment->cancel_url)) {
+                    $separator = str_contains($payment->cancel_url, '?') ? '&' : '?';
+                    $redirectUrl .= $separator . "payment_id={$paymentId}&status=canceled&reason=" . urlencode($finalizeResult['reason']);
+                }
+                
+                return $this->respond([
+                    'status' => 'error',
+                    'message' => $finalizeResult['reason'],
+                    'redirect' => $redirectUrl
+                ]);
+            }
+
             $redirect = base_url("api/v1/payment/checkout/{$paymentId}?status=success");
             if (!empty($payment->success_url)) {
                 $separator = str_contains($payment->success_url, '?') ? '&' : '?';
                 $redirect = $payment->success_url . $separator . "payment_id={$paymentId}&status=completed";
             }
-
+ 
             return $this->respond([
                 'status' => 'success',
                 'message' => 'Payment Verified Successfully!',
@@ -929,6 +908,76 @@ class PaymentController extends ResourceController
         }
 
         return redirect()->to(base_url("api/v1/payment/checkout/{$paymentId}"));
+    }
+
+    protected function finalizePaymentProcess(object $payment, ?string $transactionId, array $verifyResult, string $currentIP): array
+    {
+        $targetStatus = 2; // Default: Completed
+        $reason = null;
+
+        // 1. Duplicate Transaction Check (Modern + Legacy)
+        if ($transactionId) {
+            // Check api_payments
+            $exists = $this->db->table('api_payments')
+                ->where('merchant_id', $payment->merchant_id)
+                ->where('transaction_id', $transactionId)
+                ->whereIn('status', [2, 6])
+                ->where('ids !=', $payment->ids)
+                ->get()->getRow();
+            
+            if (!$exists) {
+                // Check legacy transactions table
+                $exists = $this->db->table('transactions')
+                    ->where('uid', $payment->merchant_id)
+                    ->where('transaction_id', $transactionId)
+                    ->where('status', 1) 
+                    ->get()->getRow();
+            }
+
+            if ($exists) {
+                $targetStatus = 5; // Canceled
+                $reason = "Duplicate Transaction ID detected. This transaction has already been processed.";
+            }
+        }
+
+        // 2. IP Mismatch Security (Strict Policy: Direct Cancel)
+        $originalIP = $payment->ip_address;
+        if ($targetStatus === 2 && !empty($originalIP) && $originalIP !== $currentIP) {
+            $targetStatus = 5; // Canceled
+            $reason = "Security check failed: IP address mismatch. This transaction was initiated from a different device/network.";
+        }
+
+        // 3. Update Database
+        $updateData = [
+            'status' => $targetStatus,
+            'transaction_id' => $transactionId ?? $payment->ids,
+            'provider_response' => json_encode($verifyResult),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+        
+        if ($reason) {
+            $metadata = json_decode($payment->metadata ?? '{}', true);
+            if (is_array($metadata)) {
+                $metadata['cancellation_reason'] = $reason;
+                $updateData['metadata'] = json_encode($metadata);
+            }
+        }
+
+        $this->db->table('api_payments')
+            ->where('ids', $payment->ids)
+            ->update($updateData);
+
+        $payment->status = $targetStatus; // Update local object for webhook
+
+        // 4. Dispatch Webhooks
+        $webhookService = new \App\Libraries\WebhookService();
+        $eventType = ($targetStatus == 2) ? 'payment.completed' : 'payment.canceled';
+        $webhookService->dispatch((int)$payment->brand_id, (int)$payment->merchant_id, $eventType, $this->formatPayment($payment));
+
+        return [
+            'status' => $targetStatus,
+            'reason' => $reason
+        ];
     }
 
 
