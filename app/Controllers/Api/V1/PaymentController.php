@@ -285,6 +285,7 @@ class PaymentController extends ResourceController
                     'payment_id' => $payment->ids,
                     'method' => $payment->payment_method
                 ];
+            }
             $formatted = $this->formatPayment($payment);
             $formatted['verified'] = $verifyResult['verified'] ?? false;
             $formatted['status'] = $this->statusLabel((int)$payment->status); // Standardized label
