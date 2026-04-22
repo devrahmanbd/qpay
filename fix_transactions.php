@@ -1,61 +1,103 @@
 <?php
 
-// Maintenance Script: fix_transactions.php
-// Purpose: Fixes synced transactions that are missing metadata required for dashboard counters.
-// Usage: php fix_transactions.php
+/**
+ * Standalone Maintenance Script: fix_transactions.php
+ * 
+ * This script fixes transactions that are missing metadata (type, currency) 
+ * required for the Merchant Dashboard counters.
+ * 
+ * It uses direct MySQLi to avoid CodeIgniter routing issues (404 errors) 
+ * when run from the command line.
+ */
 
-require_once __DIR__ . '/index.php'; // Assuming this is placed in the project root
+// --- CONFIGURATION (Based on your .env) ---
+$host     = 'localhost';
+$db_user  = 'root';
+$db_pass  = 'harry71Nahid920*';
+$db_name  = 'main';
 
-$db = \Config\Database::connect();
+// Set error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-echo "Starting Transaction Metadata Fix...\n";
+echo "--- QPay Dashboard Metadata Repair ---\n";
 
-// Find all successful transactions that might be missing type or currency
-$transactions = $db->table('transactions')
-    ->where('status', 2)
-    ->groupStart()
-        ->where('currency', '')
-        ->orWhere('currency', null)
-        ->orWhere('type', '')
-        ->orWhere('type', null)
-    ->groupEnd()
-    ->get()
-    ->getResult();
+// 1. Establish Database Connection
+$conn = new mysqli($host, $db_user, $db_pass, $db_name);
 
-echo "Found " . count($transactions) . " records to inspect.\n";
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error . "\n");
+}
 
-$count = 0;
-foreach ($transactions as $trx) {
-    if (empty($trx->ids)) {
-        continue;
-    }
+echo "Connected to database: $db_name\n";
 
-    // Attempt to recover metadata from the API payments table
-    $apiPayment = $db->table('api_payments')->where('ids', $trx->ids)->get()->getRow();
+// 2. Find transactions that need fixing
+// We look for 'Success' status (2) where type or currency is blank
+$sql = "SELECT id, ids, type, currency FROM transactions 
+        WHERE status = 2 
+        AND (type IS NULL OR type = '' OR currency IS NULL OR currency = '')";
+
+$result = $conn->query($sql);
+
+if (!$result) {
+    die("Query error: " . $conn->error . "\n");
+}
+
+$total_found = $result->num_rows;
+echo "Found $total_found transactions requiring metadata repair.\n";
+
+if ($total_found === 0) {
+    echo "Nothing to fix. Your dashboard should be up to date.\n";
+    $conn->close();
+    exit;
+}
+
+$fixed_count = 0;
+
+// 3. Process each transaction
+while ($trx = $result->fetch_assoc()) {
+    $trx_id = $trx['id'];
+    $ids = $trx['ids'];
+    
+    echo "Processing Transaction ID: $trx_id (Ref: $ids)...\n";
+    
+    // Find matching API payment to recover metadata
+    $safe_ids = $conn->real_escape_string($ids);
+    $api_sql = "SELECT payment_method, currency, brand_id FROM api_payments WHERE ids = '$safe_ids' LIMIT 1";
+    $api_result = $conn->query($api_sql);
     
     $updateData = [];
-    if ($apiPayment) {
-        if (empty($trx->currency)) {
-            $updateData['currency'] = !empty($apiPayment->currency) ? $apiPayment->currency : 'BDT';
+    
+    if ($api_result && $api_result->num_rows > 0) {
+        $api_data = $api_result->fetch_assoc();
+        
+        if (empty($trx['type'])) {
+            $updateData[] = "type = '" . $conn->real_escape_string(!empty($api_data['payment_method']) ? $api_data['payment_method'] : 'api') . "'";
         }
-        if (empty($trx->type)) {
-            $updateData['type'] = !empty($apiPayment->payment_method) ? $apiPayment->payment_method : 'api';
+        if (empty($trx['currency'])) {
+            $updateData[] = "currency = '" . $conn->real_escape_string(!empty($api_data['currency']) ? $api_data['currency'] : 'BDT') . "'";
         }
-        if (empty($trx->brand_id)) {
-            $updateData['brand_id'] = $apiPayment->brand_id;
-        }
+        // Force update brand_id if missing
+        $updateData[] = "brand_id = '" . $conn->real_escape_string(!empty($api_data['brand_id']) ? $api_data['brand_id'] : '0') . "'";
     } else {
-        // Fallback for transactions without an API record
-        if (empty($trx->currency)) $updateData['currency'] = 'BDT';
-        if (empty($trx->type)) $updateData['type'] = 'api';
+        // Fallback for orphaned transactions
+        if (empty($trx['type'])) $updateData[] = "type = 'api'";
+        if (empty($trx['currency'])) $updateData[] = "currency = 'BDT'";
     }
 
     if (!empty($updateData)) {
-        $db->table('transactions')->where('id', $trx->id)->update($updateData);
-        echo "Updated Transaction #{$trx->id} (IDS: {$trx->ids}) - Type: " . ($updateData['type'] ?? 'unchanged') . ", Cur: " . ($updateData['currency'] ?? 'unchanged') . "\n";
-        $count++;
+        $update_sql = "UPDATE transactions SET " . implode(", ", $updateData) . " WHERE id = $trx_id";
+        if ($conn->query($update_sql)) {
+            echo "   [SUCCESS] Updated metadata.\n";
+            $fixed_count++;
+        } else {
+            echo "   [ERROR] Failed to update: " . $conn->error . "\n";
+        }
     }
 }
 
-echo "Maintenance complete. Fixed $count records.\n";
-echo "Please refresh your dashboard to see the updated counters.\n";
+echo "\n--- Summary ---\n";
+echo "Total Fixed: $fixed_count\n";
+echo "Done. Please refresh your Merchant Dashboard.\n";
+
+$conn->close();
