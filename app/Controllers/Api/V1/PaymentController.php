@@ -976,6 +976,21 @@ class PaymentController extends ResourceController
         if ((int)$targetStatus === 2) {
             // Normalize payment method for the legacy dashboard
             $rawMethod = !empty($payment->payment_method) ? strtolower($payment->payment_method) : 'api';
+            
+            // If the method is 'api' or empty, try to find an active wallet for this brand
+            if ($rawMethod === 'api' || empty($rawMethod)) {
+                $wallet = $this->db->table('user_payment_settings')
+                    ->where('uid', $payment->merchant_id)
+                    ->where('brand_id', $payment->brand_id)
+                    ->where('status', 1)
+                    ->get()
+                    ->getRow();
+                
+                if ($wallet) {
+                    $rawMethod = $wallet->g_type;
+                }
+            }
+
             $methodMap = [
                 'dutch bangla bank' => 'dbbl',
                 'dutch-bangla'      => 'dbbl',
