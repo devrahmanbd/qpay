@@ -932,6 +932,12 @@ class PaymentController extends ResourceController
     }
 
 
+
+    protected function generatePaymentId(): string
+    {
+        return bin2hex(random_bytes(16));
+    }
+
     protected function statusLabel(int $status): string
     {
         $labels = [
