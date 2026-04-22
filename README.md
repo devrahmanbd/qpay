@@ -141,6 +141,63 @@ QPay is a payment gateway and orchestrator for South Asian markets (Bangladesh).
    ```bash
    chmod -R 777 writable/
    ```
+---
+
+## Server Setup & Subdomains (Shortbridge Method)
+
+To set up a subdomain (e.g., `checkout.yourdomain.com`) pointing to the same QPay instance, use the **Shortbridge Method** via symbolic links. This allows you to serve the checkout or API from a different domain while sharing the same codebase and sessions.
+
+### 1. Create a Symbolic Link
+Create a symlink from your web server's subdomain root to the QPay `public` directory:
+
+```bash
+# Syntax: ln -s /path/to/qpay/public /path/to/subdomain_root
+ln -s /var/www/qpay/public /var/www/checkout
+```
+
+### 2. Configure Web Server
+
+#### Apache
+Ensure the `FollowSymLinks` option is enabled for the subdomain directory:
+```apache
+<VirtualHost *:80>
+    ServerName checkout.yourdomain.com
+    DocumentRoot /var/www/checkout
+
+    <Directory /var/www/checkout>
+        Options +FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
+
+#### Nginx
+Point the `root` directive to your symbolic link:
+```nginx
+server {
+    listen 80;
+    server_name checkout.yourdomain.com;
+    root /var/www/checkout;
+
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+    }
+}
+```
+
+### 3. Update Base URL
+Ensure your `.env` or `app/Config/App.php` supports the subdomain:
+```env
+app.baseURL = 'https://qpay.yourdomain.com'
+```
 
 ---
 
@@ -290,8 +347,8 @@ public/
     ├── wordpress/         # WordPress plugin (folder + ZIP)
     └── woocommerce/       # Legacy WooCommerce-only plugin
 
+Qpay_App/                  # Android application source code (tracked)
 robots.txt                 # SEO crawl rules
-start.sh                   # Startup script (MariaDB + PHP server)
 ```
 
 ---
