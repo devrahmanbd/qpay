@@ -77,8 +77,19 @@ class Transactions extends UserController
 
         if (!empty(post('type'))) {
 
-            $this->db->table('transactions')->update(['status' => (int)post('k_status')], ['ids' => $ids]);
-            $this->db->table('temp_transactions')->update(['status' => (int)post('k_status')], ['ids' => $ids]);
+            $newStatus = (int)post('k_status');
+            $oldStatus = (int)$item->status;
+
+            $this->db->table('transactions')->update(['status' => $newStatus], ['ids' => $ids]);
+            $this->db->table('temp_transactions')->update(['status' => $newStatus], ['ids' => $ids]);
+
+            // Increment balance if manually marking as success and it wasn't already success
+            if ($newStatus === 2 && $oldStatus !== 2) {
+                $this->db->table('users')
+                    ->where('id', $item->uid)
+                    ->set('balance', 'balance + ' . (float)$item->amount, false)
+                    ->update();
+            }
 
             if (post('type') == 'bank') {
                 $this->db->table('bank_transaction_logs')->update(['status' => (int)post('k_status')], ['ids' => $ids]);

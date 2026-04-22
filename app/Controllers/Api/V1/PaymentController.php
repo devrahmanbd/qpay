@@ -1019,6 +1019,12 @@ class PaymentController extends ResourceController
                 'created_at'     => date('Y-m-d H:i:s'),
                 'updated_at'     => date('Y-m-d H:i:s'),
             ]);
+
+            // Increment User Balance
+            $this->db->table('users')
+                ->where('id', $payment->merchant_id)
+                ->set('balance', 'balance + ' . (float)$payment->amount, false)
+                ->update();
         }
 
         $payment->status = $targetStatus; // Update local object for webhook
