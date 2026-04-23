@@ -13,7 +13,7 @@ Events::on('pre_system', static function () {
         }
 
         while (ob_get_level() > 0) {
-            ob_end_flush();
+            ob_end_clean();
         }
 
         ob_start(static fn ($buffer) => $buffer);
@@ -46,7 +46,7 @@ Events::on('post_controller_constructor', function () {
         }
         while (ob_get_level() > 0)
         {
-            ob_end_flush();
+            ob_end_clean();
         }
   
         ob_start(function ($buffer) {
